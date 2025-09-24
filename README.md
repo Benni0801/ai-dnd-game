@@ -1,25 +1,37 @@
-# AI D&D Game
+# ⚔️ AI D&D Game
 
-A simple AI-powered Dungeons & Dragons game built with Next.js and deployed on Vercel.
+A complete D&D-style text adventure game powered by AI.
 
 ## Features
 
-- AI Dungeon Master
-- Character Creation
-- Dice Rolling
-- Interactive Storytelling
+- 🎭 **Character Creation** - Choose race, class, and name
+- 📋 **Character Sheet** - View your stats and inventory  
+- 🗣️ **AI Chat** - Talk to the AI Dungeon Master
+- ⚔️ **Adventure** - AI creates dynamic stories
+- 📱 **Mobile Friendly** - Works on all devices
 
-## Deployment
+## How to Run Locally
 
-This app is deployed on Vercel and uses Google Gemini AI.
+1. Install dependencies: `npm install`
+2. Create `.env.local` with your Google API key:
+   ```
+   GOOGLE_API_KEY=your_api_key_here
+   ```
+3. Run development server: `npm run dev`
+4. Open `http://localhost:3000`
 
-## Getting Started
+## How to Deploy to Vercel
 
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Run the development server: `npm run dev`
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+1. Push this code to a GitHub repository
+2. Import the repository into Vercel
+3. Set environment variable: `GOOGLE_API_KEY`
+4. Deploy!
 
-## Environment Variables
+## Game Flow
 
-- `GOOGLE_API_KEY`: Your Google Gemini API key
+1. Create your character (name, race, class)
+2. Start your adventure with the AI Dungeon Master
+3. Chat with the AI to explore and interact
+4. Your character sheet tracks your progress
+
+Enjoy your adventure! 🎲

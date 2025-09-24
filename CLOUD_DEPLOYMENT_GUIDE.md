@@ -168,3 +168,4 @@ Share your game URL with friends and start epic adventures together! 🎲⚔️�
 - **API Errors**: Check the API service's status page
 
 Your game is now ready for the world! 🌍
+

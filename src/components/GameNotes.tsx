@@ -223,3 +223,4 @@ const GameNotes: React.FC<GameNotesProps> = ({ sessionId, className = '' }) => {
 };
 
 export default GameNotes;
+

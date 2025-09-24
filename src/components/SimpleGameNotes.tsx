@@ -186,3 +186,4 @@ const SimpleGameNotes: React.FC<SimpleGameNotesProps> = ({ className = '' }) => 
 };
 
 export default SimpleGameNotes;
+

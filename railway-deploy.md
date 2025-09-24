@@ -29,3 +29,4 @@ Railway free tier includes:
 - 500 hours/month compute
 - 1GB RAM
 - Perfect for Ollama + your game
+

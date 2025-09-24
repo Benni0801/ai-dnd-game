@@ -57,3 +57,4 @@ const testOllamaDirect = async () => {
 };
 
 testOllamaDirect();
+
