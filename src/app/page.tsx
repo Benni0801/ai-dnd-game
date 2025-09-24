@@ -7,8 +7,8 @@ export default function Home() {
       padding: '2rem',
       fontFamily: 'Arial, sans-serif'
     }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: '3rem', textAlign: 'center', marginBottom: '2rem' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '3rem', marginBottom: '2rem' }}>
           ⚔️ AI D&D Game
         </h1>
         
@@ -19,10 +19,10 @@ export default function Home() {
           marginBottom: '2rem'
         }}>
           <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>
-            🎮 Welcome, Adventurer!
+            🎮 Successfully Deployed!
           </h2>
           <p style={{ marginBottom: '1rem', lineHeight: '1.6' }}>
-            Your AI-powered Dungeons & Dragons adventure is ready! This game is powered by Google Gemini AI and deployed on Vercel.
+            Your AI-powered Dungeons & Dragons game is now live on Vercel!
           </p>
           
           <div style={{ 
@@ -31,13 +31,10 @@ export default function Home() {
             borderRadius: '4px',
             marginBottom: '1rem'
           }}>
-            <h3 style={{ marginBottom: '0.5rem' }}>✅ Features:</h3>
-            <ul style={{ marginLeft: '1rem' }}>
-              <li>AI Dungeon Master (Google Gemini)</li>
-              <li>Character Creation</li>
-              <li>Dice Rolling</li>
-              <li>Interactive Storytelling</li>
-            </ul>
+            <h3 style={{ marginBottom: '0.5rem' }}>✅ Deployment Status:</h3>
+            <p>✅ Build successful</p>
+            <p>✅ No errors</p>
+            <p>✅ Ready for features</p>
           </div>
           
           <div style={{ 
@@ -45,31 +42,24 @@ export default function Home() {
             padding: '1rem', 
             borderRadius: '4px'
           }}>
-            <h3 style={{ marginBottom: '0.5rem' }}>🚀 Status: LIVE!</h3>
-            <p>Your game is successfully deployed and working!</p>
+            <h3 style={{ marginBottom: '0.5rem' }}>🚀 Next Steps:</h3>
+            <p>Now we can add the full game features one by one!</p>
           </div>
         </div>
         
         <div style={{ 
           backgroundColor: '#2a2a2a', 
           padding: '2rem', 
-          borderRadius: '8px',
-          textAlign: 'center'
+          borderRadius: '8px'
         }}>
-          <h3 style={{ marginBottom: '1rem' }}>🎲 Ready to Play?</h3>
-          <p style={{ marginBottom: '1rem' }}>
-            The full game interface will be available in the next update!
-          </p>
-          <div style={{ 
-            backgroundColor: '#6c757d', 
-            padding: '1rem', 
-            borderRadius: '4px',
-            fontSize: '0.9rem'
-          }}>
-            <strong>Deployment Status:</strong> ✅ Successfully deployed to Vercel<br/>
-            <strong>AI Backend:</strong> ✅ Google Gemini configured<br/>
-            <strong>Build Status:</strong> ✅ No errors
-          </div>
+          <h3 style={{ marginBottom: '1rem' }}>🎲 Game Features Coming Soon:</h3>
+          <ul style={{ textAlign: 'left', maxWidth: '400px', margin: '0 auto' }}>
+            <li>AI Dungeon Master (Google Gemini)</li>
+            <li>Character Creation</li>
+            <li>Dice Rolling</li>
+            <li>Interactive Storytelling</li>
+            <li>Mobile-friendly interface</li>
+          </ul>
         </div>
       </div>
     </div>
