@@ -387,10 +387,9 @@ const AIDnDGame: React.FC = () => {
   // Parse dice roll requests from AI responses
   const parseDiceRollRequest = (message: string) => {
     const diceRollRegex = /\[DICE_ROLL:d(\d+)([+-]\d+)?:([^\]]+)\]/g;
-    const matches = [...message.matchAll(diceRollRegex)];
+    const match = diceRollRegex.exec(message);
     
-    if (matches.length > 0) {
-      const match = matches[0];
+    if (match) {
       const diceType = parseInt(match[1]);
       const modifier = match[2] ? parseInt(match[2]) : 0;
       const description = match[3];
