@@ -94,7 +94,7 @@ const AIDnDGame: React.FC = () => {
           setSelectedModel(data.models[0].name);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading models:', error);
     }
   };
@@ -112,7 +112,7 @@ const AIDnDGame: React.FC = () => {
           timestamp: new Date(msg.timestamp)
         }));
         setMessages(parsedMessages);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error loading saved messages:', error);
       }
     }
@@ -125,7 +125,7 @@ const AIDnDGame: React.FC = () => {
         if (stats.race && stats.class) {
           setGameStarted(true);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error loading saved stats:', error);
       }
     }
@@ -243,7 +243,7 @@ const AIDnDGame: React.FC = () => {
 
       setMessages(prev => [...prev, aiMessage]);
       setLastFailedRequest(null); // Clear failed request on success
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error retrying request:', error);
       // Keep the failed request for another retry attempt
     } finally {
@@ -333,7 +333,7 @@ const AIDnDGame: React.FC = () => {
       }
       
       setLastFailedRequest(null); // Clear any previous failed request on success
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error);
       
       // Store the failed request for retry
@@ -656,7 +656,7 @@ const AIDnDGame: React.FC = () => {
                         <input
                           type="number"
                           value={value as number}
-                          onChange={(e) => updateCharacterStat(stat, parseInt(e.target.value) || 0)}
+                          onChange={(e) => updateCharacterStat(stat as keyof CharacterStats, parseInt(e.target.value) || 0)}
                           className="w-12 bg-dnd-dark border border-dnd-gold rounded px-1 py-1 text-white text-center text-xs"
                         />
                       </div>
