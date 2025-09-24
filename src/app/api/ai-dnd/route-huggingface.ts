@@ -115,10 +115,10 @@ export async function POST(request: NextRequest) {
       usage: { total_tokens: 0 }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error generating AI response:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to generate AI response' },
+      { error: error?.message || 'Failed to generate AI response' },
       { status: 500 }
     );
   }
