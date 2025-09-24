@@ -1,0 +1,343 @@
+/* Rustic Fantasy Theme - Inspired by RPCiege Design */
+
+/* Rustic Wooden Background */
+.rustic-background {
+  background: linear-gradient(135deg, #2c1810 0%, #1a0f08 50%, #0f0804 100%);
+  position: relative;
+}
+
+.rustic-wood-bg {
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(160, 82, 45, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(101, 67, 33, 0.1) 0%, transparent 50%),
+    linear-gradient(45deg, transparent 30%, rgba(139, 69, 19, 0.05) 50%, transparent 70%);
+  background-size: 400px 400px, 300px 300px, 500px 500px, 100px 100px;
+  animation: woodGrain 20s ease-in-out infinite;
+}
+
+@keyframes woodGrain {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(-10px) translateY(-5px); }
+  50% { transform: translateX(5px) translateY(-10px); }
+  75% { transform: translateX(-5px) translateY(5px); }
+}
+
+/* Rustic Panels */
+.rustic-panel {
+  background: linear-gradient(145deg, #3d2914 0%, #2c1810 50%, #1a0f08 100%);
+  border: 3px solid #8b4513;
+  border-radius: 15px;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    0 8px 16px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(139, 69, 19, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.rustic-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #d4af37, transparent);
+  opacity: 0.6;
+}
+
+.rustic-panel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(184, 134, 11, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.rustic-panel-content {
+  padding: 20px;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+/* Rustic Header */
+.rustic-header {
+  background: linear-gradient(145deg, #4a2c17 0%, #3d2914 50%, #2c1810 100%);
+  border-bottom: 3px solid #8b4513;
+  padding: 15px 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.rustic-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #d4af37, transparent);
+}
+
+/* Fantasy Cards */
+.fantasy-card {
+  background: linear-gradient(145deg, #4a2c17 0%, #3d2914 50%, #2c1810 100%);
+  border: 2px solid #8b4513;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 
+    inset 0 1px 2px rgba(0, 0, 0, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.3);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.fantasy-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    inset 0 1px 2px rgba(0, 0, 0, 0.2),
+    0 6px 12px rgba(0, 0, 0, 0.4);
+  border-color: #d4af37;
+}
+
+.fantasy-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #d4af37, transparent);
+  opacity: 0.7;
+}
+
+/* Message Cards */
+.message-card {
+  background: linear-gradient(145deg, #3d2914 0%, #2c1810 50%, #1a0f08 100%);
+  border: 2px solid #8b4513;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.message-card.user {
+  border-color: #4a90e2;
+  background: linear-gradient(145deg, #2c3e50 0%, #1a252f 50%, #0f1419 100%);
+}
+
+.message-card.ai {
+  border-color: #d4af37;
+  background: linear-gradient(145deg, #4a2c17 0%, #3d2914 50%, #2c1810 100%);
+}
+
+.message-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, currentColor, transparent);
+  opacity: 0.3;
+}
+
+/* Character Sheet Styling */
+.character-stat {
+  background: linear-gradient(145deg, #2c1810 0%, #1a0f08 100%);
+  border: 1px solid #8b4513;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.character-stat-label {
+  color: #d4af37;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.9em;
+}
+
+.character-stat-value {
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+/* Dice Styling */
+.dice-display {
+  background: linear-gradient(145deg, #4a2c17 0%, #3d2914 100%);
+  border: 2px solid #8b4513;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.dice-value {
+  font-size: 2em;
+  font-weight: bold;
+  color: #d4af37;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Buttons */
+.rustic-button {
+  background: linear-gradient(145deg, #8b4513 0%, #6b3410 50%, #4a2c17 100%);
+  border: 2px solid #d4af37;
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: #ffffff;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.rustic-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.rustic-button:hover::before {
+  left: 100%;
+}
+
+.rustic-button:hover {
+  background: linear-gradient(145deg, #a0522d 0%, #8b4513 50%, #6b3410 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.rustic-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Input Fields */
+.rustic-input {
+  background: linear-gradient(145deg, #2c1810 0%, #1a0f08 100%);
+  border: 2px solid #8b4513;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #ffffff;
+  font-size: 1em;
+  transition: all 0.3s ease;
+}
+
+.rustic-input:focus {
+  outline: none;
+  border-color: #d4af37;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+}
+
+.rustic-input::placeholder {
+  color: #8b4513;
+}
+
+/* Scrollbars */
+.rustic-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.rustic-scrollbar::-webkit-scrollbar-track {
+  background: #2c1810;
+  border-radius: 4px;
+}
+
+.rustic-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(145deg, #8b4513 0%, #6b3410 100%);
+  border-radius: 4px;
+  border: 1px solid #d4af37;
+}
+
+.rustic-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(145deg, #a0522d 0%, #8b4513 100%);
+}
+
+/* Typography */
+.rustic-title {
+  font-family: 'Cinzel', 'Times New Roman', serif;
+  color: #d4af37;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  font-weight: bold;
+}
+
+.rustic-subtitle {
+  font-family: 'Cinzel', 'Times New Roman', serif;
+  color: #d4af37;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.rustic-text {
+  color: #e8d5b7;
+  line-height: 1.6;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+  }
+}
+
+.glow-effect {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .rustic-panel {
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .rustic-panel-content {
+    padding: 12px;
+  }
+  
+  .fantasy-card {
+    padding: 12px;
+  }
+}
+
