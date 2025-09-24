@@ -80,11 +80,11 @@ async function generateAIResponse(messages: any[], characterStats: any): Promise
 
     return aiResponse;
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error calling Hugging Face API:', error);
     
     // Check if it's a timeout error
-    if (error.name === 'AbortError') {
+    if (error?.name === 'AbortError') {
       return "The dungeon master is deep in thought. 'Give me a moment to consider your words, brave adventurer.'";
     }
     

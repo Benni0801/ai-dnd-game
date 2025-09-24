@@ -58,16 +58,16 @@ async function generateAIResponse(messages: any[], characterStats: any, selected
     console.log('OpenAI response received:', data.choices[0].message.content.substring(0, 100) + '...');
     return data.choices[0].message.content;
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error calling OpenAI API:', error);
     
     // Check if it's a timeout error
-    if (error.name === 'AbortError') {
+    if (error?.name === 'AbortError') {
       throw new Error('AI response timed out. Please try again.');
     }
     
     // Check if it's an API key error
-    if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+    if (error?.message?.includes('401') || error?.message?.includes('Unauthorized')) {
       throw new Error('Invalid API key. Please check your OpenAI API key configuration.');
     }
     
