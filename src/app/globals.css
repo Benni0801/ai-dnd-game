@@ -1,70 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');
-@import '../styles/dice-animations.css';
-@import '../styles/rustic-theme.css';
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
 
-@layer base {
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  color: white;
+  background: #1a1a1a;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (prefers-color-scheme: dark) {
   html {
-    font-family: 'Cinzel', serif;
-  }
-  
-  body {
-    margin: 0;
-    padding: 0;
-    background-color: #0d0d0d;
-    color: #ffffff;
+    color-scheme: dark;
   }
 }
-
-@layer components {
-  .scrollbar-thin {
-    scrollbar-width: thin;
-    scrollbar-color: #D4AF37 #1a1a1a;
-  }
-  
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: #1a1a1a;
-  }
-  
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #D4AF37;
-    border-radius: 4px;
-  }
-  
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: #B8941F;
-  }
-}
-
-/* Custom animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
-}
-
-/* Glow effect for important elements */
-.glow {
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
-}
-
-.glow:hover {
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
-}
-
-

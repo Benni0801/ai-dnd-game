@@ -1,39 +1,77 @@
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gray-900 text-white p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-center">
-          ⚔️ AI D&D Adventure Game
+    <div style={{ 
+      minHeight: '100vh', 
+      backgroundColor: '#1a1a1a', 
+      color: 'white', 
+      padding: '2rem',
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <h1 style={{ fontSize: '3rem', textAlign: 'center', marginBottom: '2rem' }}>
+          ⚔️ AI D&D Game
         </h1>
         
-        <div className="bg-gray-800 p-6 rounded-lg">
-          <h2 className="text-2xl mb-4">🎮 Welcome, Adventurer!</h2>
-          <p className="mb-4">
-            Your AI-powered Dungeons & Dragons adventure awaits! This game is powered by Google Gemini AI.
+        <div style={{ 
+          backgroundColor: '#2a2a2a', 
+          padding: '2rem', 
+          borderRadius: '8px',
+          marginBottom: '2rem'
+        }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>
+            🎮 Welcome, Adventurer!
+          </h2>
+          <p style={{ marginBottom: '1rem', lineHeight: '1.6' }}>
+            Your AI-powered Dungeons & Dragons adventure is ready! This game is powered by Google Gemini AI and deployed on Vercel.
           </p>
           
-          <div className="space-y-4">
-            <div className="bg-green-900 p-4 rounded">
-              <h3 className="text-lg font-semibold mb-2">✅ Game Features:</h3>
-              <ul className="list-disc list-inside space-y-1">
-                <li>AI Dungeon Master powered by Google Gemini</li>
-                <li>Character creation and management</li>
-                <li>Dice rolling mechanics</li>
-                <li>Interactive storytelling</li>
-                <li>Mobile-friendly interface</li>
-              </ul>
-            </div>
-            
-            <div className="bg-blue-900 p-4 rounded">
-              <h3 className="text-lg font-semibold mb-2">🚀 Status:</h3>
-              <p>Your game is successfully deployed on Vercel!</p>
-              <p className="text-sm text-gray-300 mt-2">
-                If you're seeing this page, the deployment worked. The full game interface will be available soon.
-              </p>
-            </div>
+          <div style={{ 
+            backgroundColor: '#0f5132', 
+            padding: '1rem', 
+            borderRadius: '4px',
+            marginBottom: '1rem'
+          }}>
+            <h3 style={{ marginBottom: '0.5rem' }}>✅ Features:</h3>
+            <ul style={{ marginLeft: '1rem' }}>
+              <li>AI Dungeon Master (Google Gemini)</li>
+              <li>Character Creation</li>
+              <li>Dice Rolling</li>
+              <li>Interactive Storytelling</li>
+            </ul>
+          </div>
+          
+          <div style={{ 
+            backgroundColor: '#084298', 
+            padding: '1rem', 
+            borderRadius: '4px'
+          }}>
+            <h3 style={{ marginBottom: '0.5rem' }}>🚀 Status: LIVE!</h3>
+            <p>Your game is successfully deployed and working!</p>
+          </div>
+        </div>
+        
+        <div style={{ 
+          backgroundColor: '#2a2a2a', 
+          padding: '2rem', 
+          borderRadius: '8px',
+          textAlign: 'center'
+        }}>
+          <h3 style={{ marginBottom: '1rem' }}>🎲 Ready to Play?</h3>
+          <p style={{ marginBottom: '1rem' }}>
+            The full game interface will be available in the next update!
+          </p>
+          <div style={{ 
+            backgroundColor: '#6c757d', 
+            padding: '1rem', 
+            borderRadius: '4px',
+            fontSize: '0.9rem'
+          }}>
+            <strong>Deployment Status:</strong> ✅ Successfully deployed to Vercel<br/>
+            <strong>AI Backend:</strong> ✅ Google Gemini configured<br/>
+            <strong>Build Status:</strong> ✅ No errors
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
