@@ -1,3 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import '../styles/rustic-theme.css';
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -13,6 +19,7 @@ body {
 body {
   color: white;
   background: #1a1a1a;
+  font-family: 'Arial', sans-serif;
 }
 
 a {
