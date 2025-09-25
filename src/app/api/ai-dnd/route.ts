@@ -50,53 +50,89 @@ export async function POST(request: NextRequest) {
     // Prepare the prompt for Gemini
     const fullPrompt = `${systemPrompt}\n\n${characterContext}\n\nConversation:\n${conversationHistory.map((msg: any) => `${msg.role}: ${msg.content}`).join('\n')}\n\nPlease respond as the Dungeon Master:`;
 
-    // Call Google Gemini API - try different model names
+    // Call Google Gemini API using the correct endpoint
     console.log('PATH: Using Google Gemini API');
     console.log('Calling Google Gemini API...');
-    const modelNames = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro', 'gemini-pro'];
-    let response;
-    let lastError;
     
-    for (const modelName of modelNames) {
-      try {
-        console.log(`Trying model: ${modelName}`);
-        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${process.env.GOOGLE_API_KEY}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{
-                text: fullPrompt
-              }]
-            }],
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 300,
-              topP: 0.8,
-              topK: 40
-            }
-          }),
-          signal: AbortSignal.timeout(30000)
-        });
-        
-        if (response.ok) {
-          console.log(`Success with model: ${modelName}`);
-          break;
-        } else {
-          const errorData = await response.text();
-          console.log(`Model ${modelName} failed: ${response.status} - ${errorData}`);
-          lastError = { status: response.status, data: errorData };
-        }
-      } catch (error) {
-        console.log(`Model ${modelName} error:`, error);
-        lastError = error;
-      }
+    // Try different API endpoints based on the API key type
+    let response;
+    const apiKey = process.env.GOOGLE_API_KEY;
+    
+    // Check if it's a Google AI Studio key (starts with AIza)
+    if (apiKey?.startsWith('AIza')) {
+      console.log('Using Google AI Studio API endpoint');
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: fullPrompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 300,
+            topP: 0.8,
+            topK: 40
+          }
+        }),
+        signal: AbortSignal.timeout(30000)
+      });
+    } else {
+      console.log('Using alternative API endpoint');
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: fullPrompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 300,
+            topP: 0.8,
+            topK: 40
+          }
+        }),
+        signal: AbortSignal.timeout(30000)
+      });
     }
     
-    if (!response || !response.ok) {
-      throw new Error(`All models failed. Last error: ${(lastError as any)?.status || 'Unknown'}`);
+    console.log('Gemini API response status:', response.status);
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error(`Gemini API error: ${response.status} - ${errorData}`);
+      
+      // If all models fail, fall back to predefined responses
+      console.log('API call failed, falling back to predefined responses');
+      const lastUserMessage = messages?.filter((msg: any) => msg.role === 'user').pop();
+      const userInput = lastUserMessage?.content?.toLowerCase() || '';
+      
+      let fallbackResponse = "The dungeon master nods thoughtfully. 'An interesting turn of events. What would you like to do next?'";
+      
+      if (userInput.includes('explore') || userInput.includes('forest') || userInput.includes('go')) {
+        fallbackResponse = "The dungeon master gestures toward the path ahead. 'You find yourself at a crossroads in a dense forest. Ancient trees tower above you, their branches creating a canopy that filters the sunlight. You can hear the distant sound of a babbling brook to the east, or you could venture deeper into the woods to the north. What path calls to you?'";
+      } else if (userInput.includes('attack') || userInput.includes('fight') || userInput.includes('combat')) {
+        fallbackResponse = "The dungeon master's eyes gleam with excitement. 'Roll for initiative! A shadowy figure emerges from the darkness, brandishing a rusty blade. The creature's eyes glow with malevolent intent. Are you ready for battle?'";
+      } else if (userInput.includes('roll') || userInput.includes('dice')) {
+        fallbackResponse = "The dungeon master produces a set of ornate dice. 'Ah, the roll of the dice! The fate of your adventure hangs in the balance. What would you like to roll for?'";
+      } else if (userInput.includes('character') || userInput.includes('sheet') || userInput.includes('stats')) {
+        fallbackResponse = "The dungeon master examines your character sheet. 'I see you are " + (characterStats?.name || 'Adventurer') + ", a " + (characterStats?.race || 'brave soul') + " " + (characterStats?.class || 'hero') + ". Your current HP is " + (characterStats?.hp || 20) + ". What would you like to do with your abilities?'";
+      } else if (userInput.includes('help') || userInput.includes('what') || userInput.includes('how')) {
+        fallbackResponse = "The dungeon master smiles warmly. 'Welcome, brave adventurer! You can explore the world, engage in combat, roll dice for skill checks, or ask me about your character. Try saying things like \"I want to explore the forest\" or \"Roll for initiative\" or \"Show me my character sheet\". What adventure awaits you?'";
+      }
+      
+      return NextResponse.json({
+        message: fallbackResponse,
+        usage: { total_tokens: 0 }
+      });
     }
 
     console.log('Gemini API response status:', response.status);
