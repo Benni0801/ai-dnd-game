@@ -318,11 +318,16 @@ The adventure awaits!`;
     return (
       <MultiplayerLobby
         onClose={() => setShowMultiplayerLobby(false)}
-        onJoinRoom={(roomId, userId) => {
+        onJoinRoom={(roomId) => {
           setCurrentRoomId(roomId);
-          setCurrentUserId(userId);
           setShowMultiplayerLobby(false);
         }}
+        onCreateRoom={(roomName) => {
+          // Handle room creation if needed
+          setShowMultiplayerLobby(false);
+        }}
+        onBack={() => setShowMultiplayerLobby(false)}
+        currentUserId={currentUserId}
       />
     );
   }
