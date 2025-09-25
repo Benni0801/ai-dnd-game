@@ -13,16 +13,7 @@ import RusticGameTools from './RusticGameTools';
 import SimpleGameNotes from './SimpleGameNotes';
 
 // Types
-import { CharacterStats } from '../types';
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  diceRoll?: number;
-  timestamp: Date;
-  isError?: boolean;
-}
+import { CharacterStats, Message } from '../types';
 
 const RusticAIDnDGameWithNotes: React.FC = () => {
   // State management

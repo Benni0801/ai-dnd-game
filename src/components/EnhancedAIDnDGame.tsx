@@ -13,16 +13,7 @@ import RusticGameTools from './RusticGameTools';
 import RusticChat from './RusticChat';
 
 // Types
-import { CharacterStats } from '../types';
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  diceRoll?: number;
-  timestamp: Date;
-  isError?: boolean;
-}
+import { CharacterStats, Message } from '../types';
 
 const EnhancedAIDnDGame: React.FC = () => {
   // State management

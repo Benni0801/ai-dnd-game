@@ -10,16 +10,7 @@ import SimpleDiceRoll from './SimpleDiceRoll';
 // import AISettings, { AISettingsData } from './AISettings';
 
 // Types
-import { CharacterStats } from '../types';
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  diceRoll?: number;
-  timestamp: Date;
-  isError?: boolean;
-}
+import { CharacterStats, Message } from '../types';
 
 const AIDnDGame: React.FC = () => {
   // State management

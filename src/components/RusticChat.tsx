@@ -1,14 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  isError?: boolean;
-}
+import { Message } from '../types';
 
 interface RusticChatProps {
   messages: Message[];

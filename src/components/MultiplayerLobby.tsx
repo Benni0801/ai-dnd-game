@@ -1,15 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-
-interface GameRoom {
-  id: string;
-  name: string;
-  players: string[];
-  dmId: string;
-  isActive: boolean;
-  createdAt: string;
-}
+import { GameRoom } from '../types';
 
 interface MultiplayerLobbyProps {
   onJoinRoom: (roomId: string) => void;

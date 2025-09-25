@@ -1,14 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CharacterStats } from '../types';
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-}
+import { CharacterStats, Message } from '../types';
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);

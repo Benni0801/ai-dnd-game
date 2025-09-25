@@ -11,28 +11,7 @@ import RusticGameTools from './RusticGameTools';
 import GameNotes from './GameNotes';
 
 // Types
-import { CharacterStats } from '../types';
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  diceRoll?: number;
-  timestamp: Date;
-  isError?: boolean;
-}
-
-interface GameSession {
-  id: string;
-  characterId: string;
-  userId: string;
-  currentLocation: string;
-  questProgress: string;
-  npcRelations: Record<string, number>;
-  gameState: string;
-  lastPlayed: Date;
-  createdAt: Date;
-}
+import { CharacterStats, Message, GameSession } from '../types';
 
 const EnhancedRusticAIDnDGame: React.FC = () => {
   // State management

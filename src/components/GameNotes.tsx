@@ -1,14 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-
-interface GameNote {
-  id: string;
-  sessionId: string;
-  content: string;
-  category: 'general' | 'quest' | 'npc' | 'location' | 'loot';
-  createdAt: Date;
-}
+import { GameNote } from '../types';
 
 interface GameNotesProps {
   sessionId: string;
