@@ -10,22 +10,7 @@ import SimpleDiceRoll from './SimpleDiceRoll';
 // import AISettings, { AISettingsData } from './AISettings';
 
 // Types
-interface CharacterStats {
-  name: string;
-  race?: string;
-  class?: string;
-  background?: string;
-  level?: number;
-  hp: number;
-  str: number;
-  dex: number;
-  int: number;
-  con?: number;
-  wis?: number;
-  cha?: number;
-  inventory: string;
-  specialAbilities?: string[];
-}
+import { CharacterStats } from '../types';
 
 interface Message {
   id: string;

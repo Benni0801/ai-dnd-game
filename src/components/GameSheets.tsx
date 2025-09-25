@@ -1,29 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-
-interface CharacterStats {
-  name: string;
-  race?: string;
-  class?: string;
-  level?: number;
-  experience?: { current: number; needed: number };
-  attributes: {
-    str: number;
-    dex: number;
-    con: number;
-    int: number;
-    wis: number;
-    cha: number;
-  };
-  hp: number;
-  maxHp: number;
-  inventory: string;
-  equippedItems?: string;
-  spells?: Array<{ name: string; level: number; slots: number }>;
-  skills?: string[];
-  backstory?: string;
-}
+import { CharacterStats } from '../types';
 
 interface PartyMember {
   name: string;

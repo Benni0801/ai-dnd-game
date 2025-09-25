@@ -1,28 +1,7 @@
 'use client';
 
 import React from 'react';
-
-interface CharacterStats {
-  name: string;
-  race?: string;
-  class?: string;
-  level?: number;
-  hp: number;
-  maxHp?: number;
-  attributes?: {
-    str: number;
-    dex: number;
-    int: number;
-    con: number;
-    wis: number;
-    cha: number;
-  };
-  inventory?: string;
-  equippedItems?: string;
-  spells?: string[];
-  skills?: string[];
-  backstory?: string;
-}
+import { CharacterStats } from '../types';
 
 interface RusticCharacterSheetProps {
   characterStats: CharacterStats;

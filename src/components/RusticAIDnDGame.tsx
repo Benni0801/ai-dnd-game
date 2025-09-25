@@ -12,30 +12,7 @@ import RusticCharacterSheet from './RusticCharacterSheet';
 import RusticGameTools from './RusticGameTools';
 
 // Types
-interface CharacterStats {
-  name: string;
-  race?: string;
-  class?: string;
-  background?: string;
-  level?: number;
-  hp: number;
-  str: number;
-  dex: number;
-  int: number;
-  con?: number;
-  wis?: number;
-  cha?: number;
-  inventory: string;
-  specialAbilities?: string[];
-  attributes?: {
-    str: number;
-    dex: number;
-    int: number;
-    con: number;
-    wis: number;
-    cha: number;
-  };
-}
+import { CharacterStats } from '../types';
 
 interface Message {
   id: string;
