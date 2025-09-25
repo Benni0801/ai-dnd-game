@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface DiceRollAnimationProps {
   isVisible: boolean;
@@ -26,9 +26,9 @@ export default function DiceRollAnimation({
     if (isVisible && !isRolling) {
       startRoll();
     }
-  }, [isVisible]);
+  }, [isVisible, isRolling, startRoll]);
 
-  const startRoll = () => {
+  const startRoll = useCallback(() => {
     setIsRolling(true);
     setFinalResult(null);
     setRollCount(0);
@@ -54,7 +54,7 @@ export default function DiceRollAnimation({
         onComplete(totalResult);
       }, 1000);
     }, 2000);
-  };
+  }, [diceType, modifier, onComplete]);
 
   const getDiceColor = () => {
     switch (diceType) {

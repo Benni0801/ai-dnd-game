@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface SimpleDiceRollProps {
   isVisible: boolean;
@@ -27,9 +27,9 @@ export default function SimpleDiceRoll({
     if (isVisible && !isRolling) {
       startRoll();
     }
-  }, [isVisible]);
+  }, [isVisible, isRolling, startRoll]);
 
-  const startRoll = () => {
+  const startRoll = useCallback(() => {
     setIsRolling(true);
     setFinalResult(null);
     setShowResult(false);
@@ -69,7 +69,7 @@ export default function SimpleDiceRoll({
         }, 800);
       }
     }, rollCount < 15 ? 60 : rollCount < 25 ? 100 : 150); // Slower progression for more drama
-  };
+  }, [diceType, modifier]);
 
   if (!isVisible) return null;
 

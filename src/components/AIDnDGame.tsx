@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { rollD20 } from '@/utils/dice';
 import { generateScenario, generateOpeningMessage } from '@/utils/scenarioGenerator';
 import EnhancedCharacterCreation from './EnhancedCharacterCreation';
@@ -68,7 +68,7 @@ const AIDnDGame: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load available models
-  const loadAvailableModels = async () => {
+  const loadAvailableModels = useCallback(async () => {
     try {
       const response = await fetch('/api/ai-status');
       const data = await response.json();
@@ -82,7 +82,7 @@ const AIDnDGame: React.FC = () => {
     } catch (error: any) {
       console.error('Error loading models:', error);
     }
-  };
+  }, [selectedModel]);
 
   // Load data from localStorage on component mount
   useEffect(() => {
@@ -121,7 +121,7 @@ const AIDnDGame: React.FC = () => {
     
     // Load available models
     loadAvailableModels();
-  }, []);
+  }, [loadAvailableModels]);
 
   // Save messages to localStorage whenever messages change
   useEffect(() => {
