@@ -186,7 +186,11 @@ export default function GameSheets({
           <div className="space-y-2">
             {characterStats.spells.map((spell, index) => (
               <div key={index} className="text-white text-sm">
-                Level {spell.level}: {spell.slots} slots - {spell.name}
+                {typeof spell === 'string' ? (
+                  spell
+                ) : (
+                  `Level ${spell.level}: ${spell.slots} slots - ${spell.name}`
+                )}
               </div>
             ))}
           </div>

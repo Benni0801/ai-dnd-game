@@ -125,7 +125,7 @@ export default function RusticCharacterSheet({ characterStats, onEdit }: RusticC
           <div className="space-y-1">
             {characterStats.spells.slice(0, 4).map((spell, index) => (
               <div key={index} className="text-sm rustic-text">
-                • {spell}
+                • {typeof spell === 'string' ? spell : spell.name}
               </div>
             ))}
             {characterStats.spells.length > 4 && (
