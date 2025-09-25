@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     // Check for API key - if not available, use fallback responses
     console.log('API Key check:', process.env.GOOGLE_API_KEY ? 'Found' : 'Not found');
     if (!process.env.GOOGLE_API_KEY) {
-      console.log('No Google API key found, using fallback responses');
+      console.log('PATH: Using fallback responses (no API key)');
       
       // Get the last user message
       const lastUserMessage = messages?.filter((msg: any) => msg.role === 'user').pop();
@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
     const fullPrompt = `${systemPrompt}\n\n${characterContext}\n\nConversation:\n${conversationHistory.map((msg: any) => `${msg.role}: ${msg.content}`).join('\n')}\n\nPlease respond as the Dungeon Master:`;
 
     // Call Google Gemini API - try different model names
+    console.log('PATH: Using Google Gemini API');
     console.log('Calling Google Gemini API...');
     const modelNames = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro', 'gemini-pro'];
     let response;
@@ -134,20 +135,26 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
+    console.log('Gemini API response data:', JSON.stringify(data, null, 2));
     
     // Extract the generated text
     let aiResponse = '';
     if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
       aiResponse = data.candidates[0].content.parts[0].text || '';
+      console.log('Extracted AI response:', aiResponse);
+    } else {
+      console.log('No valid response structure found in data:', data);
     }
 
     // Clean up the response
     if (aiResponse) {
       aiResponse = aiResponse.replace(/Please respond as the Dungeon Master:/g, '').trim();
+      console.log('Cleaned AI response:', aiResponse);
     }
 
     // Fallback if no good response
     if (!aiResponse || aiResponse.length < 10) {
+      console.log('AI response too short or empty, using fallback');
       aiResponse = "The dungeon master nods thoughtfully. 'An interesting turn of events. What would you like to do next?'";
     }
 
