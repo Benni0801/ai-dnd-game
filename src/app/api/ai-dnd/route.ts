@@ -126,11 +126,12 @@ export async function POST(request: NextRequest) {
       for (const model of models) {
         try {
           console.log(`Trying model: ${model}`);
-          // Try different endpoint formats
+          // Try different endpoint formats - focus on working ones
           const endpoints = [
             `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
             `https://ai.google.dev/api/v1beta/models/${model}:generateContent?key=${apiKey}`,
-            `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`
+            `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
+            `https://ai.google.dev/api/v1/models/${model}:generateContent?key=${apiKey}`
           ];
           
           let modelResponse = null;
