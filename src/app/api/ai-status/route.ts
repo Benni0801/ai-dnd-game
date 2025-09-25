@@ -10,7 +10,7 @@ export async function GET() {
         status: 'online',
         message: 'AI ready with Google Gemini',
         models: [{
-          name: 'gemini-pro',
+          name: 'gemini-1.5-flash',
           size: 0,
           modified: new Date().toISOString()
         }],
