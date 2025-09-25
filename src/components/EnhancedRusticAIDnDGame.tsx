@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { rollD20 } from '@/utils/dice';
 import EnhancedCharacterCreation from './EnhancedCharacterCreation';
 import SimpleGameSheets from './SimpleGameSheets';
@@ -101,7 +101,7 @@ const EnhancedRusticAIDnDGame: React.FC = () => {
   }, []);
 
   // Load available models
-  const loadAvailableModels = async () => {
+  const loadAvailableModels = useCallback(async () => {
     try {
       const response = await fetch('/api/ai-status');
       const data = await response.json();
@@ -114,11 +114,11 @@ const EnhancedRusticAIDnDGame: React.FC = () => {
     } catch (error) {
       console.error('Error loading models:', error);
     }
-  };
+  }, [selectedModel]);
 
   useEffect(() => {
     loadAvailableModels();
-  }, []);
+  }, [loadAvailableModels]);
 
   // Load existing game session if available
   const loadExistingSession = async () => {

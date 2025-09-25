@@ -22,12 +22,6 @@ export default function DiceRollAnimation({
   const [finalResult, setFinalResult] = useState<number | null>(null);
   const [rollCount, setRollCount] = useState(0);
 
-  useEffect(() => {
-    if (isVisible && !isRolling) {
-      startRoll();
-    }
-  }, [isVisible, isRolling, startRoll]);
-
   const startRoll = useCallback(() => {
     setIsRolling(true);
     setFinalResult(null);
@@ -55,6 +49,12 @@ export default function DiceRollAnimation({
       }, 1000);
     }, 2000);
   }, [diceType, modifier, onComplete]);
+
+  useEffect(() => {
+    if (isVisible && !isRolling) {
+      startRoll();
+    }
+  }, [isVisible, isRolling, startRoll]);
 
   const getDiceColor = () => {
     switch (diceType) {

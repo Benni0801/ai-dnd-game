@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface GameNote {
   id: string;
@@ -22,14 +22,7 @@ const GameNotes: React.FC<GameNotesProps> = ({ sessionId, className = '' }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
 
-  // Load notes when component mounts or sessionId changes
-  useEffect(() => {
-    if (sessionId) {
-      loadNotes();
-    }
-  }, [sessionId]);
-
-  const loadNotes = async () => {
+  const loadNotes = useCallback(async () => {
     try {
       const response = await fetch(`/api/notes?sessionId=${sessionId}`);
       if (response.ok) {
@@ -39,7 +32,14 @@ const GameNotes: React.FC<GameNotesProps> = ({ sessionId, className = '' }) => {
     } catch (error) {
       console.error('Error loading notes:', error);
     }
-  };
+  }, [sessionId]);
+
+  // Load notes when component mounts or sessionId changes
+  useEffect(() => {
+    if (sessionId) {
+      loadNotes();
+    }
+  }, [sessionId, loadNotes]);
 
   const addNote = async () => {
     if (!newNote.trim() || !sessionId) return;
