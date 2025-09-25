@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { database } from '@/lib/database';
+import { database } from '../../../lib/database';
 
 // Create a new game note
 export async function POST(request: NextRequest) {

@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { rollD20 } from '@/utils/dice';
-import { generateScenario, generateOpeningMessage } from '@/utils/scenarioGenerator';
+import { rollD20 } from '../utils/dice';
+import { generateScenario, generateOpeningMessage } from '../utils/scenarioGenerator';
 import EnhancedCharacterCreation from './EnhancedCharacterCreation';
 import MultiplayerLobby from './MultiplayerLobby';
 import SimpleGameSheets from './SimpleGameSheets';

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { database } from '@/lib/database';
+import { database } from '../../../lib/database';
 
 // Get game turns for a session
 export async function GET(request: NextRequest) {

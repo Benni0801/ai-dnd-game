@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { rollD20 } from '@/utils/dice';
+import { rollD20 } from '../utils/dice';
 import EnhancedCharacterCreation from './EnhancedCharacterCreation';
 import SimpleGameSheets from './SimpleGameSheets';
 import SimpleDiceRoll from './SimpleDiceRoll';
