@@ -110,50 +110,75 @@ export async function POST(request: NextRequest) {
     // Check if it's a Google AI Studio key (starts with AIza)
     if (apiKey?.startsWith('AIza')) {
       console.log('Using Google AI Studio API endpoint');
-      // Try the most common working models
-      const models = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro', 'gemini-pro'];
+      // Try different model formats that might work
+      const models = [
+        'gemini-1.5-flash-001',
+        'gemini-1.5-flash',
+        'gemini-1.5-pro-001', 
+        'gemini-1.5-pro',
+        'gemini-pro-001',
+        'gemini-pro',
+        'gemini-1.0-pro-001',
+        'gemini-1.0-pro'
+      ];
       let lastError = null;
       
       for (const model of models) {
         try {
           console.log(`Trying model: ${model}`);
-          const modelUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-          console.log(`API URL: ${modelUrl}`);
+          // Try different endpoint formats
+          const endpoints = [
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+            `https://ai.google.dev/api/v1beta/models/${model}:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`
+          ];
           
-          response = await fetch(modelUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              contents: [{
-                parts: [{
-                  text: fullPrompt
-                }]
-              }],
-              generationConfig: {
-                temperature: 0.7,
-                maxOutputTokens: 300,
-                topP: 0.8,
-                topK: 40
-              }
-            }),
-            signal: AbortSignal.timeout(30000)
-          });
-          
-          console.log(`Response status for ${model}:`, response.status);
-          
-          if (response.ok) {
-            console.log(`Successfully connected to model: ${model}`);
-            break;
-          } else {
+          let modelResponse = null;
+          for (const endpoint of endpoints) {
             try {
-              const errorData = await response.clone().text();
-              console.log(`Model ${model} failed with status ${response.status}: ${errorData}`);
-              lastError = { status: response.status, data: errorData };
+              console.log(`Trying endpoint: ${endpoint}`);
+              modelResponse = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  contents: [{
+                    parts: [{
+                      text: fullPrompt
+                    }]
+                  }],
+                  generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 300,
+                    topP: 0.8,
+                    topK: 40
+                  }
+                }),
+                signal: AbortSignal.timeout(30000)
+              });
+              
+              if (modelResponse.ok) {
+                response = modelResponse;
+                console.log(`Successfully connected to model: ${model} with endpoint: ${endpoint}`);
+                break;
+              } else {
+                const errorData = await modelResponse.clone().text();
+                console.log(`Endpoint ${endpoint} failed with status ${modelResponse.status}: ${errorData}`);
+              }
+            } catch (endpointError) {
+              console.log(`Endpoint ${endpoint} threw error:`, endpointError);
+            }
+          }
+          
+          if (!modelResponse || !modelResponse.ok) {
+            try {
+              const errorData = modelResponse ? await modelResponse.clone().text() : 'No response';
+              console.log(`Model ${model} failed with status ${modelResponse?.status || 'No status'}: ${errorData}`);
+              lastError = { status: modelResponse?.status || 'No status', data: errorData };
             } catch (readError) {
-              console.log(`Model ${model} failed with status ${response.status}: Could not read error body`);
-              lastError = { status: response.status, data: 'Could not read error body' };
+              console.log(`Model ${model} failed: Could not read error body`);
+              lastError = { status: 'Unknown', data: 'Could not read error body' };
             }
           }
         } catch (error) {
