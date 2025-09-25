@@ -74,15 +74,13 @@ const AIDnDGame: React.FC = () => {
       const data = await response.json();
       if (data.models && data.models.length > 0) {
         setAvailableModels(data.models);
-        // Set default model to the first available one
-        if (!selectedModel && data.models.length > 0) {
-          setSelectedModel(data.models[0].name);
-        }
+        // Only set default model if no model is currently selected
+        setSelectedModel(prev => prev || data.models[0].name);
       }
     } catch (error: any) {
       console.error('Error loading models:', error);
     }
-  }, [selectedModel]);
+  }, []);
 
   // Load data from localStorage on component mount
   useEffect(() => {
