@@ -15,18 +15,54 @@ export async function POST(request: NextRequest) {
       const userInput = lastUserMessage?.content?.toLowerCase() || '';
       
       // Generate contextual fallback responses
-      let fallbackResponse = "The dungeon master nods thoughtfully. 'An interesting turn of events. What would you like to do next?'";
+      const responses = {
+        explore: [
+          "The dungeon master gestures toward the path ahead. 'You find yourself at a crossroads in a dense forest. Ancient trees tower above you, their branches creating a canopy that filters the sunlight. You can hear the distant sound of a babbling brook to the east, or you could venture deeper into the woods to the north. What path calls to you?'",
+          "The dungeon master's eyes twinkle with mischief. 'As you venture forth, you discover a hidden clearing bathed in golden light. Strange runes are carved into the ancient stones that circle the area. A gentle breeze carries the scent of wildflowers. Do you investigate the runes or continue your journey?'",
+          "The dungeon master leans forward eagerly. 'Your path leads you to a mysterious cave entrance, its mouth dark and foreboding. Faint whispers seem to echo from within, and you notice fresh tracks leading inside. What do you do?'"
+        ],
+        combat: [
+          "The dungeon master's eyes gleam with excitement. 'Roll for initiative! A shadowy figure emerges from the darkness, brandishing a rusty blade. The creature's eyes glow with malevolent intent. Are you ready for battle?'",
+          "The dungeon master claps their hands together. 'Suddenly, three goblins leap from behind the rocks, their crude weapons glinting in the sunlight! They snarl and advance toward you. Time for combat!'",
+          "The dungeon master's voice grows tense. 'A massive troll blocks your path, its club raised high. The ground trembles with each of its steps. This will be a challenging fight!'"
+        ],
+        dice: [
+          "The dungeon master produces a set of ornate dice. 'Ah, the roll of the dice! The fate of your adventure hangs in the balance. What would you like to roll for?'",
+          "The dungeon master's eyes light up. 'Time to let the dice decide your fate! Whether it's a skill check, attack roll, or saving throw, the dice will tell the tale.'",
+          "The dungeon master shakes a beautiful set of gem-encrusted dice. 'The ancient dice are ready to reveal destiny. What challenge do you face?'"
+        ],
+        character: [
+          "The dungeon master examines your character sheet. 'I see you are " + (characterStats?.name || 'Adventurer') + ", a " + (characterStats?.race || 'brave soul') + " " + (characterStats?.class || 'hero') + ". Your current HP is " + (characterStats?.hp || 20) + ". What would you like to do with your abilities?'",
+          "The dungeon master studies your character details. '" + (characterStats?.name || 'Adventurer') + ", your " + (characterStats?.race || 'heritage') + " " + (characterStats?.class || 'training') + " gives you unique advantages. With " + (characterStats?.hp || 20) + " hit points, you're ready for adventure!'",
+          "The dungeon master nods approvingly. 'Your character " + (characterStats?.name || 'Adventurer') + " is a formidable " + (characterStats?.race || 'warrior') + " " + (characterStats?.class || 'adventurer') + ". Your skills and abilities are at your disposal!'"
+        ],
+        help: [
+          "The dungeon master smiles warmly. 'Welcome, brave adventurer! You can explore the world, engage in combat, roll dice for skill checks, or ask me about your character. Try saying things like \"I want to explore the forest\" or \"Roll for initiative\" or \"Show me my character sheet\". What adventure awaits you?'",
+          "The dungeon master gestures expansively. 'This is your world to explore! You can investigate mysterious locations, battle dangerous creatures, use your skills and abilities, or learn more about your character. What would you like to try first?'",
+          "The dungeon master's eyes sparkle with anticipation. 'Adventure awaits at every turn! You can explore new areas, engage in thrilling combat, test your luck with dice rolls, or discover more about your character. The choice is yours!'"
+        ],
+        default: [
+          "The dungeon master nods thoughtfully. 'An interesting turn of events. What would you like to do next?'",
+          "The dungeon master strokes their beard contemplatively. 'Fascinating. How do you wish to proceed?'",
+          "The dungeon master's eyes twinkle with curiosity. 'Tell me more about your intentions, brave adventurer.'",
+          "The dungeon master leans back in their chair. 'The adventure continues to unfold. What's your next move?'"
+        ]
+      };
       
-      if (userInput.includes('explore') || userInput.includes('forest') || userInput.includes('go')) {
-        fallbackResponse = "The dungeon master gestures toward the path ahead. 'You find yourself at a crossroads in a dense forest. Ancient trees tower above you, their branches creating a canopy that filters the sunlight. You can hear the distant sound of a babbling brook to the east, or you could venture deeper into the woods to the north. What path calls to you?'";
-      } else if (userInput.includes('attack') || userInput.includes('fight') || userInput.includes('combat')) {
-        fallbackResponse = "The dungeon master's eyes gleam with excitement. 'Roll for initiative! A shadowy figure emerges from the darkness, brandishing a rusty blade. The creature's eyes glow with malevolent intent. Are you ready for battle?'";
-      } else if (userInput.includes('roll') || userInput.includes('dice')) {
-        fallbackResponse = "The dungeon master produces a set of ornate dice. 'Ah, the roll of the dice! The fate of your adventure hangs in the balance. What would you like to roll for?'";
-      } else if (userInput.includes('character') || userInput.includes('sheet') || userInput.includes('stats')) {
-        fallbackResponse = "The dungeon master examines your character sheet. 'I see you are " + (characterStats?.name || 'Adventurer') + ", a " + (characterStats?.race || 'brave soul') + " " + (characterStats?.class || 'hero') + ". Your current HP is " + (characterStats?.hp || 20) + ". What would you like to do with your abilities?'";
-      } else if (userInput.includes('help') || userInput.includes('what') || userInput.includes('how')) {
-        fallbackResponse = "The dungeon master smiles warmly. 'Welcome, brave adventurer! You can explore the world, engage in combat, roll dice for skill checks, or ask me about your character. Try saying things like \"I want to explore the forest\" or \"Roll for initiative\" or \"Show me my character sheet\". What adventure awaits you?'";
+      let fallbackResponse;
+      
+      if (userInput.includes('explore') || userInput.includes('forest') || userInput.includes('go') || userInput.includes('walk') || userInput.includes('travel')) {
+        fallbackResponse = responses.explore[Math.floor(Math.random() * responses.explore.length)];
+      } else if (userInput.includes('attack') || userInput.includes('fight') || userInput.includes('combat') || userInput.includes('battle') || userInput.includes('sword')) {
+        fallbackResponse = responses.combat[Math.floor(Math.random() * responses.combat.length)];
+      } else if (userInput.includes('roll') || userInput.includes('dice') || userInput.includes('check') || userInput.includes('skill')) {
+        fallbackResponse = responses.dice[Math.floor(Math.random() * responses.dice.length)];
+      } else if (userInput.includes('character') || userInput.includes('sheet') || userInput.includes('stats') || userInput.includes('abilities')) {
+        fallbackResponse = responses.character[Math.floor(Math.random() * responses.character.length)];
+      } else if (userInput.includes('help') || userInput.includes('what') || userInput.includes('how') || userInput.includes('start')) {
+        fallbackResponse = responses.help[Math.floor(Math.random() * responses.help.length)];
+      } else {
+        fallbackResponse = responses.default[Math.floor(Math.random() * responses.default.length)];
       }
       
       return NextResponse.json({
@@ -61,26 +97,60 @@ export async function POST(request: NextRequest) {
     // Check if it's a Google AI Studio key (starts with AIza)
     if (apiKey?.startsWith('AIza')) {
       console.log('Using Google AI Studio API endpoint');
-      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: fullPrompt
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 300,
-            topP: 0.8,
-            topK: 40
+      // Try the most common working models
+      const models = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro', 'gemini-pro'];
+      let lastError = null;
+      
+      for (const model of models) {
+        try {
+          console.log(`Trying model: ${model}`);
+          const modelUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+          console.log(`API URL: ${modelUrl}`);
+          
+          response = await fetch(modelUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: fullPrompt
+                }]
+              }],
+              generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 300,
+                topP: 0.8,
+                topK: 40
+              }
+            }),
+            signal: AbortSignal.timeout(30000)
+          });
+          
+          console.log(`Response status for ${model}:`, response.status);
+          
+          if (response.ok) {
+            console.log(`Successfully connected to model: ${model}`);
+            break;
+          } else {
+            const errorData = await response.text();
+            console.log(`Model ${model} failed with status ${response.status}: ${errorData}`);
+            lastError = { status: response.status, data: errorData };
           }
-        }),
-        signal: AbortSignal.timeout(30000)
-      });
+        } catch (error) {
+          console.log(`Model ${model} threw error:`, error);
+          lastError = error;
+        }
+      }
+      
+      if (!response || !response.ok) {
+        console.log('All Google AI Studio models failed');
+        if (lastError) {
+          console.log('Last error details:', lastError);
+          throw new Error(`All models failed. Last error: ${JSON.stringify(lastError)}`);
+        }
+      }
     } else {
       console.log('Using alternative API endpoint');
       response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
@@ -105,29 +175,76 @@ export async function POST(request: NextRequest) {
       });
     }
     
-    console.log('Gemini API response status:', response.status);
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error(`Gemini API error: ${response.status} - ${errorData}`);
+    if (!response || !response.ok) {
+      const errorData = response ? await response.text() : 'No response received';
+      console.error(`Gemini API error: ${response?.status || 'No status'} - ${errorData}`);
       
       // If all models fail, fall back to predefined responses
       console.log('API call failed, falling back to predefined responses');
       const lastUserMessage = messages?.filter((msg: any) => msg.role === 'user').pop();
       const userInput = lastUserMessage?.content?.toLowerCase() || '';
       
-      let fallbackResponse = "The dungeon master nods thoughtfully. 'An interesting turn of events. What would you like to do next?'";
+      console.log('User input for fallback:', userInput);
+      console.log('Available messages:', messages?.length);
       
-      if (userInput.includes('explore') || userInput.includes('forest') || userInput.includes('go')) {
-        fallbackResponse = "The dungeon master gestures toward the path ahead. 'You find yourself at a crossroads in a dense forest. Ancient trees tower above you, their branches creating a canopy that filters the sunlight. You can hear the distant sound of a babbling brook to the east, or you could venture deeper into the woods to the north. What path calls to you?'";
-      } else if (userInput.includes('attack') || userInput.includes('fight') || userInput.includes('combat')) {
-        fallbackResponse = "The dungeon master's eyes gleam with excitement. 'Roll for initiative! A shadowy figure emerges from the darkness, brandishing a rusty blade. The creature's eyes glow with malevolent intent. Are you ready for battle?'";
-      } else if (userInput.includes('roll') || userInput.includes('dice')) {
-        fallbackResponse = "The dungeon master produces a set of ornate dice. 'Ah, the roll of the dice! The fate of your adventure hangs in the balance. What would you like to roll for?'";
-      } else if (userInput.includes('character') || userInput.includes('sheet') || userInput.includes('stats')) {
-        fallbackResponse = "The dungeon master examines your character sheet. 'I see you are " + (characterStats?.name || 'Adventurer') + ", a " + (characterStats?.race || 'brave soul') + " " + (characterStats?.class || 'hero') + ". Your current HP is " + (characterStats?.hp || 20) + ". What would you like to do with your abilities?'";
-      } else if (userInput.includes('help') || userInput.includes('what') || userInput.includes('how')) {
-        fallbackResponse = "The dungeon master smiles warmly. 'Welcome, brave adventurer! You can explore the world, engage in combat, roll dice for skill checks, or ask me about your character. Try saying things like \"I want to explore the forest\" or \"Roll for initiative\" or \"Show me my character sheet\". What adventure awaits you?'";
+      // Use the same enhanced fallback system
+      const responses = {
+        explore: [
+          "The dungeon master gestures toward the path ahead. 'You find yourself at a crossroads in a dense forest. Ancient trees tower above you, their branches creating a canopy that filters the sunlight. You can hear the distant sound of a babbling brook to the east, or you could venture deeper into the woods to the north. What path calls to you?'",
+          "The dungeon master's eyes twinkle with mischief. 'As you venture forth, you discover a hidden clearing bathed in golden light. Strange runes are carved into the ancient stones that circle the area. A gentle breeze carries the scent of wildflowers. Do you investigate the runes or continue your journey?'",
+          "The dungeon master leans forward eagerly. 'Your path leads you to a mysterious cave entrance, its mouth dark and foreboding. Faint whispers seem to echo from within, and you notice fresh tracks leading inside. What do you do?'"
+        ],
+        combat: [
+          "The dungeon master's eyes gleam with excitement. 'Roll for initiative! A shadowy figure emerges from the darkness, brandishing a rusty blade. The creature's eyes glow with malevolent intent. Are you ready for battle?'",
+          "The dungeon master claps their hands together. 'Suddenly, three goblins leap from behind the rocks, their crude weapons glinting in the sunlight! They snarl and advance toward you. Time for combat!'",
+          "The dungeon master's voice grows tense. 'A massive troll blocks your path, its club raised high. The ground trembles with each of its steps. This will be a challenging fight!'"
+        ],
+        dice: [
+          "The dungeon master produces a set of ornate dice. 'Ah, the roll of the dice! The fate of your adventure hangs in the balance. What would you like to roll for?'",
+          "The dungeon master's eyes light up. 'Time to let the dice decide your fate! Whether it's a skill check, attack roll, or saving throw, the dice will tell the tale.'",
+          "The dungeon master shakes a beautiful set of gem-encrusted dice. 'The ancient dice are ready to reveal destiny. What challenge do you face?'"
+        ],
+        character: [
+          "The dungeon master examines your character sheet. 'I see you are " + (characterStats?.name || 'Adventurer') + ", a " + (characterStats?.race || 'brave soul') + " " + (characterStats?.class || 'hero') + ". Your current HP is " + (characterStats?.hp || 20) + ". What would you like to do with your abilities?'",
+          "The dungeon master studies your character details. '" + (characterStats?.name || 'Adventurer') + ", your " + (characterStats?.race || 'heritage') + " " + (characterStats?.class || 'training') + " gives you unique advantages. With " + (characterStats?.hp || 20) + " hit points, you're ready for adventure!'",
+          "The dungeon master nods approvingly. 'Your character " + (characterStats?.name || 'Adventurer') + " is a formidable " + (characterStats?.race || 'warrior') + " " + (characterStats?.class || 'adventurer') + ". Your skills and abilities are at your disposal!'"
+        ],
+        help: [
+          "The dungeon master smiles warmly. 'Welcome, brave adventurer! You can explore the world, engage in combat, roll dice for skill checks, or ask me about your character. Try saying things like \"I want to explore the forest\" or \"Roll for initiative\" or \"Show me my character sheet\". What adventure awaits you?'",
+          "The dungeon master gestures expansively. 'This is your world to explore! You can investigate mysterious locations, battle dangerous creatures, use your skills and abilities, or learn more about your character. What would you like to try first?'",
+          "The dungeon master's eyes sparkle with anticipation. 'Adventure awaits at every turn! You can explore new areas, engage in thrilling combat, test your luck with dice rolls, or discover more about your character. The choice is yours!'"
+        ],
+        default: [
+          "The dungeon master nods thoughtfully. 'An interesting turn of events. What would you like to do next?'",
+          "The dungeon master strokes their beard contemplatively. 'Fascinating. How do you wish to proceed?'",
+          "The dungeon master's eyes twinkle with curiosity. 'Tell me more about your intentions, brave adventurer.'",
+          "The dungeon master leans back in their chair. 'The adventure continues to unfold. What's your next move?'"
+        ]
+      };
+      
+      let fallbackResponse;
+      
+      if (userInput.includes('explore') || userInput.includes('forest') || userInput.includes('go') || userInput.includes('walk') || userInput.includes('travel')) {
+        console.log('Matched: explore/forest/go');
+        fallbackResponse = responses.explore[Math.floor(Math.random() * responses.explore.length)];
+      } else if (userInput.includes('attack') || userInput.includes('fight') || userInput.includes('combat') || userInput.includes('battle') || userInput.includes('sword')) {
+        console.log('Matched: attack/fight/combat');
+        fallbackResponse = responses.combat[Math.floor(Math.random() * responses.combat.length)];
+      } else if (userInput.includes('roll') || userInput.includes('dice') || userInput.includes('check') || userInput.includes('skill')) {
+        console.log('Matched: roll/dice');
+        fallbackResponse = responses.dice[Math.floor(Math.random() * responses.dice.length)];
+      } else if (userInput.includes('character') || userInput.includes('sheet') || userInput.includes('stats') || userInput.includes('abilities')) {
+        console.log('Matched: character/sheet/stats');
+        fallbackResponse = responses.character[Math.floor(Math.random() * responses.character.length)];
+      } else if (userInput.includes('help') || userInput.includes('what') || userInput.includes('how') || userInput.includes('start')) {
+        console.log('Matched: help/what/how');
+        fallbackResponse = responses.help[Math.floor(Math.random() * responses.help.length)];
+      } else {
+        console.log('No keyword match found, using default response');
+        fallbackResponse = responses.default[Math.floor(Math.random() * responses.default.length)];
       }
+      
+      console.log('Final fallback response:', fallbackResponse.substring(0, 100) + '...');
       
       return NextResponse.json({
         message: fallbackResponse,
@@ -135,40 +252,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // If we reach here, the API call was successful
     console.log('Gemini API response status:', response.status);
-    if (!response.ok) {
-      console.error(`Gemini API error: ${response.status}`);
-      const errorData = await response.text();
-      console.error('Error details:', errorData);
-      
-      // If API key is invalid, fall back to predefined responses
-      if (response.status === 403 || response.status === 401) {
-        console.log('API key appears to be invalid, falling back to predefined responses');
-        const lastUserMessage = messages?.filter((msg: any) => msg.role === 'user').pop();
-        const userInput = lastUserMessage?.content?.toLowerCase() || '';
-        
-        let fallbackResponse = "The dungeon master nods thoughtfully. 'An interesting turn of events. What would you like to do next?'";
-        
-        if (userInput.includes('explore') || userInput.includes('forest') || userInput.includes('go')) {
-          fallbackResponse = "The dungeon master gestures toward the path ahead. 'You find yourself at a crossroads in a dense forest. Ancient trees tower above you, their branches creating a canopy that filters the sunlight. You can hear the distant sound of a babbling brook to the east, or you could venture deeper into the woods to the north. What path calls to you?'";
-        } else if (userInput.includes('attack') || userInput.includes('fight') || userInput.includes('combat')) {
-          fallbackResponse = "The dungeon master's eyes gleam with excitement. 'Roll for initiative! A shadowy figure emerges from the darkness, brandishing a rusty blade. The creature's eyes glow with malevolent intent. Are you ready for battle?'";
-        } else if (userInput.includes('roll') || userInput.includes('dice')) {
-          fallbackResponse = "The dungeon master produces a set of ornate dice. 'Ah, the roll of the dice! The fate of your adventure hangs in the balance. What would you like to roll for?'";
-        } else if (userInput.includes('character') || userInput.includes('sheet') || userInput.includes('stats')) {
-          fallbackResponse = "The dungeon master examines your character sheet. 'I see you are " + (characterStats?.name || 'Adventurer') + ", a " + (characterStats?.race || 'brave soul') + " " + (characterStats?.class || 'hero') + ". Your current HP is " + (characterStats?.hp || 20) + ". What would you like to do with your abilities?'";
-        } else if (userInput.includes('help') || userInput.includes('what') || userInput.includes('how')) {
-          fallbackResponse = "The dungeon master smiles warmly. 'Welcome, brave adventurer! You can explore the world, engage in combat, roll dice for skill checks, or ask me about your character. Try saying things like \"I want to explore the forest\" or \"Roll for initiative\" or \"Show me my character sheet\". What adventure awaits you?'";
-        }
-        
-        return NextResponse.json({
-          message: fallbackResponse,
-          usage: { total_tokens: 0 }
-        });
-      }
-      
-      throw new Error(`Gemini API error: ${response.status}`);
-    }
 
     const data = await response.json();
     console.log('Gemini API response data:', JSON.stringify(data, null, 2));
