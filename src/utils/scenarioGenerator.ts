@@ -4,10 +4,10 @@
 
 interface Character {
   name: string;
-  race: string;
-  class: string;
-  background: string;
-  level: number;
+  race?: string;
+  class?: string;
+  background?: string;
+  level?: number;
   str: number;
   dex: number;
   int: number;
@@ -246,8 +246,11 @@ export function generateScenario(character: Character): Scenario {
   const location = backgroundData.locations[Math.floor(Math.random() * backgroundData.locations.length)];
   const hook = backgroundData.hooks[Math.floor(Math.random() * backgroundData.hooks.length)];
 
-  // Create the scenario description
-  const description = `${hook} You find yourself in ${setting}, where you must ${challenge}. As a ${character.race.toLowerCase()} ${character.class.toLowerCase()}, your unique abilities and background as a ${character.background.toLowerCase()} will be crucial to your success.`;
+  // Create the scenario description with safe property access
+  const race = character.race || 'adventurer';
+  const charClass = character.class || 'hero';
+  const background = character.background || 'wanderer';
+  const description = `${hook} You find yourself in ${setting}, where you must ${challenge}. As a ${race.toLowerCase()} ${charClass.toLowerCase()}, your unique abilities and background as a ${background.toLowerCase()} will be crucial to your success.`;
 
   return {
     title,
@@ -265,12 +268,14 @@ export function generateScenario(character: Character): Scenario {
  */
 export function generateOpeningMessage(character: Character, scenario: Scenario): string {
   const raceTraits = RACE_ELEMENTS[character.race as keyof typeof RACE_ELEMENTS] || RACE_ELEMENTS['Human'];
+  const race = character.race || 'adventurer';
+  const charClass = character.class || 'hero';
   
   return `Welcome, ${character.name}! 
 
 ${scenario.description}
 
-The ${scenario.setting} stretches before you, filled with possibilities and dangers. Your ${raceTraits.traits.join(', ')} nature as a ${character.race.toLowerCase()} and your training as a ${character.class.toLowerCase()} have prepared you for this moment.
+The ${scenario.setting} stretches before you, filled with possibilities and dangers. Your ${raceTraits.traits.join(', ')} nature as a ${race.toLowerCase()} and your training as a ${charClass.toLowerCase()} have prepared you for this moment.
 
 As you take in your surroundings, you notice ${scenario.locations[0]} nearby, and you sense that ${scenario.npcs[0]} might have information that could help you in your quest.
 
