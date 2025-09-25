@@ -39,6 +39,7 @@ const SimpleGameNotes: React.FC<SimpleGameNotesProps> = ({ className = '' }) => 
 
     const note: GameNote = {
       id: Date.now().toString(),
+      sessionId: 'local-session', // Simple local session for browser-only notes
       content: newNote.trim(),
       category: selectedCategory,
       createdAt: new Date()

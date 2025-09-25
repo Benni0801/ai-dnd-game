@@ -23,12 +23,6 @@ export default function SimpleDiceRoll({
   const [showResult, setShowResult] = useState(false);
   const [animationPhase, setAnimationPhase] = useState<'initial' | 'rolling' | 'settling' | 'result'>('initial');
 
-  useEffect(() => {
-    if (isVisible && !isRolling) {
-      startRoll();
-    }
-  }, [isVisible, isRolling, startRoll]);
-
   const startRoll = useCallback(() => {
     setIsRolling(true);
     setFinalResult(null);
@@ -70,6 +64,12 @@ export default function SimpleDiceRoll({
       }
     }, rollCount < 15 ? 60 : rollCount < 25 ? 100 : 150); // Slower progression for more drama
   }, [diceType, modifier]);
+
+  useEffect(() => {
+    if (isVisible && !isRolling) {
+      startRoll();
+    }
+  }, [isVisible, isRolling, startRoll]);
 
   if (!isVisible) return null;
 
