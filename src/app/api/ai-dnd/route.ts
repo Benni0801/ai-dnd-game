@@ -68,21 +68,24 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { messages, characterStats } = body || {};
 
-    // Check for API key - if not available, use fallback responses
-    console.log('API Key check:', process.env.GOOGLE_API_KEY ? 'Found' : 'Not found');
-    if (!process.env.GOOGLE_API_KEY) {
-      console.log('PATH: Using fallback responses (no API key)');
-      
-      // Get the last user message and generate enhanced fallback response
-      const lastUserMessage = messages?.filter((msg: any) => msg.role === 'user').pop();
-      const userInput = lastUserMessage?.content?.toLowerCase() || '';
-      const fallbackResponse = getEnhancedFallbackResponse(userInput, characterStats);
-      
-      return NextResponse.json({
-        message: fallbackResponse,
-        usage: { total_tokens: 0 }
-      });
-    }
+        // Check for API key - if not available, use fallback responses
+        const apiKey = process.env.GOOGLE_API_KEY;
+        console.log('API Key check:', apiKey ? `Found (${apiKey.substring(0, 10)}...)` : 'Not found');
+        
+        if (!apiKey) {
+          console.log('PATH: Using fallback responses (no API key)');
+          
+          // Get the last user message and generate enhanced fallback response
+          const lastUserMessage = messages?.filter((msg: any) => msg.role === 'user').pop();
+          const userInput = lastUserMessage?.content?.toLowerCase() || '';
+          const fallbackResponse = getEnhancedFallbackResponse(userInput, characterStats);
+          
+          return NextResponse.json({
+            message: fallbackResponse,
+            usage: { total_tokens: 0 },
+            debug: 'No API key found - using fallback responses'
+          });
+        }
 
     // Build the conversation context
     const conversationHistory = messages.slice(-5).map((msg: any) => ({
@@ -105,21 +108,20 @@ export async function POST(request: NextRequest) {
     
     // Try different API endpoints based on the API key type
     let response;
-    const apiKey = process.env.GOOGLE_API_KEY;
     
     // Check if it's a Google AI Studio key (starts with AIza)
     if (apiKey?.startsWith('AIza')) {
       console.log('Using Google AI Studio API endpoint');
       // Try different model formats that might work
       const models = [
-        'gemini-1.5-flash-001',
         'gemini-1.5-flash',
-        'gemini-1.5-pro-001', 
+        'gemini-1.5-flash-001',
         'gemini-1.5-pro',
-        'gemini-pro-001',
+        'gemini-1.5-pro-001',
         'gemini-pro',
-        'gemini-1.0-pro-001',
-        'gemini-1.0-pro'
+        'gemini-pro-001',
+        'gemini-1.0-pro',
+        'gemini-1.0-pro-001'
       ];
       let lastError = null;
       
@@ -216,33 +218,34 @@ export async function POST(request: NextRequest) {
       });
     }
     
-    if (!response || !response.ok) {
-      let errorData = 'No response received';
-      if (response) {
-        try {
-          errorData = await response.clone().text();
-        } catch (readError) {
-          errorData = 'Could not read error body';
+        if (!response || !response.ok) {
+          let errorData = 'No response received';
+          if (response) {
+            try {
+              errorData = await response.clone().text();
+            } catch (readError) {
+              errorData = 'Could not read error body';
+            }
+          }
+          console.error(`Gemini API error: ${response?.status || 'No status'} - ${errorData}`);
+          
+          // If all models fail, fall back to enhanced responses
+          console.log('API call failed, falling back to enhanced responses');
+          const lastUserMessage = messages?.filter((msg: any) => msg.role === 'user').pop();
+          const userInput = lastUserMessage?.content?.toLowerCase() || '';
+          
+          console.log('User input for fallback:', userInput);
+          console.log('Available messages:', messages?.length);
+          
+          const fallbackResponse = getEnhancedFallbackResponse(userInput, characterStats);
+          console.log('Final fallback response:', fallbackResponse.substring(0, 100) + '...');
+          
+          return NextResponse.json({
+            message: fallbackResponse,
+            usage: { total_tokens: 0 },
+            debug: `All Gemini models failed. Status: ${response?.status || 'No status'}. Error: ${errorData.substring(0, 200)}...`
+          });
         }
-      }
-      console.error(`Gemini API error: ${response?.status || 'No status'} - ${errorData}`);
-      
-      // If all models fail, fall back to enhanced responses
-      console.log('API call failed, falling back to enhanced responses');
-      const lastUserMessage = messages?.filter((msg: any) => msg.role === 'user').pop();
-      const userInput = lastUserMessage?.content?.toLowerCase() || '';
-      
-      console.log('User input for fallback:', userInput);
-      console.log('Available messages:', messages?.length);
-      
-      const fallbackResponse = getEnhancedFallbackResponse(userInput, characterStats);
-      console.log('Final fallback response:', fallbackResponse.substring(0, 100) + '...');
-      
-      return NextResponse.json({
-        message: fallbackResponse,
-        usage: { total_tokens: 0 }
-      });
-    }
 
     // If we reach here, the API call was successful
     console.log('Gemini API response status:', response.status);
@@ -271,10 +274,11 @@ export async function POST(request: NextRequest) {
       aiResponse = "The dungeon master nods thoughtfully. 'An interesting turn of events. What would you like to do next?'";
     }
 
-    return NextResponse.json({
-      message: aiResponse,
-      usage: { total_tokens: 0 }
-    });
+        return NextResponse.json({
+          message: aiResponse,
+          usage: { total_tokens: 0 },
+          debug: 'Successfully connected to Gemini API'
+        });
 
   } catch (error: any) {
     console.error('Error generating AI response:', error);
