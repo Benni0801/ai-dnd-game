@@ -324,7 +324,7 @@ const EnhancedAIDnDGame: React.FC = () => {
           setShowMultiplayerLobby(false);
         }}
         onBack={() => setShowMultiplayerLobby(false)}
-        currentUserId={currentUserId}
+        currentUserId={currentUserId || undefined}
       />
     );
   }

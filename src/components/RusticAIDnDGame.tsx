@@ -325,7 +325,7 @@ The adventure awaits!`;
           setShowMultiplayerLobby(false);
         }}
         onBack={() => setShowMultiplayerLobby(false)}
-        currentUserId={currentUserId}
+        currentUserId={currentUserId || undefined}
       />
     );
   }
