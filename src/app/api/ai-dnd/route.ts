@@ -50,28 +50,53 @@ export async function POST(request: NextRequest) {
     // Prepare the prompt for Gemini
     const fullPrompt = `${systemPrompt}\n\n${characterContext}\n\nConversation:\n${conversationHistory.map((msg: any) => `${msg.role}: ${msg.content}`).join('\n')}\n\nPlease respond as the Dungeon Master:`;
 
-    // Call Google Gemini API
+    // Call Google Gemini API - try different model names
     console.log('Calling Google Gemini API...');
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GOOGLE_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: fullPrompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 300,
-          topP: 0.8,
-          topK: 40
+    const modelNames = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro', 'gemini-pro'];
+    let response;
+    let lastError;
+    
+    for (const modelName of modelNames) {
+      try {
+        console.log(`Trying model: ${modelName}`);
+        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${process.env.GOOGLE_API_KEY}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: fullPrompt
+              }]
+            }],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 300,
+              topP: 0.8,
+              topK: 40
+            }
+          }),
+          signal: AbortSignal.timeout(30000)
+        });
+        
+        if (response.ok) {
+          console.log(`Success with model: ${modelName}`);
+          break;
+        } else {
+          const errorData = await response.text();
+          console.log(`Model ${modelName} failed: ${response.status} - ${errorData}`);
+          lastError = { status: response.status, data: errorData };
         }
-      }),
-      signal: AbortSignal.timeout(30000)
-    });
+      } catch (error) {
+        console.log(`Model ${modelName} error:`, error);
+        lastError = error;
+      }
+    }
+    
+    if (!response || !response.ok) {
+      throw new Error(`All models failed. Last error: ${(lastError as any)?.status || 'Unknown'}`);
+    }
 
     console.log('Gemini API response status:', response.status);
     if (!response.ok) {
