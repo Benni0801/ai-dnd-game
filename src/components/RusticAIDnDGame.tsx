@@ -315,7 +315,6 @@ The adventure awaits!`;
   if (showMultiplayerLobby) {
     return (
       <MultiplayerLobby
-        onClose={() => setShowMultiplayerLobby(false)}
         onJoinRoom={(roomId) => {
           setCurrentRoomId(roomId);
           setShowMultiplayerLobby(false);
