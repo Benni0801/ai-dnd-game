@@ -2,47 +2,42 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    // Check if Ollama is running by trying to list models
-    const response = await fetch('http://localhost:11434/api/tags', {
-      method: 'GET',
-      signal: AbortSignal.timeout(5000) // 5 second timeout
-    });
-
-    if (!response.ok) {
+    // Check if we have Google API key for AI functionality
+    const hasGoogleAPI = !!process.env.GOOGLE_API_KEY;
+    
+    if (hasGoogleAPI) {
       return NextResponse.json({
-        status: 'offline',
-        message: 'Ollama service not responding',
-        models: [],
+        status: 'online',
+        message: 'AI ready with Google Gemini',
+        models: [{
+          name: 'gemini-pro',
+          size: 0,
+          modified: new Date().toISOString()
+        }],
+        hasModel: true,
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      // Fallback mode - no AI but still functional
+      return NextResponse.json({
+        status: 'fallback',
+        message: 'AI in fallback mode - using predefined responses',
+        models: [{
+          name: 'fallback-dm',
+          size: 0,
+          modified: new Date().toISOString()
+        }],
+        hasModel: true,
         timestamp: new Date().toISOString()
       });
     }
-
-    const data = await response.json();
-    const models = data.models || [];
-
-    // Check if we have the required model
-    const hasModel = models.some((model: any) => 
-      model.name === 'llama3.2' || model.name === 'llama3.2:1b'
-    );
-
-    return NextResponse.json({
-      status: 'online',
-      message: hasModel ? 'AI ready' : 'AI service running but no model loaded',
-      models: models.map((model: any) => ({
-        name: model.name,
-        size: model.size,
-        modified: model.modified_at
-      })),
-      hasModel,
-      timestamp: new Date().toISOString()
-    });
 
   } catch (error) {
     console.error('Error checking AI status:', error);
     
     return NextResponse.json({
       status: 'error',
-      message: 'Cannot connect to Ollama service',
+      message: 'Error checking AI status',
       models: [],
       hasModel: false,
       timestamp: new Date().toISOString()

@@ -5,12 +5,33 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { messages, characterStats } = body || {};
 
-    // Check for API key
+    // Check for API key - if not available, use fallback responses
     if (!process.env.GOOGLE_API_KEY) {
-      return NextResponse.json(
-        { error: 'Google API key not configured' },
-        { status: 500 }
-      );
+      console.log('No Google API key found, using fallback responses');
+      
+      // Get the last user message
+      const lastUserMessage = messages?.filter((msg: any) => msg.role === 'user').pop();
+      const userInput = lastUserMessage?.content?.toLowerCase() || '';
+      
+      // Generate contextual fallback responses
+      let fallbackResponse = "The dungeon master nods thoughtfully. 'An interesting turn of events. What would you like to do next?'";
+      
+      if (userInput.includes('explore') || userInput.includes('forest') || userInput.includes('go')) {
+        fallbackResponse = "The dungeon master gestures toward the path ahead. 'You find yourself at a crossroads in a dense forest. Ancient trees tower above you, their branches creating a canopy that filters the sunlight. You can hear the distant sound of a babbling brook to the east, or you could venture deeper into the woods to the north. What path calls to you?'";
+      } else if (userInput.includes('attack') || userInput.includes('fight') || userInput.includes('combat')) {
+        fallbackResponse = "The dungeon master's eyes gleam with excitement. 'Roll for initiative! A shadowy figure emerges from the darkness, brandishing a rusty blade. The creature's eyes glow with malevolent intent. Are you ready for battle?'";
+      } else if (userInput.includes('roll') || userInput.includes('dice')) {
+        fallbackResponse = "The dungeon master produces a set of ornate dice. 'Ah, the roll of the dice! The fate of your adventure hangs in the balance. What would you like to roll for?'";
+      } else if (userInput.includes('character') || userInput.includes('sheet') || userInput.includes('stats')) {
+        fallbackResponse = "The dungeon master examines your character sheet. 'I see you are " + (characterStats?.name || 'Adventurer') + ", a " + (characterStats?.race || 'brave soul') + " " + (characterStats?.class || 'hero') + ". Your current HP is " + (characterStats?.hp || 20) + ". What would you like to do with your abilities?'";
+      } else if (userInput.includes('help') || userInput.includes('what') || userInput.includes('how')) {
+        fallbackResponse = "The dungeon master smiles warmly. 'Welcome, brave adventurer! You can explore the world, engage in combat, roll dice for skill checks, or ask me about your character. Try saying things like \"I want to explore the forest\" or \"Roll for initiative\" or \"Show me my character sheet\". What adventure awaits you?'";
+      }
+      
+      return NextResponse.json({
+        message: fallbackResponse,
+        usage: { total_tokens: 0 }
+      });
     }
 
     // Build the conversation context
