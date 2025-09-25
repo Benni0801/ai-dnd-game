@@ -147,9 +147,14 @@ export async function POST(request: NextRequest) {
             console.log(`Successfully connected to model: ${model}`);
             break;
           } else {
-            const errorData = await response.text();
-            console.log(`Model ${model} failed with status ${response.status}: ${errorData}`);
-            lastError = { status: response.status, data: errorData };
+            try {
+              const errorData = await response.clone().text();
+              console.log(`Model ${model} failed with status ${response.status}: ${errorData}`);
+              lastError = { status: response.status, data: errorData };
+            } catch (readError) {
+              console.log(`Model ${model} failed with status ${response.status}: Could not read error body`);
+              lastError = { status: response.status, data: 'Could not read error body' };
+            }
           }
         } catch (error) {
           console.log(`Model ${model} threw error:`, error);
@@ -186,7 +191,14 @@ export async function POST(request: NextRequest) {
     }
     
     if (!response || !response.ok) {
-      const errorData = response ? await response.text() : 'No response received';
+      let errorData = 'No response received';
+      if (response) {
+        try {
+          errorData = await response.clone().text();
+        } catch (readError) {
+          errorData = 'Could not read error body';
+        }
+      }
       console.error(`Gemini API error: ${response?.status || 'No status'} - ${errorData}`);
       
       // If all models fail, fall back to enhanced responses
