@@ -87,11 +87,11 @@ export default function LandingPage({ onLogin }: LandingPageProps) {
               onClick={handleEmailAuth}
               className="btn-primary w-full max-w-md mx-auto py-4 px-6 text-lg font-semibold"
             >
-              🎮 Start Your Adventure
+              🎮 Create Account & Start Adventure
             </button>
             
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              Create an account or sign in to save your characters and continue your journey
+              Sign up for free to save your characters and continue your journey
             </p>
           </div>
 

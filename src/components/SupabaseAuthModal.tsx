@@ -10,7 +10,7 @@ interface SupabaseAuthModalProps {
 }
 
 export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: SupabaseAuthModalProps) {
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -166,17 +166,25 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
           </button>
         </form>
 
-        <div className="mt-4 text-center">
+        <div className="mt-6 text-center">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-600"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-gray-900 text-gray-400">Or</span>
+            </div>
+          </div>
+          
           <button
             onClick={() => {
               setIsLogin(!isLogin);
               setError('');
               setFormData({ username: '', email: '', password: '', confirmPassword: '' });
             }}
-            className="text-sm hover:text-purple-300 transition-colors"
-            style={{ color: 'var(--text-muted)' }}
+            className="mt-4 btn-secondary w-full py-2 text-sm"
           >
-            {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
+            {isLogin ? "📝 Create New Account" : "🔐 Sign In to Existing Account"}
           </button>
         </div>
       </div>
