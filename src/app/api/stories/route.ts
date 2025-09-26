@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { characterDb } from '../../../lib/database';
+import { storyDb } from '../../../lib/database';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -19,7 +19,7 @@ function verifyToken(request: NextRequest) {
   }
 }
 
-// GET - Get all characters for the authenticated user
+// GET - Get all stories for the authenticated user
 export async function GET(request: NextRequest) {
   try {
     const user = verifyToken(request);
@@ -30,16 +30,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const characters = characterDb.findByUserId(user.userId);
+    const stories = storyDb.findByUserId(user.userId);
     
     return NextResponse.json({
-      characters,
-      count: characters.length,
-      limit: 4
+      stories,
+      count: stories.length,
+      limit: 2
     });
 
   } catch (error) {
-    console.error('Get characters error:', error);
+    console.error('Get stories error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Create a new character
+// POST - Create a new story
 export async function POST(request: NextRequest) {
   try {
     const user = verifyToken(request);
@@ -58,35 +58,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check character limit
-    const currentCount = characterDb.countByUserId(user.userId);
-    if (currentCount >= 4) {
+    // Check story limit
+    const currentCount = storyDb.countByUserId(user.userId);
+    if (currentCount >= 2) {
       return NextResponse.json(
-        { error: 'Character limit reached. Maximum 4 characters allowed.' },
+        { error: 'Story limit reached. Maximum 2 stories allowed.' },
         { status: 400 }
       );
     }
 
-    const characterData = await request.json();
+    const storyData = await request.json();
 
     // Validate required fields
-    if (!characterData.name || !characterData.race || !characterData.class) {
+    if (!storyData.title) {
       return NextResponse.json(
-        { error: 'Name, race, and class are required' },
+        { error: 'Title is required' },
         { status: 400 }
       );
     }
 
-    // Create character
-    const result = characterDb.create(user.userId, characterData);
+    // Create story
+    const result = storyDb.create(user.userId, storyData);
     
     return NextResponse.json({
-      message: 'Character created successfully',
-      characterId: result.lastInsertRowid
+      message: 'Story created successfully',
+      storyId: result.lastInsertRowid
     });
 
   } catch (error) {
-    console.error('Create character error:', error);
+    console.error('Create story error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

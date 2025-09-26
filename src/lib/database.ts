@@ -1,432 +1,402 @@
-// Simple JSON-based database for character storage
-import fs from 'fs';
+import Database from 'better-sqlite3';
 import path from 'path';
+import bcrypt from 'bcryptjs';
 
-interface User {
-  id: string;
-  username: string;
-  characters: Character[];
-  createdAt: Date;
+// Database file path
+const dbPath = path.join(process.cwd(), 'data', 'game.db');
+
+// Create database connection
+const db = new Database(dbPath);
+
+// Enable foreign keys
+db.pragma('foreign_keys = ON');
+
+// Initialize database tables
+export function initializeDatabase() {
+  try {
+    // Users table
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_login DATETIME,
+        is_active BOOLEAN DEFAULT 1
+      )
+    `);
+
+    // Characters table
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS characters (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        race TEXT,
+        class TEXT,
+        level INTEGER DEFAULT 1,
+        xp INTEGER DEFAULT 0,
+        max_xp INTEGER DEFAULT 300,
+        hp INTEGER DEFAULT 20,
+        max_hp INTEGER DEFAULT 20,
+        str INTEGER DEFAULT 10,
+        dex INTEGER DEFAULT 10,
+        con INTEGER DEFAULT 10,
+        int INTEGER DEFAULT 10,
+        wis INTEGER DEFAULT 10,
+        cha INTEGER DEFAULT 10,
+        proficiency_bonus INTEGER DEFAULT 2,
+        background TEXT,
+        backstory TEXT,
+        skills TEXT, -- JSON array
+        abilities TEXT, -- JSON array
+        spells TEXT, -- JSON array
+        inventory TEXT, -- JSON object
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      )
+    `);
+
+    // Stories table
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS stories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT,
+        genre TEXT DEFAULT 'fantasy',
+        current_location TEXT,
+        current_mission TEXT,
+        main_quest TEXT,
+        game_state TEXT, -- JSON object
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      )
+    `);
+
+    // Story sessions table (for tracking individual play sessions)
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS story_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        story_id INTEGER NOT NULL,
+        character_id INTEGER NOT NULL,
+        session_data TEXT, -- JSON object with messages, state, etc.
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (story_id) REFERENCES stories (id) ON DELETE CASCADE,
+        FOREIGN KEY (character_id) REFERENCES characters (id) ON DELETE CASCADE
+      )
+    `);
+
+    // Create indexes for better performance
+    db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_characters_user_id ON characters (user_id);
+      CREATE INDEX IF NOT EXISTS idx_stories_user_id ON stories (user_id);
+      CREATE INDEX IF NOT EXISTS idx_story_sessions_story_id ON story_sessions (story_id);
+      CREATE INDEX IF NOT EXISTS idx_story_sessions_character_id ON story_sessions (character_id);
+    `);
+
+    console.log('Database initialized successfully');
+  } catch (error) {
+    console.error('Error initializing database:', error);
+    throw error;
+  }
 }
 
-interface Character {
-  id: string;
-  userId: string;
-  name: string;
-  race: string;
-  class: string;
-  background: string;
-  str: number;
-  dex: number;
-  int: number;
-  con: number;
-  wis: number;
-  cha: number;
-  hp: number;
-  inventory: string;
-  level: number;
-  specialAbilities: string[];
-  createdAt: Date;
-}
+// User management functions
+export const userDb = {
+  // Create a new user
+  create: (username: string, email: string, password: string) => {
+    const passwordHash = bcrypt.hashSync(password, 10);
+    const stmt = db.prepare(`
+      INSERT INTO users (username, email, password_hash)
+      VALUES (?, ?, ?)
+    `);
+    return stmt.run(username, email, passwordHash);
+  },
 
-interface GameRoom {
-  id: string;
-  name: string;
-  players: string[]; // User IDs
-  dmId: string;
-  isActive: boolean;
-  createdAt: Date;
-}
+  // Find user by username
+  findByUsername: (username: string) => {
+    const stmt = db.prepare('SELECT * FROM users WHERE username = ? AND is_active = 1');
+    return stmt.get(username);
+  },
 
-interface GameSession {
-  id: string;
-  characterId: string;
-  userId: string;
-  currentLocation: string;
-  questProgress: string;
-  npcRelations: Record<string, number>; // NPC name -> relationship score
-  gameState: string; // JSON string of current game state
-  lastPlayed: Date;
-  createdAt: Date;
-}
+  // Find user by email
+  findByEmail: (email: string) => {
+    const stmt = db.prepare('SELECT * FROM users WHERE email = ? AND is_active = 1');
+    return stmt.get(email);
+  },
 
-interface GameNote {
-  id: string;
-  sessionId: string;
-  content: string;
-  category: 'general' | 'quest' | 'npc' | 'location' | 'loot';
-  createdAt: Date;
-}
+  // Find user by ID
+  findById: (id: number) => {
+    const stmt = db.prepare('SELECT * FROM users WHERE id = ? AND is_active = 1');
+    return stmt.get(id);
+  },
 
-interface GameTurn {
-  id: string;
-  sessionId: string;
-  turnNumber: number;
-  playerInput: string;
-  aiResponse: string;
-  diceRolls: Array<{type: string, result: number, modifier?: number}>;
-  timestamp: Date;
-}
+  // Update last login
+  updateLastLogin: (id: number) => {
+    const stmt = db.prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?');
+    return stmt.run(id);
+  },
 
-class Database {
-  private dataPath: string;
-  private users: User[] = [];
-  private characters: Character[] = [];
-  private gameRooms: GameRoom[] = [];
-  private gameSessions: GameSession[] = [];
-  private gameNotes: GameNote[] = [];
-  private gameTurns: GameTurn[] = [];
-
-  constructor() {
-    this.dataPath = path.join(process.cwd(), 'data');
-    this.ensureDataDirectory();
-    this.loadData();
+  // Verify password
+  verifyPassword: (password: string, hash: string) => {
+    return bcrypt.compareSync(password, hash);
   }
+};
 
-  private ensureDataDirectory() {
-    if (!fs.existsSync(this.dataPath)) {
-      fs.mkdirSync(this.dataPath, { recursive: true });
-    }
-  }
-
-  private loadData() {
-    try {
-      // Load users
-      const usersPath = path.join(this.dataPath, 'users.json');
-      if (fs.existsSync(usersPath)) {
-        const usersData = fs.readFileSync(usersPath, 'utf8');
-        this.users = JSON.parse(usersData).map((user: any) => ({
-          ...user,
-          createdAt: new Date(user.createdAt)
-        }));
-      }
-
-      // Load characters
-      const charactersPath = path.join(this.dataPath, 'characters.json');
-      if (fs.existsSync(charactersPath)) {
-        const charactersData = fs.readFileSync(charactersPath, 'utf8');
-        this.characters = JSON.parse(charactersData).map((char: any) => ({
-          ...char,
-          createdAt: new Date(char.createdAt)
-        }));
-      }
-
-      // Load game rooms
-      const roomsPath = path.join(this.dataPath, 'gameRooms.json');
-      if (fs.existsSync(roomsPath)) {
-        const roomsData = fs.readFileSync(roomsPath, 'utf8');
-        this.gameRooms = JSON.parse(roomsData).map((room: any) => ({
-          ...room,
-          createdAt: new Date(room.createdAt)
-        }));
-      }
-
-      // Load game sessions
-      const sessionsPath = path.join(this.dataPath, 'gameSessions.json');
-      if (fs.existsSync(sessionsPath)) {
-        const sessionsData = fs.readFileSync(sessionsPath, 'utf8');
-        this.gameSessions = JSON.parse(sessionsData).map((session: any) => ({
-          ...session,
-          lastPlayed: new Date(session.lastPlayed),
-          createdAt: new Date(session.createdAt)
-        }));
-      }
-
-      // Load game notes
-      const notesPath = path.join(this.dataPath, 'gameNotes.json');
-      if (fs.existsSync(notesPath)) {
-        const notesData = fs.readFileSync(notesPath, 'utf8');
-        this.gameNotes = JSON.parse(notesData).map((note: any) => ({
-          ...note,
-          createdAt: new Date(note.createdAt)
-        }));
-      }
-
-      // Load game turns
-      const turnsPath = path.join(this.dataPath, 'gameTurns.json');
-      if (fs.existsSync(turnsPath)) {
-        const turnsData = fs.readFileSync(turnsPath, 'utf8');
-        this.gameTurns = JSON.parse(turnsData).map((turn: any) => ({
-          ...turn,
-          timestamp: new Date(turn.timestamp)
-        }));
-      }
-    } catch (error) {
-      console.error('Error loading database:', error);
-    }
-  }
-
-  private saveData() {
-    try {
-      // Save users
-      fs.writeFileSync(
-        path.join(this.dataPath, 'users.json'),
-        JSON.stringify(this.users, null, 2)
-      );
-
-      // Save characters
-      fs.writeFileSync(
-        path.join(this.dataPath, 'characters.json'),
-        JSON.stringify(this.characters, null, 2)
-      );
-
-      // Save game rooms
-      fs.writeFileSync(
-        path.join(this.dataPath, 'gameRooms.json'),
-        JSON.stringify(this.gameRooms, null, 2)
-      );
-
-      // Save game sessions
-      fs.writeFileSync(
-        path.join(this.dataPath, 'gameSessions.json'),
-        JSON.stringify(this.gameSessions, null, 2)
-      );
-
-      // Save game notes
-      fs.writeFileSync(
-        path.join(this.dataPath, 'gameNotes.json'),
-        JSON.stringify(this.gameNotes, null, 2)
-      );
-
-      // Save game turns
-      fs.writeFileSync(
-        path.join(this.dataPath, 'gameTurns.json'),
-        JSON.stringify(this.gameTurns, null, 2)
-      );
-    } catch (error) {
-      console.error('Error saving database:', error);
-    }
-  }
-
-  // User management
-  createUser(username: string): User {
-    const user: User = {
-      id: this.generateId(),
-      username,
-      characters: [],
-      createdAt: new Date()
-    };
-    this.users.push(user);
-    this.saveData();
-    return user;
-  }
-
-  getUserById(id: string): User | undefined {
-    return this.users.find(user => user.id === id);
-  }
-
-  getUserByUsername(username: string): User | undefined {
-    return this.users.find(user => user.username === username);
-  }
-
-  // Character management
-  createCharacter(userId: string, characterData: Omit<Character, 'id' | 'userId' | 'createdAt'>): Character {
-    // Check character limit (3 per user)
-    const userCharacters = this.characters.filter(char => char.userId === userId);
-    if (userCharacters.length >= 3) {
-      throw new Error('Character limit reached. You can only have 3 characters.');
-    }
-
-    const character: Character = {
-      id: this.generateId(),
-      userId,
-      createdAt: new Date(),
-      ...characterData
-    };
+// Character management functions
+export const characterDb = {
+  // Create a new character
+  create: (userId: number, characterData: any) => {
+    const stmt = db.prepare(`
+      INSERT INTO characters (
+        user_id, name, race, class, level, xp, max_xp, hp, max_hp,
+        str, dex, con, int, wis, cha, proficiency_bonus, background,
+        backstory, skills, abilities, spells, inventory
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
     
-    this.characters.push(character);
-    this.saveData();
-    return character;
-  }
-
-  getCharactersByUserId(userId: string): Character[] {
-    return this.characters.filter(char => char.userId === userId);
-  }
-
-  getCharacterById(id: string): Character | undefined {
-    return this.characters.find(char => char.id === id);
-  }
-
-  updateCharacter(id: string, updates: Partial<Character>): Character | undefined {
-    const index = this.characters.findIndex(char => char.id === id);
-    if (index !== -1) {
-      this.characters[index] = { ...this.characters[index], ...updates };
-      this.saveData();
-      return this.characters[index];
-    }
-    return undefined;
-  }
-
-  deleteCharacter(id: string): boolean {
-    const index = this.characters.findIndex(char => char.id === id);
-    if (index !== -1) {
-      this.characters.splice(index, 1);
-      this.saveData();
-      return true;
-    }
-    return false;
-  }
-
-  // Game room management
-  createGameRoom(name: string, dmId: string): GameRoom {
-    const room: GameRoom = {
-      id: this.generateId(),
-      name,
-      players: [],
-      dmId,
-      isActive: true,
-      createdAt: new Date()
-    };
-    this.gameRooms.push(room);
-    this.saveData();
-    return room;
-  }
-
-  getGameRoomById(id: string): GameRoom | undefined {
-    return this.gameRooms.find(room => room.id === id);
-  }
-
-  getActiveGameRooms(): GameRoom[] {
-    return this.gameRooms.filter(room => room.isActive);
-  }
-
-  joinGameRoom(roomId: string, userId: string): boolean {
-    const room = this.getGameRoomById(roomId);
-    if (room && !room.players.includes(userId)) {
-      room.players.push(userId);
-      this.saveData();
-      return true;
-    }
-    return false;
-  }
-
-  leaveGameRoom(roomId: string, userId: string): boolean {
-    const room = this.getGameRoomById(roomId);
-    if (room) {
-      const index = room.players.indexOf(userId);
-      if (index !== -1) {
-        room.players.splice(index, 1);
-        this.saveData();
-        return true;
-      }
-    }
-    return false;
-  }
-
-  // Game session management
-  createGameSession(characterId: string, userId: string, initialLocation: string = 'Starting Village'): GameSession {
-    const session: GameSession = {
-      id: this.generateId(),
-      characterId,
+    return stmt.run(
       userId,
-      currentLocation: initialLocation,
-      questProgress: 'Beginning your adventure',
-      npcRelations: {},
-      gameState: JSON.stringify({ turn: 0, events: [] }),
-      lastPlayed: new Date(),
-      createdAt: new Date()
-    };
-    this.gameSessions.push(session);
-    this.saveData();
-    return session;
-  }
+      characterData.name,
+      characterData.race,
+      characterData.class,
+      characterData.level || 1,
+      characterData.xp || 0,
+      characterData.maxXp || 300,
+      characterData.hp || 20,
+      characterData.maxHp || 20,
+      characterData.str || 10,
+      characterData.dex || 10,
+      characterData.con || 10,
+      characterData.int || 10,
+      characterData.wis || 10,
+      characterData.cha || 10,
+      characterData.proficiencyBonus || 2,
+      characterData.background,
+      characterData.backstory,
+      JSON.stringify(characterData.skills || []),
+      JSON.stringify(characterData.abilities || []),
+      JSON.stringify(characterData.spells || []),
+      JSON.stringify(characterData.inventory || {})
+    );
+  },
 
-  getGameSessionById(id: string): GameSession | undefined {
-    return this.gameSessions.find(session => session.id === id);
-  }
+  // Get all characters for a user
+  findByUserId: (userId: number) => {
+    const stmt = db.prepare('SELECT * FROM characters WHERE user_id = ? ORDER BY created_at DESC');
+    const characters = stmt.all(userId);
+    
+    // Parse JSON fields
+    return characters.map((char: any) => ({
+      ...char,
+      skills: JSON.parse(char.skills || '[]'),
+      abilities: JSON.parse(char.abilities || '[]'),
+      spells: JSON.parse(char.spells || '[]'),
+      inventory: JSON.parse(char.inventory || '{}')
+    }));
+  },
 
-  getGameSessionsByUserId(userId: string): GameSession[] {
-    return this.gameSessions.filter(session => session.userId === userId);
-  }
-
-  getGameSessionsByCharacterId(characterId: string): GameSession[] {
-    return this.gameSessions.filter(session => session.characterId === characterId);
-  }
-
-  updateGameSession(id: string, updates: Partial<GameSession>): GameSession | undefined {
-    const index = this.gameSessions.findIndex(session => session.id === id);
-    if (index !== -1) {
-      this.gameSessions[index] = { 
-        ...this.gameSessions[index], 
-        ...updates, 
-        lastPlayed: new Date() 
+  // Get character by ID
+  findById: (id: number) => {
+    const stmt = db.prepare('SELECT * FROM characters WHERE id = ?');
+    const character = stmt.get(id);
+    
+    if (character) {
+      return {
+        ...character,
+        skills: JSON.parse((character as any).skills || '[]'),
+        abilities: JSON.parse((character as any).abilities || '[]'),
+        spells: JSON.parse((character as any).spells || '[]'),
+        inventory: JSON.parse((character as any).inventory || '{}')
       };
-      this.saveData();
-      return this.gameSessions[index];
     }
-    return undefined;
-  }
+    return null;
+  },
 
-  // Game notes management
-  createGameNote(sessionId: string, content: string, category: GameNote['category'] = 'general'): GameNote {
-    const note: GameNote = {
-      id: this.generateId(),
-      sessionId,
-      content,
-      category,
-      createdAt: new Date()
-    };
-    this.gameNotes.push(note);
-    this.saveData();
-    return note;
-  }
+  // Update character
+  update: (id: number, characterData: any) => {
+    const stmt = db.prepare(`
+      UPDATE characters SET
+        name = ?, race = ?, class = ?, level = ?, xp = ?, max_xp = ?,
+        hp = ?, max_hp = ?, str = ?, dex = ?, con = ?, int = ?, wis = ?, cha = ?,
+        proficiency_bonus = ?, background = ?, backstory = ?, skills = ?,
+        abilities = ?, spells = ?, inventory = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+    
+    return stmt.run(
+      characterData.name,
+      characterData.race,
+      characterData.class,
+      characterData.level,
+      characterData.xp,
+      characterData.maxXp,
+      characterData.hp,
+      characterData.maxHp,
+      characterData.str,
+      characterData.dex,
+      characterData.con,
+      characterData.int,
+      characterData.wis,
+      characterData.cha,
+      characterData.proficiencyBonus,
+      characterData.background,
+      characterData.backstory,
+      JSON.stringify(characterData.skills || []),
+      JSON.stringify(characterData.abilities || []),
+      JSON.stringify(characterData.spells || []),
+      JSON.stringify(characterData.inventory || {}),
+      id
+    );
+  },
 
-  getGameNotesBySessionId(sessionId: string): GameNote[] {
-    return this.gameNotes.filter(note => note.sessionId === sessionId);
-  }
+  // Delete character
+  delete: (id: number) => {
+    const stmt = db.prepare('DELETE FROM characters WHERE id = ?');
+    return stmt.run(id);
+  },
 
-  updateGameNote(id: string, updates: Partial<GameNote>): GameNote | undefined {
-    const index = this.gameNotes.findIndex(note => note.id === id);
-    if (index !== -1) {
-      this.gameNotes[index] = { ...this.gameNotes[index], ...updates };
-      this.saveData();
-      return this.gameNotes[index];
+  // Count characters for a user
+  countByUserId: (userId: number) => {
+    const stmt = db.prepare('SELECT COUNT(*) as count FROM characters WHERE user_id = ?');
+    return (stmt.get(userId) as any).count;
+  }
+};
+
+// Story management functions
+export const storyDb = {
+  // Create a new story
+  create: (userId: number, storyData: any) => {
+    const stmt = db.prepare(`
+      INSERT INTO stories (
+        user_id, title, description, genre, current_location,
+        current_mission, main_quest, game_state
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    
+    return stmt.run(
+      userId,
+      storyData.title,
+      storyData.description,
+      storyData.genre || 'fantasy',
+      storyData.currentLocation,
+      storyData.currentMission,
+      storyData.mainQuest,
+      JSON.stringify(storyData.gameState || {})
+    );
+  },
+
+  // Get all stories for a user
+  findByUserId: (userId: number) => {
+    const stmt = db.prepare('SELECT * FROM stories WHERE user_id = ? ORDER BY created_at DESC');
+    const stories = stmt.all(userId);
+    
+    // Parse JSON fields
+    return stories.map((story: any) => ({
+      ...story,
+      gameState: JSON.parse(story.game_state || '{}')
+    }));
+  },
+
+  // Get story by ID
+  findById: (id: number) => {
+    const stmt = db.prepare('SELECT * FROM stories WHERE id = ?');
+    const story = stmt.get(id);
+    
+    if (story) {
+      return {
+        ...story,
+        gameState: JSON.parse((story as any).game_state || '{}')
+      };
     }
-    return undefined;
-  }
+    return null;
+  },
 
-  deleteGameNote(id: string): boolean {
-    const index = this.gameNotes.findIndex(note => note.id === id);
-    if (index !== -1) {
-      this.gameNotes.splice(index, 1);
-      this.saveData();
-      return true;
+  // Update story
+  update: (id: number, storyData: any) => {
+    const stmt = db.prepare(`
+      UPDATE stories SET
+        title = ?, description = ?, genre = ?, current_location = ?,
+        current_mission = ?, main_quest = ?, game_state = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+    
+    return stmt.run(
+      storyData.title,
+      storyData.description,
+      storyData.genre,
+      storyData.currentLocation,
+      storyData.currentMission,
+      storyData.mainQuest,
+      JSON.stringify(storyData.gameState || {}),
+      id
+    );
+  },
+
+  // Delete story
+  delete: (id: number) => {
+    const stmt = db.prepare('DELETE FROM stories WHERE id = ?');
+    return stmt.run(id);
+  },
+
+  // Count stories for a user
+  countByUserId: (userId: number) => {
+    const stmt = db.prepare('SELECT COUNT(*) as count FROM stories WHERE user_id = ?');
+    return (stmt.get(userId) as any).count;
+  }
+};
+
+// Session management functions
+export const sessionDb = {
+  // Create a new session
+  create: (storyId: number, characterId: number, sessionData: any) => {
+    const stmt = db.prepare(`
+      INSERT INTO story_sessions (story_id, character_id, session_data)
+      VALUES (?, ?, ?)
+    `);
+    
+    return stmt.run(storyId, characterId, JSON.stringify(sessionData));
+  },
+
+  // Get latest session for a story and character
+  getLatest: (storyId: number, characterId: number) => {
+    const stmt = db.prepare(`
+      SELECT * FROM story_sessions 
+      WHERE story_id = ? AND character_id = ?
+      ORDER BY updated_at DESC 
+      LIMIT 1
+    `);
+    
+    const session = stmt.get(storyId, characterId);
+    
+    if (session) {
+      return {
+        ...session,
+        sessionData: JSON.parse((session as any).session_data || '{}')
+      };
     }
-    return false;
+    return null;
+  },
+
+  // Update session
+  update: (id: number, sessionData: any) => {
+    const stmt = db.prepare(`
+      UPDATE story_sessions SET
+        session_data = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+    
+    return stmt.run(JSON.stringify(sessionData), id);
   }
+};
 
-  // Game turns management
-  createGameTurn(sessionId: string, turnNumber: number, playerInput: string, aiResponse: string, diceRolls: Array<{type: string, result: number, modifier?: number}> = []): GameTurn {
-    const turn: GameTurn = {
-      id: this.generateId(),
-      sessionId,
-      turnNumber,
-      playerInput,
-      aiResponse,
-      diceRolls,
-      timestamp: new Date()
-    };
-    this.gameTurns.push(turn);
-    this.saveData();
-    return turn;
-  }
+// Initialize database on import
+initializeDatabase();
 
-  getGameTurnsBySessionId(sessionId: string): GameTurn[] {
-    return this.gameTurns.filter(turn => turn.sessionId === sessionId).sort((a, b) => a.turnNumber - b.turnNumber);
-  }
-
-  getLastTurnNumber(sessionId: string): number {
-    const turns = this.getGameTurnsBySessionId(sessionId);
-    return turns.length > 0 ? Math.max(...turns.map(t => t.turnNumber)) : 0;
-  }
-
-  private generateId(): string {
-    return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-  }
-}
-
-// Export singleton instance
-export const database = new Database();
-export type { User, Character, GameRoom, GameSession, GameNote, GameTurn };
-
-
+export { db as database };
+export default db;

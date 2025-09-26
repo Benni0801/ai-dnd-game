@@ -6,6 +6,8 @@ import AdvancedDiceRoller from '../components/AdvancedDiceRoller';
 import InventorySystem from '../components/InventorySystem';
 import CombatSystem from '../components/CombatSystem';
 import CharacterProgression from '../components/CharacterProgression';
+import AuthModal from '../components/AuthModal';
+import CharacterSelector from '../components/CharacterSelector';
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -37,6 +39,12 @@ export default function Home() {
   const [inventory, setInventory] = useState<any[]>([]);
   const [showScrollButton, setShowScrollButton] = useState(false);
   
+  // Authentication state
+  const [user, setUser] = useState<any>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showCharacterSelector, setShowCharacterSelector] = useState(false);
+  const [selectedCharacter, setSelectedCharacter] = useState<any>(null);
+  
   // Refs for auto-scrolling
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -66,6 +74,95 @@ export default function Home() {
       scrollToBottom();
     }
   }, [isLoading]);
+
+  // Check for existing authentication on mount
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    const userData = localStorage.getItem('user');
+    
+    if (token && userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+        setShowCharacterSelector(true);
+        setShowCharacterCreation(false);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+      }
+    }
+  }, []);
+
+  // Authentication handlers
+  const handleLogin = (userData: any) => {
+    setUser(userData);
+    setShowAuthModal(false);
+    setShowCharacterSelector(true);
+    setShowCharacterCreation(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    setUser(null);
+    setSelectedCharacter(null);
+    setShowCharacterSelector(false);
+    setShowCharacterCreation(true);
+    setMessages([]);
+  };
+
+  const handleCharacterSelect = (character: any) => {
+    setSelectedCharacter(character);
+    setCharacterStats({
+      name: character.name,
+      race: character.race,
+      class: character.class,
+      level: character.level,
+      xp: character.xp,
+      hp: character.hp,
+      maxHp: character.max_hp,
+      str: character.str,
+      dex: character.dex,
+      int: character.int,
+      con: character.con,
+      wis: character.wis,
+      cha: character.cha,
+      proficiencyBonus: character.proficiency_bonus,
+      skills: character.skills || [],
+      abilities: character.abilities || [],
+      spells: character.spells || [],
+      inventory: character.inventory || 'Basic equipment'
+    });
+    setShowCharacterSelector(false);
+    setShowCharacterCreation(false);
+  };
+
+  const handleNewCharacter = () => {
+    setSelectedCharacter(null);
+    setCharacterStats({
+      name: '',
+      race: '',
+      class: '',
+      level: 1,
+      xp: 0,
+      hp: 20,
+      maxHp: 20,
+      str: 12,
+      dex: 12,
+      int: 12,
+      con: 12,
+      wis: 12,
+      cha: 12,
+      proficiencyBonus: 2,
+      skills: [],
+      abilities: [],
+      spells: [],
+      inventory: 'Basic equipment'
+    });
+    setShowCharacterSelector(false);
+    setShowCharacterCreation(true);
+  };
 
   const handleDiceRoll = (results: any[]) => {
     const rollText = results.map(r => `${r.value}${r.isCritical ? ' (Critical!)' : r.isFumble ? ' (Fumble!)' : ''}`).join(', ');
@@ -101,18 +198,45 @@ export default function Home() {
     }
   };
 
-  const handleCharacterCreated = (character: CharacterStats) => {
-    setCharacterStats(character);
-    setShowCharacterCreation(false);
-    
-    const openingMessage: Message = {
-      id: Date.now().toString(),
-      role: 'assistant',
-      content: `Welcome, ${character.name}! You are a ${character.race} ${character.class} beginning your epic journey. The world stretches before you, filled with possibilities and dangers. What would you like to do first?`,
-      timestamp: new Date()
-    };
-    
-    setMessages([openingMessage]);
+  const handleCharacterCreated = async (character: CharacterStats) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        setShowAuthModal(true);
+        return;
+      }
+
+      // Save character to database
+      const response = await fetch('/api/characters', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(character),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCharacterStats({ ...character, id: data.characterId });
+        setShowCharacterCreation(false);
+        
+        const openingMessage: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: `Welcome, ${character.name}! You are a ${character.race} ${character.class} beginning your epic journey. The world stretches before you, filled with possibilities and dangers. What would you like to do first?`,
+          timestamp: new Date()
+        };
+        
+        setMessages([openingMessage]);
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to create character: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error('Error creating character:', error);
+      alert('Network error creating character');
+    }
   };
 
   const handleSendMessage = async (message: string) => {
@@ -172,6 +296,22 @@ export default function Home() {
       setIsLoading(false);
     }
   };
+
+  // Show authentication modal
+  if (showAuthModal) {
+    return <AuthModal isOpen={true} onClose={() => setShowAuthModal(false)} onLogin={handleLogin} />;
+  }
+
+  // Show character selector
+  if (showCharacterSelector) {
+    return (
+      <CharacterSelector
+        onCharacterSelect={handleCharacterSelect}
+        onNewCharacter={handleNewCharacter}
+        onLogout={handleLogout}
+      />
+    );
+  }
 
   if (showCharacterCreation) {
     return (
@@ -261,13 +401,22 @@ export default function Home() {
                 </div>
               )}
               
-              <button
-                onClick={() => handleCharacterCreated(characterStats)}
-                disabled={!characterStats.name || !characterStats.race || !characterStats.class}
-                className="btn-primary w-full text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                🎭 Create Character & Start Adventure
-              </button>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => handleCharacterCreated(characterStats)}
+                    disabled={!characterStats.name || !characterStats.race || !characterStats.class}
+                    className="btn-primary w-full text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    🎭 Create Character & Start Adventure
+                  </button>
+                  
+                  <button
+                    onClick={() => setShowAuthModal(true)}
+                    className="btn-secondary w-full text-sm py-2"
+                  >
+                    🔐 Login to Save Character
+                  </button>
+                </div>
             </div>
           </div>
         </div>
