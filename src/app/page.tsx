@@ -144,32 +144,35 @@ export default function Home() {
 
   if (showCharacterCreation) {
     return (
-      <div className="min-h-screen rustic-background">
-        <div className="fixed inset-0 rustic-wood-bg opacity-20"></div>
+      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #0f0f23 0%, #0a0a1a 100%)' }}>
         <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
-          <div className="fantasy-card max-w-2xl w-full">
-            <h1 className="rustic-title text-4xl text-center mb-8">
+          <div className="glass-card max-w-2xl w-full p-8">
+            <h1 className="text-4xl font-bold text-center mb-8 purple-gradient bg-clip-text text-transparent">
               ⚔️ Create Your Character
             </h1>
             
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <label className="block rustic-text mb-2">Character Name:</label>
+                <label className="block text-sm font-medium mb-3" style={{ color: 'var(--text-muted)' }}>
+                  Character Name
+                </label>
                 <input
                   type="text"
                   value={characterStats.name}
                   onChange={(e) => setCharacterStats(prev => ({ ...prev, name: e.target.value }))}
-                  className="rustic-input w-full"
+                  className="input-field w-full"
                   placeholder="Enter your character's name"
                 />
               </div>
               
               <div>
-                <label className="block rustic-text mb-2">Race:</label>
+                <label className="block text-sm font-medium mb-3" style={{ color: 'var(--text-muted)' }}>
+                  Race
+                </label>
                 <select
-                  value={characterStats.race}
+                  value={characterStats.race || ''}
                   onChange={(e) => setCharacterStats(prev => ({ ...prev, race: e.target.value }))}
-                  className="rustic-input w-full"
+                  className="input-field w-full"
                 >
                   <option value="">Select a race</option>
                   <option value="Human">Human</option>
@@ -182,11 +185,13 @@ export default function Home() {
               </div>
               
               <div>
-                <label className="block rustic-text mb-2">Class:</label>
+                <label className="block text-sm font-medium mb-3" style={{ color: 'var(--text-muted)' }}>
+                  Class
+                </label>
                 <select
-                  value={characterStats.class}
+                  value={characterStats.class || ''}
                   onChange={(e) => setCharacterStats(prev => ({ ...prev, class: e.target.value }))}
-                  className="rustic-input w-full"
+                  className="input-field w-full"
                 >
                   <option value="">Select a class</option>
                   <option value="Fighter">Fighter</option>
@@ -203,7 +208,7 @@ export default function Home() {
               <button
                 onClick={() => handleCharacterCreated(characterStats)}
                 disabled={!characterStats.name || !characterStats.race || !characterStats.class}
-                className="rustic-button w-full text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary w-full text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 🎭 Create Character & Start Adventure
               </button>
@@ -215,150 +220,135 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen rustic-background">
-      <div className="fixed inset-0 rustic-wood-bg opacity-20"></div>
+    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #0f0f23 0%, #0a0a1a 100%)' }}>
       <div className="relative z-10 min-h-screen flex">
         {/* Sidebar */}
         <div className="w-80 m-4 space-y-4">
           {/* Character Info */}
-          <div className="rustic-panel">
-            <div className="rustic-panel-content">
-              <h3 className="rustic-title text-xl mb-4">📋 {characterStats.name}</h3>
-              <div className="space-y-2 text-sm">
-                <div className="character-stat">
-                  <span className="character-stat-label">Level {characterStats.level} {characterStats.race} {characterStats.class}</span>
-                </div>
-                <div className="character-stat">
-                  <span className="character-stat-label">HP:</span>
-                  <span className="character-stat-value">{characterStats.hp}/{characterStats.maxHp}</span>
-                </div>
-                <div className="character-stat">
-                  <span className="character-stat-label">XP:</span>
-                  <span className="character-stat-value">{characterStats.xp}</span>
-                </div>
+          <div className="glass-panel p-6">
+            <h3 className="text-xl font-bold mb-4 purple-gradient bg-clip-text text-transparent">
+              📋 {characterStats.name}
+            </h3>
+            <div className="space-y-3 text-sm">
+              <div className="character-stat">
+                <span className="character-stat-label">Level {characterStats.level || 1} {characterStats.race} {characterStats.class}</span>
               </div>
-              
+              <div className="character-stat">
+                <span className="character-stat-label">HP:</span>
+                <span className="character-stat-value">{characterStats.hp}/{characterStats.maxHp || characterStats.hp}</span>
+              </div>
+              <div className="character-stat">
+                <span className="character-stat-label">XP:</span>
+                <span className="character-stat-value">{characterStats.xp || 0}</span>
+              </div>
+            </div>
+            
+            <button
+              onClick={() => setShowCharacterCreation(true)}
+              className="btn-secondary w-full mt-4 text-sm"
+            >
+              ✏️ Edit Character
+            </button>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="glass-panel p-4">
+            <div className="tab-nav">
               <button
-                onClick={() => setShowCharacterCreation(true)}
-                className="rustic-button w-full mt-4 text-sm"
+                onClick={() => setActiveTab('chat')}
+                className={`tab-button ${activeTab === 'chat' ? 'active' : ''}`}
               >
-                ✏️ Edit Character
+                💬 Chat
+              </button>
+              <button
+                onClick={() => setActiveTab('character')}
+                className={`tab-button ${activeTab === 'character' ? 'active' : ''}`}
+              >
+                📈 Stats
+              </button>
+              <button
+                onClick={() => setActiveTab('inventory')}
+                className={`tab-button ${activeTab === 'inventory' ? 'active' : ''}`}
+              >
+                🎒 Items
+              </button>
+              <button
+                onClick={() => setActiveTab('combat')}
+                className={`tab-button ${activeTab === 'combat' ? 'active' : ''}`}
+              >
+                ⚔️ Combat
+              </button>
+              <button
+                onClick={() => setActiveTab('dice')}
+                className={`tab-button ${activeTab === 'dice' ? 'active' : ''}`}
+              >
+                🎲 Dice
               </button>
             </div>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="rustic-panel">
-            <div className="rustic-panel-content">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => setActiveTab('chat')}
-                  className={`p-2 rounded text-sm font-bold ${
-                    activeTab === 'chat' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                  }`}
-                >
-                  💬 Chat
-                </button>
-                <button
-                  onClick={() => setActiveTab('character')}
-                  className={`p-2 rounded text-sm font-bold ${
-                    activeTab === 'character' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                  }`}
-                >
-                  📈 Stats
-                </button>
-                <button
-                  onClick={() => setActiveTab('inventory')}
-                  className={`p-2 rounded text-sm font-bold ${
-                    activeTab === 'inventory' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                  }`}
-                >
-                  🎒 Items
-                </button>
-                <button
-                  onClick={() => setActiveTab('combat')}
-                  className={`p-2 rounded text-sm font-bold ${
-                    activeTab === 'combat' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                  }`}
-                >
-                  ⚔️ Combat
-                </button>
-                <button
-                  onClick={() => setActiveTab('dice')}
-                  className={`p-2 rounded text-sm font-bold ${
-                    activeTab === 'dice' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                  }`}
-                >
-                  🎲 Dice
-                </button>
-              </div>
-            </div>
-          </div>
-
           {/* Active Tab Content */}
-          <div className="rustic-panel">
-            <div className="rustic-panel-content">
-              {activeTab === 'character' && (
-                <CharacterProgression
-                  characterStats={characterStats}
-                  onStatsUpdate={(stats) => setCharacterStats(prev => ({ ...prev, ...stats }))}
-                />
-              )}
-              {activeTab === 'inventory' && (
-                <InventorySystem
-                  characterStats={characterStats}
-                  onInventoryChange={setInventory}
-                />
-              )}
-              {activeTab === 'combat' && (
-                <CombatSystem
-                  characterStats={characterStats}
-                  onCombatEnd={handleCombatEnd}
-                />
-              )}
-              {activeTab === 'dice' && (
-                <AdvancedDiceRoller
-                  onRollComplete={handleDiceRoll}
-                />
-              )}
-            </div>
+          <div className="glass-panel">
+            {activeTab === 'character' && (
+              <CharacterProgression
+                characterStats={characterStats}
+                onStatsUpdate={(stats) => setCharacterStats(prev => ({ ...prev, ...stats }))}
+              />
+            )}
+            {activeTab === 'inventory' && (
+              <InventorySystem
+                characterStats={characterStats}
+                onInventoryChange={setInventory}
+              />
+            )}
+            {activeTab === 'combat' && (
+              <CombatSystem
+                characterStats={characterStats}
+                onCombatEnd={handleCombatEnd}
+              />
+            )}
+            {activeTab === 'dice' && (
+              <AdvancedDiceRoller
+                onRollComplete={handleDiceRoll}
+              />
+            )}
           </div>
         </div>
 
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <div className="rustic-header">
-            <h1 className="rustic-title text-2xl">
+          <div className="glass-panel m-4 p-6">
+            <h1 className="text-3xl font-bold purple-gradient bg-clip-text text-transparent">
               ⚔️ AI D&D Adventure
             </h1>
-            <p className="rustic-text mt-2">
+            <p className="mt-2" style={{ color: 'var(--text-muted)' }}>
               Playing as {characterStats.name} the {characterStats.race} {characterStats.class}
             </p>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 p-4 overflow-y-auto rustic-scrollbar">
+          <div className="flex-1 p-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`message-card ${message.role === 'user' ? 'user' : 'ai'} mb-4`}
+                className={`message-card ${message.role === 'user' ? 'user' : 'ai'}`}
               >
-                <div className="text-sm text-gray-400 mb-2">
+                <div className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
                   {message.role === 'user' ? 'You' : 'Dungeon Master'} • {message.timestamp.toLocaleTimeString()}
                 </div>
-                <div className="rustic-text">
+                <div style={{ color: 'var(--text-light)' }}>
                   {message.content}
                 </div>
               </div>
             ))}
 
             {isLoading && (
-              <div className="message-card ai mb-4">
-                <div className="text-sm text-gray-400 mb-2">
+              <div className="message-card ai">
+                <div className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
                   Dungeon Master • thinking...
                 </div>
-                <div className="rustic-text">
+                <div style={{ color: 'var(--text-light)' }}>
                   The AI is crafting your adventure...
                 </div>
               </div>
@@ -366,7 +356,7 @@ export default function Home() {
           </div>
 
           {/* Input */}
-          <div className="rustic-header">
+          <div className="glass-panel m-4 p-4">
             <form onSubmit={(e) => {
               e.preventDefault();
               if (inputMessage.trim() && !isLoading) {
@@ -374,19 +364,19 @@ export default function Home() {
                 setInputMessage('');
               }
             }}>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <input
                   type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   placeholder="What would you like to do, adventurer?"
                   disabled={isLoading}
-                  className="rustic-input flex-1"
+                  className="input-field flex-1"
                 />
                 <button
                   type="submit"
                   disabled={!inputMessage.trim() || isLoading}
-                  className="rustic-button px-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-primary px-6 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Sending...' : 'Send'}
                 </button>

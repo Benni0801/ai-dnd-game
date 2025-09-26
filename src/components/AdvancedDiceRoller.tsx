@@ -77,21 +77,21 @@ export default function AdvancedDiceRoller({ onRollComplete, disabled = false }:
   };
 
   return (
-    <div className="dice-roller bg-gray-800 p-4 rounded-lg border border-gray-600">
-      <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+    <div className="dice-roller">
+      <h3 className="text-xl font-bold mb-4 flex items-center" style={{ color: 'var(--text-light)' }}>
         🎲 Advanced Dice Roller
       </h3>
 
       {/* Dice Selection */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>
             Dice Type
           </label>
           <select
             value={selectedDice}
             onChange={(e) => setSelectedDice(e.target.value)}
-            className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
+            className="input-field w-full"
             disabled={isRolling}
           >
             {DICE_TYPES.map(dice => (
@@ -103,7 +103,7 @@ export default function AdvancedDiceRoller({ onRollComplete, disabled = false }:
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>
             Quantity
           </label>
           <input
@@ -112,7 +112,7 @@ export default function AdvancedDiceRoller({ onRollComplete, disabled = false }:
             max="10"
             value={quantity}
             onChange={(e) => setQuantity(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
-            className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
+            className="input-field w-full"
             disabled={isRolling}
           />
         </div>
@@ -120,14 +120,14 @@ export default function AdvancedDiceRoller({ onRollComplete, disabled = false }:
 
       {/* Modifier */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>
           Modifier
         </label>
         <input
           type="number"
           value={modifier}
           onChange={(e) => setModifier(parseInt(e.target.value) || 0)}
-          className="w-full p-2 bg-gray-700 text-white rounded border border-gray-600"
+          className="input-field w-full"
           disabled={isRolling}
           placeholder="+0"
         />
@@ -140,7 +140,7 @@ export default function AdvancedDiceRoller({ onRollComplete, disabled = false }:
         className={`w-full py-3 px-4 rounded-lg font-bold text-lg transition-all duration-200 ${
           isRolling
             ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-            : 'bg-red-600 hover:bg-red-700 text-white transform hover:scale-105'
+            : 'btn-primary transform hover:scale-105'
         }`}
       >
         {isRolling ? '🎲 Rolling...' : `🎲 Roll ${quantity}${selectedDice}${modifier !== 0 ? ` + ${modifier}` : ''}`}
@@ -148,18 +148,18 @@ export default function AdvancedDiceRoller({ onRollComplete, disabled = false }:
 
       {/* Last Roll Result */}
       {lastRoll.length > 0 && (
-        <div className="mt-4 p-3 bg-gray-700 rounded border border-gray-600">
-          <h4 className="text-sm font-medium text-gray-300 mb-2">Last Roll:</h4>
+        <div className="mt-4 p-3 glass-panel">
+          <h4 className="text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Last Roll:</h4>
           <div className="flex flex-wrap gap-2 mb-2">
             {lastRoll.map((die, index) => (
               <div
                 key={die.id}
-                className={`px-3 py-1 rounded text-sm font-bold ${
+                className={`dice-result ${
                   die.isCritical
-                    ? 'bg-green-600 text-white'
+                    ? 'critical'
                     : die.isFumble
-                    ? 'bg-red-600 text-white'
-                    : 'bg-gray-600 text-white'
+                    ? 'fumble'
+                    : ''
                 }`}
               >
                 {die.value}
@@ -168,10 +168,10 @@ export default function AdvancedDiceRoller({ onRollComplete, disabled = false }:
               </div>
             ))}
           </div>
-          <div className="text-white font-bold">
+          <div className="font-bold" style={{ color: 'var(--text-light)' }}>
             Total: {getTotal(lastRoll)}
             {modifier !== 0 && (
-              <span className="text-gray-400 text-sm ml-2">
+              <span className="text-sm ml-2" style={{ color: 'var(--text-muted)' }}>
                 ({lastRoll.reduce((sum, die) => sum + die.value, 0)} + {modifier})
               </span>
             )}
@@ -182,10 +182,10 @@ export default function AdvancedDiceRoller({ onRollComplete, disabled = false }:
       {/* Roll History */}
       {rollHistory.length > 0 && (
         <div className="mt-4">
-          <h4 className="text-sm font-medium text-gray-300 mb-2">Recent Rolls:</h4>
+          <h4 className="text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Recent Rolls:</h4>
           <div className="space-y-1 max-h-32 overflow-y-auto">
             {rollHistory.slice(0, 5).map((roll, index) => (
-              <div key={index} className="text-xs text-gray-400 bg-gray-700 p-2 rounded">
+              <div key={index} className="text-xs p-2 rounded glass-panel" style={{ color: 'var(--text-muted)' }}>
                 {getRollText(roll)}
               </div>
             ))}
