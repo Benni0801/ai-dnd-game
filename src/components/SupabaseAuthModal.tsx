@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { authService } from '../lib/supabase-auth';
 
 interface SupabaseAuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLogin: (user: any) => void;
+  initialMode?: 'login' | 'register';
 }
 
-export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: SupabaseAuthModalProps) {
-  const [isLogin, setIsLogin] = useState(false);
+export default function SupabaseAuthModal({ isOpen, onClose, onLogin, initialMode = 'register' }: SupabaseAuthModalProps) {
+  const [isLogin, setIsLogin] = useState(initialMode === 'login');
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -19,6 +20,13 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Update mode when initialMode prop changes
+  useEffect(() => {
+    setIsLogin(initialMode === 'login');
+    setError('');
+    setFormData({ username: '', email: '', password: '', confirmPassword: '' });
+  }, [initialMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

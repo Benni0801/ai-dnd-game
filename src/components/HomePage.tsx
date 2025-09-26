@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import SupabaseAuthModal from './SupabaseAuthModal';
-import EnvCheck from './EnvCheck';
 
 interface HomePageProps {
   onStartGame: () => void;
@@ -12,6 +11,7 @@ interface HomePageProps {
 export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
   const [activeTab, setActiveTab] = useState<'updates' | 'blog'>('updates');
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
 
   const handleAuthSuccess = (user: any) => {
     console.log('Auth success:', user);
@@ -26,11 +26,13 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
 
   const handleStartGame = () => {
     console.log('Start game button clicked!');
+    setAuthMode('register');
     setShowAuthModal(true);
   };
 
   const handleLogin = () => {
     console.log('Login button clicked!');
+    setAuthMode('login');
     setShowAuthModal(true);
   };
 
@@ -133,7 +135,7 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
                 e.currentTarget.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.3)';
               }}
             >
-              🎮 Start Game
+              📝 Register
             </button>
           </div>
         </div>
@@ -204,7 +206,7 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
               e.currentTarget.style.boxShadow = '0 8px 25px rgba(139, 92, 246, 0.3)';
             }}
           >
-            🎮 Start Your Adventure
+            📝 Create Account
           </button>
           <button
             onClick={handleLogin}
@@ -312,14 +314,13 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
         </div>
       </section>
 
-      {/* Environment Check (temporary for debugging) */}
-      <EnvCheck />
 
       {/* Modal */}
       <SupabaseAuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         onLogin={handleAuthSuccess}
+        initialMode={authMode}
       />
     </div>
   );
