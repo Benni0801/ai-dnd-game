@@ -34,6 +34,9 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin, initialMod
     setError('');
 
     console.log('Form submission started:', { isLogin, formData });
+    console.log('Email field:', formData.email);
+    console.log('Password field length:', formData.password.length);
+    console.log('Username field:', formData.username);
 
     try {
       if (isLogin) {
