@@ -71,30 +71,85 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="glass-card max-w-md w-full p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold purple-gradient bg-clip-text text-transparent">
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0, 0, 0, 0.8)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 9999,
+      padding: '1rem'
+    }}>
+      <div style={{
+        background: 'rgba(26, 26, 46, 0.95)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(139, 92, 246, 0.3)',
+        borderRadius: '16px',
+        maxWidth: '500px',
+        width: '100%',
+        padding: '2rem',
+        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)'
+      }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '1.5rem'
+        }}>
+          <h2 style={{
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            margin: 0
+          }}>
             {isLogin ? '🔐 Login' : '📝 Register'}
           </h2>
           <button
             onClick={onClose}
-            className="text-2xl hover:text-red-400 transition-colors"
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '1.5rem',
+              color: '#94a3b8',
+              cursor: 'pointer',
+              transition: 'color 0.3s ease'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.color = '#ef4444'}
+            onMouseOut={(e) => e.currentTarget.style.color = '#94a3b8'}
           >
             ×
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-900 bg-opacity-50 border border-red-500 text-red-200">
+          <div style={{
+            marginBottom: '1rem',
+            padding: '0.75rem',
+            borderRadius: '8px',
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            color: '#fca5a5'
+          }}>
             {error}
           </div>
         )}
 
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              marginBottom: '0.5rem',
+              color: '#94a3b8'
+            }}>
               Username
             </label>
             <input
@@ -102,7 +157,15 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
               name="username"
               value={formData.username}
               onChange={handleInputChange}
-              className="input-field w-full"
+              style={{
+                width: '100%',
+                padding: '0.75rem 1rem',
+                background: 'rgba(26, 26, 46, 0.8)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                borderRadius: '8px',
+                color: '#e2e8f0',
+                fontSize: '1rem'
+              }}
               placeholder="Enter your username"
               required
             />
@@ -110,7 +173,13 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
 
           {!isLogin && (
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                marginBottom: '0.5rem',
+                color: '#94a3b8'
+              }}>
                 Email
               </label>
               <input
@@ -118,7 +187,15 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="input-field w-full"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  background: 'rgba(26, 26, 46, 0.8)',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  borderRadius: '8px',
+                  color: '#e2e8f0',
+                  fontSize: '1rem'
+                }}
                 placeholder="Enter your email"
                 required
               />
@@ -126,7 +203,13 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              marginBottom: '0.5rem',
+              color: '#94a3b8'
+            }}>
               Password
             </label>
             <input
@@ -134,7 +217,15 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
               name="password"
               value={formData.password}
               onChange={handleInputChange}
-              className="input-field w-full"
+              style={{
+                width: '100%',
+                padding: '0.75rem 1rem',
+                background: 'rgba(26, 26, 46, 0.8)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                borderRadius: '8px',
+                color: '#e2e8f0',
+                fontSize: '1rem'
+              }}
               placeholder="Enter your password"
               required
             />
@@ -142,7 +233,13 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
 
           {!isLogin && (
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-muted)' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                marginBottom: '0.5rem',
+                color: '#94a3b8'
+              }}>
                 Confirm Password
               </label>
               <input
@@ -150,7 +247,15 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
-                className="input-field w-full"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  background: 'rgba(26, 26, 46, 0.8)',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  borderRadius: '8px',
+                  color: '#e2e8f0',
+                  fontSize: '1rem'
+                }}
                 placeholder="Confirm your password"
                 required
               />
@@ -160,19 +265,47 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
           <button
             type="submit"
             disabled={isLoading}
-            className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+              border: 'none',
+              borderRadius: '8px',
+              color: 'white',
+              fontSize: '1rem',
+              fontWeight: '600',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              opacity: isLoading ? 0.5 : 1,
+              transition: 'all 0.3s ease'
+            }}
           >
             {isLoading ? '⏳ Processing...' : (isLogin ? '🔐 Login' : '📝 Register')}
           </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-600"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-gray-900 text-gray-400">Or</span>
+        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+          <div style={{ position: 'relative', marginBottom: '1rem' }}>
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: 0,
+              right: 0,
+              height: '1px',
+              background: '#374151'
+            }}></div>
+            <div style={{
+              position: 'relative',
+              display: 'flex',
+              justifyContent: 'center'
+            }}>
+              <span style={{
+                padding: '0 1rem',
+                background: '#1a1a2e',
+                color: '#9ca3af',
+                fontSize: '0.875rem'
+              }}>
+                Or
+              </span>
             </div>
           </div>
           
@@ -182,7 +315,26 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
               setError('');
               setFormData({ username: '', email: '', password: '', confirmPassword: '' });
             }}
-            className="mt-4 btn-secondary w-full py-2 text-sm"
+            style={{
+              width: '100%',
+              padding: '0.5rem',
+              background: 'rgba(139, 92, 246, 0.1)',
+              border: '1px solid rgba(139, 92, 246, 0.3)',
+              borderRadius: '8px',
+              color: '#a78bfa',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)';
+              e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.5)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)';
+              e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+            }}
           >
             {isLogin ? "📝 Create New Account" : "🔐 Sign In to Existing Account"}
           </button>
