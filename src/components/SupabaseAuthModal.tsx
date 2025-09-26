@@ -58,13 +58,24 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
         console.log('Signup result:', result);
         
         if (result.user) {
-          console.log('Registration successful, auto-login...');
-          // Auto-login after registration
-          const loginResult = await authService.signIn(formData.email, formData.password);
-          console.log('Auto-login result:', loginResult);
-          if (loginResult.user) {
-            onLogin(loginResult.user);
-            onClose();
+          console.log('Registration successful!');
+          // Check if email confirmation is required
+          if (result.user.email_confirmed_at) {
+            console.log('Email already confirmed, auto-login...');
+            // Auto-login after registration
+            const loginResult = await authService.signIn(formData.email, formData.password);
+            console.log('Auto-login result:', loginResult);
+            if (loginResult.user) {
+              onLogin(loginResult.user);
+              onClose();
+            }
+          } else {
+            console.log('Email confirmation required');
+            setError('✅ Registration successful! Please check your email and click the confirmation link, then try logging in.');
+            // Switch to login mode so they can try to login after confirming
+            setIsLogin(true);
+            // Clear the form
+            setFormData({ username: '', email: '', password: '', confirmPassword: '' });
           }
         }
       }
@@ -160,9 +171,9 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
             marginBottom: '1rem',
             padding: '0.75rem',
             borderRadius: '8px',
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            color: '#fca5a5'
+            background: error.includes('✅') ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+            border: error.includes('✅') ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)',
+            color: error.includes('✅') ? '#6ee7b7' : '#fca5a5'
           }}>
             {error}
           </div>
