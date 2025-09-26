@@ -8,7 +8,7 @@ import CombatSystem from '../components/CombatSystem';
 import CharacterProgression from '../components/CharacterProgression';
 import SupabaseAuthModal from '../components/SupabaseAuthModal';
 import SupabaseCharacterSelector from '../components/SupabaseCharacterSelector';
-import LandingPage from '../components/LandingPage';
+import HomePage from '../components/HomePage';
 import { authService, characterService } from '../lib/supabase-auth';
 
 export default function Home() {
@@ -46,7 +46,7 @@ export default function Home() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showCharacterSelector, setShowCharacterSelector] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<any>(null);
-  const [showLandingPage, setShowLandingPage] = useState(true);
+  const [showHomePage, setShowHomePage] = useState(true);
   
   // Refs for auto-scrolling
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -85,15 +85,15 @@ export default function Home() {
         const user = await authService.getCurrentUser();
         if (user) {
           setUser(user);
-          setShowLandingPage(false);
+          setShowHomePage(false);
           setShowCharacterSelector(true);
           setShowCharacterCreation(false);
         } else {
-          setShowLandingPage(true);
+          setShowHomePage(true);
         }
       } catch (error) {
         console.error('Error checking auth:', error);
-        setShowLandingPage(true);
+        setShowHomePage(true);
       }
     };
 
@@ -103,12 +103,12 @@ export default function Home() {
     const { data: { subscription } } = authService.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         setUser(session.user);
-        setShowLandingPage(false);
+        setShowHomePage(false);
         setShowCharacterSelector(true);
         setShowCharacterCreation(false);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
-        setShowLandingPage(true);
+        setShowHomePage(true);
         setShowCharacterSelector(false);
         setShowCharacterCreation(false);
         setMessages([]);
@@ -121,7 +121,7 @@ export default function Home() {
   // Authentication handlers
   const handleLogin = (userData: any) => {
     setUser(userData);
-    setShowLandingPage(false);
+    setShowHomePage(false);
     setShowAuthModal(false);
     setShowCharacterSelector(true);
     setShowCharacterCreation(false);
@@ -132,7 +132,7 @@ export default function Home() {
       await authService.signOut();
       setUser(null);
       setSelectedCharacter(null);
-      setShowLandingPage(true);
+      setShowHomePage(true);
       setShowCharacterSelector(false);
       setShowCharacterCreation(false);
       setMessages([]);
@@ -191,6 +191,14 @@ export default function Home() {
     });
     setShowCharacterSelector(false);
     setShowCharacterCreation(true);
+  };
+
+  const handleStartGame = () => {
+    setShowAuthModal(true);
+  };
+
+  const handleHomeLogin = () => {
+    setShowAuthModal(true);
   };
 
   const handleDiceRoll = (results: any[]) => {
@@ -311,9 +319,9 @@ export default function Home() {
     }
   };
 
-  // Show landing page
-  if (showLandingPage) {
-    return <LandingPage onLogin={handleLogin} />;
+  // Show homepage
+  if (showHomePage) {
+    return <HomePage onStartGame={handleStartGame} onLogin={handleHomeLogin} />;
   }
 
   // Show authentication modal

@@ -67,9 +67,19 @@ export const authService = {
       return null;
     }
     
-    const { data: { user }, error } = await getSupabase().auth.getUser();
-    if (error) throw error;
-    return user;
+    try {
+      const { data: { user }, error } = await getSupabase().auth.getUser();
+      if (error && error.message !== 'Auth session missing!') {
+        throw error;
+      }
+      return user;
+    } catch (error: any) {
+      // Handle auth session missing gracefully
+      if (error.message === 'Auth session missing!') {
+        return null;
+      }
+      throw error;
+    }
   },
 
   // Get current session
@@ -78,9 +88,19 @@ export const authService = {
       return null;
     }
     
-    const { data: { session }, error } = await getSupabase().auth.getSession();
-    if (error) throw error;
-    return session;
+    try {
+      const { data: { session }, error } = await getSupabase().auth.getSession();
+      if (error && error.message !== 'Auth session missing!') {
+        throw error;
+      }
+      return session;
+    } catch (error: any) {
+      // Handle auth session missing gracefully
+      if (error.message === 'Auth session missing!') {
+        return null;
+      }
+      throw error;
+    }
   },
 
   // Listen to auth state changes
@@ -160,7 +180,7 @@ export const characterService = {
     if (error) throw error;
     
     // Parse JSON fields
-    return data.map(char => ({
+    return data.map((char: any) => ({
       ...char,
       skills: JSON.parse(char.skills || '[]'),
       abilities: JSON.parse(char.abilities || '[]'),
@@ -293,7 +313,7 @@ export const storyService = {
     if (error) throw error;
     
     // Parse JSON fields
-    return data.map(story => ({
+    return data.map((story: any) => ({
       ...story,
       gameState: JSON.parse(story.game_state || '{}')
     }));

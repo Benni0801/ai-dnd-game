@@ -3,16 +3,29 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
 
-// Only create client if environment variables are properly set
-export const supabase = supabaseUrl.includes('placeholder') || supabaseAnonKey.includes('placeholder')
-  ? null
-  : createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true
-      }
-    });
+// Create a singleton instance to avoid multiple GoTrueClient instances
+let supabaseInstance: any = null;
+
+export const supabase = (() => {
+  if (supabaseInstance) {
+    return supabaseInstance;
+  }
+  
+  if (supabaseUrl.includes('placeholder') || supabaseAnonKey.includes('placeholder')) {
+    return null;
+  }
+  
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined
+    }
+  });
+  
+  return supabaseInstance;
+})();
 
 // Database types
 export interface Database {
