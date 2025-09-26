@@ -17,6 +17,11 @@ const getSupabase = () => {
 export const authService = {
   // Sign up with email and password
   signUp: async (email: string, password: string, username: string) => {
+    console.log('=== SIGN UP DEBUG ===');
+    console.log('Email:', email);
+    console.log('Username:', username);
+    console.log('Password length:', password.length);
+    
     if (!isSupabaseConfigured()) {
       throw new Error('Supabase is not configured. Please set up your environment variables.');
     }
@@ -30,6 +35,12 @@ export const authService = {
         }
       }
     });
+
+    console.log('Sign up result:');
+    console.log('Data:', data);
+    console.log('Error:', error);
+    console.log('User email confirmed:', data.user?.email_confirmed_at);
+    console.log('===================');
 
     if (error) throw error;
     return data;

@@ -209,34 +209,36 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin, initialMod
 
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div>
-            <label style={{
-              display: 'block',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              marginBottom: '0.5rem',
-              color: '#94a3b8'
-            }}>
-              Username
-            </label>
-            <input
-              type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleInputChange}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                background: 'rgba(26, 26, 46, 0.8)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                borderRadius: '8px',
-                color: '#e2e8f0',
-                fontSize: '1rem'
-              }}
-              placeholder="Enter your username"
-              required
-            />
-          </div>
+          {!isLogin && (
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                marginBottom: '0.5rem',
+                color: '#94a3b8'
+              }}>
+                Username
+              </label>
+              <input
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleInputChange}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  background: 'rgba(26, 26, 46, 0.8)',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  borderRadius: '8px',
+                  color: '#e2e8f0',
+                  fontSize: '1rem'
+                }}
+                placeholder="Enter your username"
+                required
+              />
+            </div>
+          )}
 
           <div>
             <label style={{
