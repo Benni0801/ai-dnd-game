@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
       console.log('Using Google AI Studio API endpoint');
       // Try different model formats that might work
       const models = [
+        'gemini-2.0-flash',
         'gemini-1.5-flash',
         'gemini-1.5-flash-001',
         'gemini-1.5-pro',
@@ -59,12 +60,10 @@ export async function POST(request: NextRequest) {
       for (const model of models) {
         try {
           console.log(`Trying model: ${model}`);
-          // Try different endpoint formats - focus on working ones
+          // Use the correct Google AI Studio endpoint format
           const endpoints = [
-            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-            `https://ai.google.dev/api/v1beta/models/${model}:generateContent?key=${apiKey}`,
-            `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
-            `https://ai.google.dev/api/v1/models/${model}:generateContent?key=${apiKey}`
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+            `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent`
           ];
           
           let modelResponse = null;
@@ -75,6 +74,7 @@ export async function POST(request: NextRequest) {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
+                  'X-goog-api-key': apiKey
                 },
                 body: JSON.stringify({
                   contents: [{
@@ -127,10 +127,11 @@ export async function POST(request: NextRequest) {
       }
     } else {
       console.log('Using alternative API endpoint');
-      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-goog-api-key': apiKey
         },
         body: JSON.stringify({
           contents: [{
