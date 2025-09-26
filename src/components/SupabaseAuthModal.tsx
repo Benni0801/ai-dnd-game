@@ -30,6 +30,13 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
     try {
       if (isLogin) {
         console.log('Attempting login...');
+        // Validate login fields
+        if (!formData.email || !formData.password) {
+          setError('Please enter both email and password');
+          setIsLoading(false);
+          return;
+        }
+        
         // Login with email and password
         const result = await authService.signIn(formData.email, formData.password);
         console.log('Login result:', result);
@@ -74,8 +81,8 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
             setError('✅ Registration successful! Please check your email and click the confirmation link, then try logging in.');
             // Switch to login mode so they can try to login after confirming
             setIsLogin(true);
-            // Clear the form
-            setFormData({ username: '', email: '', password: '', confirmPassword: '' });
+            // Keep the email and password for easy login after confirmation
+            setFormData({ username: '', email: formData.email, password: formData.password, confirmPassword: '' });
           }
         }
       }
@@ -348,12 +355,17 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
             </div>
           </div>
           
-          <button
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setError('');
-              setFormData({ username: '', email: '', password: '', confirmPassword: '' });
-            }}
+              <button
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setError('');
+                  // Only clear form if switching from register to login, keep email/password if switching from login to register
+                  if (isLogin) {
+                    setFormData({ username: '', email: '', password: '', confirmPassword: '' });
+                  } else {
+                    setFormData({ username: '', email: formData.email, password: formData.password, confirmPassword: '' });
+                  }
+                }}
             style={{
               width: '100%',
               padding: '0.5rem',
