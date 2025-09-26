@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { CharacterStats, Message } from '../types';
 import AdvancedDiceRoller from '../components/AdvancedDiceRoller';
 import InventorySystem from '../components/InventorySystem';
@@ -35,6 +35,37 @@ export default function Home() {
 
   const [activeTab, setActiveTab] = useState<'chat' | 'character' | 'inventory' | 'combat' | 'dice'>('chat');
   const [inventory, setInventory] = useState<any[]>([]);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  
+  // Refs for auto-scrolling
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Check if user has scrolled up to show scroll button
+  const handleScroll = () => {
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+      setShowScrollButton(!isNearBottom);
+    }
+  };
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Scroll to bottom when loading state changes
+  useEffect(() => {
+    if (isLoading) {
+      scrollToBottom();
+    }
+  }, [isLoading]);
 
   const handleDiceRoll = (results: any[]) => {
     const rollText = results.map(r => `${r.value}${r.isCritical ? ' (Critical!)' : r.isFumble ? ' (Fumble!)' : ''}`).join(', ');
@@ -448,7 +479,12 @@ export default function Home() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 p-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 300px)' }}>
+            <div 
+              ref={messagesContainerRef}
+              className="flex-1 p-4 overflow-y-auto relative" 
+              style={{ maxHeight: 'calc(100vh - 300px)' }}
+              onScroll={handleScroll}
+            >
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -491,6 +527,25 @@ export default function Home() {
                     The AI is crafting your adventure...
                   </div>
                 </div>
+              )}
+              
+              {/* Invisible element to scroll to */}
+              <div ref={messagesEndRef} />
+              
+              {/* Scroll to bottom button */}
+              {showScrollButton && (
+                <button
+                  onClick={scrollToBottom}
+                  className="fixed bottom-20 right-6 w-12 h-12 rounded-full glass-panel flex items-center justify-center text-xl hover:scale-110 transition-all duration-200 z-10"
+                  style={{ 
+                    background: 'var(--primary-purple)',
+                    color: 'white',
+                    boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)'
+                  }}
+                  title="Scroll to bottom"
+                >
+                  ↓
+                </button>
               )}
             </div>
 
