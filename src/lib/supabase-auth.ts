@@ -221,6 +221,41 @@ export const characterService = {
 
   // Create new character
   createCharacter: async (userId: string, characterData: any) => {
+    console.log('=== CREATE CHARACTER DEBUG ===');
+    console.log('User ID:', userId);
+    console.log('Character data:', characterData);
+    
+    // First check if user exists in public.users table
+    const { data: userCheck, error: userError } = await getSupabase()
+      .from('users')
+      .select('id')
+      .eq('id', userId)
+      .single();
+    
+    console.log('User check result:', userCheck);
+    console.log('User check error:', userError);
+    
+    if (userError) {
+      console.log('User does not exist in public.users table, creating...');
+      // User doesn't exist in public.users, create them
+      const { data: currentUser } = await getSupabase().auth.getUser();
+      if (currentUser.user) {
+        const { error: insertUserError } = await getSupabase()
+          .from('users')
+          .insert({
+            id: userId,
+            username: currentUser.user.user_metadata?.username || 'Unknown',
+            email: currentUser.user.email || ''
+          });
+        
+        if (insertUserError) {
+          console.error('Failed to create user record:', insertUserError);
+          throw insertUserError;
+        }
+        console.log('User record created successfully');
+      }
+    }
+    
     const { data, error } = await getSupabase()
       .from('characters')
       .insert({
@@ -249,6 +284,10 @@ export const characterService = {
       })
       .select()
       .single();
+
+    console.log('Character creation result:', data);
+    console.log('Character creation error:', error);
+    console.log('===============================');
 
     if (error) throw error;
     return data;
