@@ -37,14 +37,25 @@ export const authService = {
 
   // Sign in with email and password
   signIn: async (email: string, password: string) => {
+    console.log('=== SIGN IN DEBUG ===');
+    console.log('Email:', email);
+    console.log('Password length:', password.length);
+    console.log('Supabase configured:', isSupabaseConfigured());
+    
     if (!isSupabaseConfigured()) {
       throw new Error('Supabase is not configured. Please set up your environment variables.');
     }
     
+    console.log('Attempting sign in with Supabase...');
     const { data, error } = await getSupabase().auth.signInWithPassword({
       email,
       password
     });
+
+    console.log('Sign in result:');
+    console.log('Data:', data);
+    console.log('Error:', error);
+    console.log('===================');
 
     if (error) throw error;
     return data;

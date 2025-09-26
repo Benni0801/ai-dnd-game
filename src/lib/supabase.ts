@@ -9,20 +9,30 @@ declare global {
 }
 
 function createSupabaseClient() {
+  console.log('=== SUPABASE CLIENT DEBUG ===');
+  console.log('Supabase URL:', supabaseUrl);
+  console.log('Supabase Key (first 20 chars):', supabaseAnonKey.substring(0, 20) + '...');
+  console.log('Window available:', typeof window !== 'undefined');
+  console.log('Has global client:', typeof window !== 'undefined' && !!(window as any).__supabaseClient);
+  
   // Check if we already have a global instance
   if (typeof window !== 'undefined' && (window as any).__supabaseClient) {
+    console.log('Returning existing global client');
     return (window as any).__supabaseClient;
   }
   
   if (supabaseUrl.includes('placeholder') || supabaseAnonKey.includes('placeholder')) {
+    console.log('Supabase not configured - using placeholders');
     return null;
   }
   
   // Only create client on the client side
   if (typeof window === 'undefined') {
+    console.log('Server side - returning null');
     return null;
   }
   
+  console.log('Creating new Supabase client...');
   const client = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: true,
@@ -35,6 +45,8 @@ function createSupabaseClient() {
   // Store globally to prevent multiple instances
   (window as any).__supabaseClient = client;
   
+  console.log('Supabase client created successfully');
+  console.log('===============================');
   return client;
 }
 
