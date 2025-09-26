@@ -3,29 +3,42 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
 
-// Create a singleton instance to avoid multiple GoTrueClient instances
-let supabaseInstance: any = null;
+// Global singleton instance to prevent multiple GoTrueClient instances
+declare global {
+  var __supabaseClient: any;
+}
 
-export const supabase = (() => {
-  if (supabaseInstance) {
-    return supabaseInstance;
+function createSupabaseClient() {
+  // Check if we already have a global instance
+  if (typeof window !== 'undefined' && (window as any).__supabaseClient) {
+    return (window as any).__supabaseClient;
   }
   
   if (supabaseUrl.includes('placeholder') || supabaseAnonKey.includes('placeholder')) {
     return null;
   }
   
-  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+  // Only create client on the client side
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  
+  const client = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true,
-      storage: typeof window !== 'undefined' ? window.localStorage : undefined
+      storage: window.localStorage
     }
   });
   
-  return supabaseInstance;
-})();
+  // Store globally to prevent multiple instances
+  (window as any).__supabaseClient = client;
+  
+  return client;
+}
+
+export const supabase = createSupabaseClient();
 
 // Database types
 export interface Database {
@@ -211,13 +224,5 @@ export interface Database {
   };
 }
 
-// Typed Supabase client
-export const supabaseTyped = supabaseUrl.includes('placeholder') || supabaseAnonKey.includes('placeholder')
-  ? null
-  : createClient<Database>(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true
-      }
-    });
+// Typed Supabase client (using the same singleton instance)
+export const supabaseTyped = typeof window !== 'undefined' ? (window as any).__supabaseClient : null;
