@@ -2,6 +2,10 @@
 
 import React, { useState } from 'react';
 import { CharacterStats, Message } from '../types';
+import AdvancedDiceRoller from '../components/AdvancedDiceRoller';
+import InventorySystem from '../components/InventorySystem';
+import CombatSystem from '../components/CombatSystem';
+import CharacterProgression from '../components/CharacterProgression';
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -12,15 +16,59 @@ export default function Home() {
     name: '',
     race: '',
     class: '',
+    level: 1,
+    xp: 0,
     hp: 20,
+    maxHp: 20,
     str: 12,
     dex: 12,
     int: 12,
     con: 12,
     wis: 12,
     cha: 12,
+    proficiencyBonus: 2,
+    skills: [],
+    abilities: [],
+    spells: [],
     inventory: 'Basic equipment'
   });
+
+  const [activeTab, setActiveTab] = useState<'chat' | 'character' | 'inventory' | 'combat' | 'dice'>('chat');
+  const [inventory, setInventory] = useState<any[]>([]);
+
+  const handleDiceRoll = (results: any[]) => {
+    const rollText = results.map(r => `${r.value}${r.isCritical ? ' (Critical!)' : r.isFumble ? ' (Fumble!)' : ''}`).join(', ');
+    const total = results.reduce((sum, r) => sum + r.value, 0);
+    
+    const diceMessage: Message = {
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: `🎲 You rolled: [${rollText}] = ${total}`,
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, diceMessage]);
+  };
+
+  const handleCombatEnd = (victory: boolean) => {
+    const combatMessage: Message = {
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: victory 
+        ? `🎉 Victory! You have defeated your enemy and gained 100 XP!`
+        : `💀 Defeat! You have been defeated in combat.`,
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, combatMessage]);
+    
+    if (victory) {
+      setCharacterStats(prev => ({
+        ...prev,
+        xp: (prev.xp || 0) + 100
+      }));
+    }
+  };
 
   const handleCharacterCreated = (character: CharacterStats) => {
     setCharacterStats(character);
@@ -170,39 +218,110 @@ export default function Home() {
     <div className="min-h-screen rustic-background">
       <div className="fixed inset-0 rustic-wood-bg opacity-20"></div>
       <div className="relative z-10 min-h-screen flex">
-        {/* Character Sheet Sidebar */}
-        <div className="w-80 rustic-panel m-4">
-          <div className="rustic-panel-content">
-            <h3 className="rustic-title text-xl mb-4">📋 Character Sheet</h3>
-            <div className="space-y-2">
-              <div className="character-stat">
-                <span className="character-stat-label">Name:</span>
-                <span className="character-stat-value">{characterStats.name}</span>
+        {/* Sidebar */}
+        <div className="w-80 m-4 space-y-4">
+          {/* Character Info */}
+          <div className="rustic-panel">
+            <div className="rustic-panel-content">
+              <h3 className="rustic-title text-xl mb-4">📋 {characterStats.name}</h3>
+              <div className="space-y-2 text-sm">
+                <div className="character-stat">
+                  <span className="character-stat-label">Level {characterStats.level} {characterStats.race} {characterStats.class}</span>
+                </div>
+                <div className="character-stat">
+                  <span className="character-stat-label">HP:</span>
+                  <span className="character-stat-value">{characterStats.hp}/{characterStats.maxHp}</span>
+                </div>
+                <div className="character-stat">
+                  <span className="character-stat-label">XP:</span>
+                  <span className="character-stat-value">{characterStats.xp}</span>
+                </div>
               </div>
-              <div className="character-stat">
-                <span className="character-stat-label">Race:</span>
-                <span className="character-stat-value">{characterStats.race}</span>
-              </div>
-              <div className="character-stat">
-                <span className="character-stat-label">Class:</span>
-                <span className="character-stat-value">{characterStats.class}</span>
-              </div>
-              <div className="character-stat">
-                <span className="character-stat-label">HP:</span>
-                <span className="character-stat-value">{characterStats.hp}</span>
-              </div>
-              <div className="character-stat">
-                <span className="character-stat-label">Inventory:</span>
-                <span className="character-stat-value text-sm">{characterStats.inventory}</span>
+              
+              <button
+                onClick={() => setShowCharacterCreation(true)}
+                className="rustic-button w-full mt-4 text-sm"
+              >
+                ✏️ Edit Character
+              </button>
+            </div>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="rustic-panel">
+            <div className="rustic-panel-content">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setActiveTab('chat')}
+                  className={`p-2 rounded text-sm font-bold ${
+                    activeTab === 'chat' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                  }`}
+                >
+                  💬 Chat
+                </button>
+                <button
+                  onClick={() => setActiveTab('character')}
+                  className={`p-2 rounded text-sm font-bold ${
+                    activeTab === 'character' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                  }`}
+                >
+                  📈 Stats
+                </button>
+                <button
+                  onClick={() => setActiveTab('inventory')}
+                  className={`p-2 rounded text-sm font-bold ${
+                    activeTab === 'inventory' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                  }`}
+                >
+                  🎒 Items
+                </button>
+                <button
+                  onClick={() => setActiveTab('combat')}
+                  className={`p-2 rounded text-sm font-bold ${
+                    activeTab === 'combat' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                  }`}
+                >
+                  ⚔️ Combat
+                </button>
+                <button
+                  onClick={() => setActiveTab('dice')}
+                  className={`p-2 rounded text-sm font-bold ${
+                    activeTab === 'dice' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                  }`}
+                >
+                  🎲 Dice
+                </button>
               </div>
             </div>
-            
-            <button
-              onClick={() => setShowCharacterCreation(true)}
-              className="rustic-button w-full mt-4"
-            >
-              ✏️ Edit Character
-            </button>
+          </div>
+
+          {/* Active Tab Content */}
+          <div className="rustic-panel">
+            <div className="rustic-panel-content">
+              {activeTab === 'character' && (
+                <CharacterProgression
+                  characterStats={characterStats}
+                  onStatsUpdate={(stats) => setCharacterStats(prev => ({ ...prev, ...stats }))}
+                />
+              )}
+              {activeTab === 'inventory' && (
+                <InventorySystem
+                  characterStats={characterStats}
+                  onInventoryChange={setInventory}
+                />
+              )}
+              {activeTab === 'combat' && (
+                <CombatSystem
+                  characterStats={characterStats}
+                  onCombatEnd={handleCombatEnd}
+                />
+              )}
+              {activeTab === 'dice' && (
+                <AdvancedDiceRoller
+                  onRollComplete={handleDiceRoll}
+                />
+              )}
+            </div>
           </div>
         </div>
 

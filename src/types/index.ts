@@ -7,6 +7,7 @@ export interface CharacterStats {
   class?: string;
   background?: string;
   level?: number;
+  xp?: number;
   experience?: { current: number; needed: number };
   hp: number;
   maxHp?: number;
@@ -16,10 +17,12 @@ export interface CharacterStats {
   con: number;
   wis: number;
   cha: number;
+  proficiencyBonus?: number;
   inventory: string;
   equippedItems?: string;
   spells?: Array<{ name: string; level: number; slots: number }> | string[];
   skills?: string[];
+  abilities?: string[];
   backstory?: string;
   specialAbilities?: string[];
   attributes?: {
