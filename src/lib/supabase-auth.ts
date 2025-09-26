@@ -57,6 +57,21 @@ export const authService = {
       throw new Error('Supabase is not configured. Please set up your environment variables.');
     }
     
+    // First, let's check if the user exists in auth.users
+    console.log('Checking if user exists in auth.users...');
+    try {
+      const { data: userData, error: userError } = await getSupabase()
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .single();
+      
+      console.log('User lookup result:', userData);
+      console.log('User lookup error:', userError);
+    } catch (e) {
+      console.log('User lookup failed:', e);
+    }
+    
     console.log('Attempting sign in with Supabase...');
     const { data, error } = await getSupabase().auth.signInWithPassword({
       email,
@@ -66,6 +81,8 @@ export const authService = {
     console.log('Sign in result:');
     console.log('Data:', data);
     console.log('Error:', error);
+    console.log('Error message:', error?.message);
+    console.log('Error code:', error?.code);
     console.log('===================');
 
     if (error) throw error;
@@ -102,6 +119,60 @@ export const authService = {
       }
       throw error;
     }
+  },
+
+  // Ensure user exists in public.users table
+  ensureUserExists: async (userId: string) => {
+    console.log('=== ENSURE USER EXISTS DEBUG ===');
+    console.log('User ID:', userId);
+    
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+    
+    // Check if user exists in public.users
+    const { data: existingUser, error: checkError } = await getSupabase()
+      .from('users')
+      .select('id')
+      .eq('id', userId)
+      .single();
+    
+    console.log('Existing user check:', existingUser);
+    console.log('Check error:', checkError);
+    
+    if (checkError && checkError.code === 'PGRST116') {
+      // User doesn't exist, create them
+      console.log('User does not exist, creating...');
+      
+      const { data: authUser } = await getSupabase().auth.getUser();
+      if (authUser.user) {
+        const { data: newUser, error: createError } = await getSupabase()
+          .from('users')
+          .insert({
+            id: userId,
+            username: authUser.user.user_metadata?.username || 'Unknown',
+            email: authUser.user.email || ''
+          })
+          .select()
+          .single();
+        
+        console.log('User creation result:', newUser);
+        console.log('User creation error:', createError);
+        
+        if (createError) {
+          throw createError;
+        }
+        
+        console.log('User created successfully');
+        return newUser;
+      }
+    } else if (existingUser) {
+      console.log('User already exists');
+      return existingUser;
+    }
+    
+    console.log('===============================');
+    return existingUser;
   },
 
   // Get current session
@@ -236,36 +307,8 @@ export const characterService = {
     console.log('User ID:', userId);
     console.log('Character data:', characterData);
     
-    // First check if user exists in public.users table
-    const { data: userCheck, error: userError } = await getSupabase()
-      .from('users')
-      .select('id')
-      .eq('id', userId)
-      .single();
-    
-    console.log('User check result:', userCheck);
-    console.log('User check error:', userError);
-    
-    if (userError) {
-      console.log('User does not exist in public.users table, creating...');
-      // User doesn't exist in public.users, create them
-      const { data: currentUser } = await getSupabase().auth.getUser();
-      if (currentUser.user) {
-        const { error: insertUserError } = await getSupabase()
-          .from('users')
-          .insert({
-            id: userId,
-            username: currentUser.user.user_metadata?.username || 'Unknown',
-            email: currentUser.user.email || ''
-          });
-        
-        if (insertUserError) {
-          console.error('Failed to create user record:', insertUserError);
-          throw insertUserError;
-        }
-        console.log('User record created successfully');
-      }
-    }
+    // Ensure user exists in public.users table
+    await authService.ensureUserExists(userId);
     
     const { data, error } = await getSupabase()
       .from('characters')
