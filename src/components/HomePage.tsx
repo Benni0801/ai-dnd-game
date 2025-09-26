@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import SupabaseAuthModal from './SupabaseAuthModal';
+import EnvCheck from './EnvCheck';
 
 interface HomePageProps {
   onStartGame: () => void;
@@ -16,6 +17,11 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
     console.log('Auth success:', user);
     setShowAuthModal(false);
     onLogin();
+  };
+
+  const handleAuthError = (error: any) => {
+    console.error('Auth error:', error);
+    // You could show an error message to the user here
   };
 
   const handleStartGame = () => {
@@ -305,6 +311,9 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
           ))}
         </div>
       </section>
+
+      {/* Environment Check (temporary for debugging) */}
+      <EnvCheck />
 
       {/* Modal */}
       <SupabaseAuthModal

@@ -25,16 +25,21 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
     setIsLoading(true);
     setError('');
 
+    console.log('Form submission started:', { isLogin, formData });
+
     try {
       if (isLogin) {
+        console.log('Attempting login...');
         // Login with email and password
-        const { user } = await authService.signIn(formData.email, formData.password);
+        const result = await authService.signIn(formData.email, formData.password);
+        console.log('Login result:', result);
         
-        if (user) {
-          onLogin(user);
+        if (result.user) {
+          onLogin(result.user);
           onClose();
         }
       } else {
+        console.log('Attempting registration...');
         // Register with email and password
         if (formData.password !== formData.confirmPassword) {
           setError('Passwords do not match');
@@ -42,19 +47,42 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin }: Supabase
           return;
         }
 
-        const { user } = await authService.signUp(formData.email, formData.password, formData.username);
+        if (!formData.username || !formData.email || !formData.password) {
+          setError('Please fill in all required fields');
+          setIsLoading(false);
+          return;
+        }
+
+        console.log('Calling signUp with:', { email: formData.email, username: formData.username });
+        const result = await authService.signUp(formData.email, formData.password, formData.username);
+        console.log('Signup result:', result);
         
-        if (user) {
+        if (result.user) {
+          console.log('Registration successful, auto-login...');
           // Auto-login after registration
-          const { user: loginUser } = await authService.signIn(formData.email, formData.password);
-          if (loginUser) {
-            onLogin(loginUser);
+          const loginResult = await authService.signIn(formData.email, formData.password);
+          console.log('Auto-login result:', loginResult);
+          if (loginResult.user) {
+            onLogin(loginResult.user);
             onClose();
           }
         }
       }
     } catch (error: any) {
-      setError(error.message || 'Authentication failed');
+      console.error('Auth error details:', error);
+      console.error('Error message:', error.message);
+      console.error('Error code:', error.code);
+      console.error('Error status:', error.status);
+      
+      let errorMessage = 'An error occurred during authentication';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.error_description) {
+        errorMessage = error.error_description;
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
