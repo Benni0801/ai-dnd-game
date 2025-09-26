@@ -27,9 +27,7 @@ Create a `.env.local` file in your project root:
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 
-# Google OAuth (Optional - for Google sign-in)
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
+# Google OAuth (Removed - using Supabase email auth instead)
 
 # Existing AI Configuration
 GOOGLE_API_KEY=your-existing-google-api-key

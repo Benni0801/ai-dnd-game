@@ -50,22 +50,6 @@ export const authService = {
     return data;
   },
 
-  // Sign in with Google OAuth
-  signInWithGoogle: async () => {
-    if (!isSupabaseConfigured()) {
-      throw new Error('Supabase is not configured. Please set up your environment variables.');
-    }
-    
-    const { data, error } = await getSupabase().auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
-      }
-    });
-
-    if (error) throw error;
-    return data;
-  },
 
   // Sign out
   signOut: async () => {
