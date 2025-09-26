@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createInitialGameState, formatGameSheet, GameState } from '../../../utils/gameState';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,17 +19,133 @@ export async function POST(request: NextRequest) {
           }, { status: 500 });
         }
 
-    // Build the conversation context
-    const conversationHistory = messages.slice(-5).map((msg: any) => ({
-      role: msg.role === 'assistant' ? 'model' : 'user',
-      content: msg.content
-    }));
+        // Build the conversation context
+        const conversationHistory = messages.slice(-10).map((msg: any) => ({
+          role: msg.role === 'assistant' ? 'model' : 'user',
+          content: msg.content
+        }));
 
-    // Create the character context
-    const characterContext = `Player: ${characterStats?.name || 'Adventurer'} (${characterStats?.race || 'Unknown'} ${characterStats?.class || 'Hero'}, HP:${characterStats?.hp || 20})`;
+        // Create comprehensive game state
+        const gameState = createInitialGameState();
+        
+        // Update game state with current character data
+        if (characterStats) {
+          gameState.character.name = characterStats.name || '';
+          gameState.character.race = characterStats.race || '';
+          gameState.character.class = characterStats.class || '';
+          gameState.character.level = characterStats.level || 1;
+          gameState.character.experience.current = characterStats.xp || 0;
+          
+          if (characterStats.str) gameState.character.abilityScores.strength = characterStats.str;
+          if (characterStats.dex) gameState.character.abilityScores.dexterity = characterStats.dex;
+          if (characterStats.con) gameState.character.abilityScores.constitution = characterStats.con;
+          if (characterStats.int) gameState.character.abilityScores.intelligence = characterStats.int;
+          if (characterStats.wis) gameState.character.abilityScores.wisdom = characterStats.wis;
+          if (characterStats.cha) gameState.character.abilityScores.charisma = characterStats.cha;
+        }
 
-    // Simple system prompt
-    const systemPrompt = `You are a Dungeon Master for a D&D game. Create engaging fantasy adventures with descriptive language. Ask what the player wants to do. Keep responses engaging and complete.`;
+        // Check if player is requesting a game sheet
+        const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
+        const sheetRequest = lastMessage.includes('show') || lastMessage.includes('display') || lastMessage.includes('sheet');
+        
+        if (sheetRequest) {
+          let sheetType = 'character';
+          if (lastMessage.includes('party')) sheetType = 'party';
+          else if (lastMessage.includes('inventory')) sheetType = 'inventory';
+          else if (lastMessage.includes('spell')) sheetType = 'spells';
+          else if (lastMessage.includes('skill')) sheetType = 'skills';
+          else if (lastMessage.includes('quest')) sheetType = 'quests';
+          else if (lastMessage.includes('lore')) sheetType = 'lore';
+          else if (lastMessage.includes('rule')) sheetType = 'rules';
+          
+          const sheetContent = formatGameSheet(gameState, sheetType);
+          return NextResponse.json({
+            message: `**${sheetType.toUpperCase()} SHEET**\n\n${sheetContent}`,
+            usage: { total_tokens: 0 },
+            debug: 'Game sheet displayed'
+          });
+        }
+
+        // Create the character context with full game state
+        const characterContext = `
+**CURRENT GAME STATE**
+Character: ${gameState.character.name || 'Unnamed'} (${gameState.character.race || 'Unknown'} ${gameState.character.class || 'Adventurer'})
+Level: ${gameState.character.level} | XP: ${gameState.character.experience.current}/${gameState.character.experience.needed}
+Location: ${gameState.currentLocation.name}
+Time: ${gameState.settings.dayNightCycle} (${gameState.settings.timeOfDay}:00)
+Weather: ${gameState.settings.weather}
+Current Mission: ${gameState.quests.currentMission.title}
+`;
+
+        // Comprehensive D&D System Prompt
+        const systemPrompt = `You are GAL (Game AI Liaison), an advanced Dungeon Master for an immersive text-based D&D role-playing game. Follow these rules strictly:
+
+**CORE IDENTITY:**
+- Respond as "GAL" for out-of-game communication
+- Act as NPCs in character for in-game interactions
+- Never repeat player statements - respond directly to their input
+- Drive narrative forward through player choices
+
+**CHARACTER CREATION REQUIREMENTS:**
+- Must start with character creation if not completed
+- Guide through: Genre Selection → Character Naming → Race → Class → Attributes → Backstory → Starting Spells/Skills
+- Ask if player wants scores chosen or buy system for attributes
+- Create detailed character sheets with all required information
+
+**GAME SHEETS TO MAINTAIN:**
+- Rule Sheet: Core rules and mechanics
+- Character Sheet: Name, Race, Class, Level, XP (Current/Needed), Ability Scores, Inventory
+- Party Sheet: All party members with full details
+- Inventory Sheet: Equipped items + all carried items
+- Spell Sheet: Available spell slots + known spells/cantrips
+- Skill Sheet: All character skills and abilities
+- Quest Sheets: Main Quest, Current Mission, Current Location
+- Lore Sheets: Characters, World, Races
+
+**CORE GAME MECHANICS:**
+- Use d20 + modifiers for all checks (GM rolls internally)
+- Set appropriate DCs for challenges
+- Turn-based combat with initiative order
+- Limited resources (HP, spell slots, inventory)
+- Day/night cycle affects gameplay
+- Player choices have real consequences
+
+**WORLDBUILDING:**
+- Rich, detailed world with consistent lore
+- Diverse NPCs with unique personalities and motivations
+- Multiple quest lines (main story + side quests)
+- NPCs react to player actions and build relationships
+- Mature themes handled appropriately
+
+**NARRATIVE STRUCTURE:**
+- Main Overarching Story as backbone
+- Player-driven narrative with meaningful choices
+- Open-ended prompts to initiate new scenarios
+- Immersive conversations with NPCs
+- Character development and progression
+
+**RESPONSE GUIDELINES:**
+- Provide detailed descriptions of settings and events
+- Create engaging challenges and moral dilemmas
+- Track all character progression and world state
+- Show updated sheets when requested
+- Maintain consistency with established rules
+
+**CURRENT GAME STATE:**
+Character: ${gameState.character.name || 'Unnamed'} (${gameState.character.race || 'Unknown'} ${gameState.character.class || 'Adventurer'})
+Level: ${gameState.character.level} | XP: ${gameState.character.experience.current}/${gameState.character.experience.needed}
+Location: ${gameState.currentLocation.name}
+Time: ${gameState.settings.dayNightCycle} (${gameState.settings.timeOfDay}:00)
+Weather: ${gameState.settings.weather}
+Current Mission: ${gameState.quests.currentMission.title}
+
+**IMPORTANT INSTRUCTIONS:**
+- If character creation is incomplete, guide through the full process
+- Always maintain game state consistency
+- Use internal dice rolls for all checks (announce results)
+- Track all character progression and world changes
+- Provide detailed descriptions and immersive roleplay
+- Respond as GAL for meta-game communication, as NPCs for in-game interactions`;
 
     // Prepare the prompt for Gemini
     const fullPrompt = `${systemPrompt}\n\n${characterContext}\n\nConversation:\n${conversationHistory.map((msg: any) => `${msg.role}: ${msg.content}`).join('\n')}\n\nPlease respond as the Dungeon Master:`;
