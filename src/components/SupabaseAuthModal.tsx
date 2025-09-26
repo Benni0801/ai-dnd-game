@@ -46,12 +46,22 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin, initialMod
         }
         
         // Login with email and password
-        const result = await authService.signIn(formData.email, formData.password);
-        console.log('Login result:', result);
-        
-        if (result.user) {
-          onLogin(result.user);
-          onClose();
+        console.log('About to call authService.signIn...');
+        try {
+          const result = await authService.signIn(formData.email, formData.password);
+          console.log('Login result:', result);
+          
+          if (result.user) {
+            console.log('Login successful, calling onLogin...');
+            onLogin(result.user);
+            onClose();
+          } else {
+            console.log('Login failed - no user in result');
+            setError('Login failed - please check your credentials');
+          }
+        } catch (loginError: any) {
+          console.error('Login error caught:', loginError);
+          setError(loginError.message || 'Login failed');
         }
       } else {
         console.log('Attempting registration...');
