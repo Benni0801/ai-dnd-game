@@ -6,14 +6,16 @@ import AdvancedDiceRoller from '../components/AdvancedDiceRoller';
 import InventorySystem from '../components/InventorySystem';
 import CombatSystem from '../components/CombatSystem';
 import CharacterProgression from '../components/CharacterProgression';
-import AuthModal from '../components/AuthModal';
-import CharacterSelector from '../components/CharacterSelector';
+import SupabaseAuthModal from '../components/SupabaseAuthModal';
+import SupabaseCharacterSelector from '../components/SupabaseCharacterSelector';
+import LandingPage from '../components/LandingPage';
+import { authService, characterService } from '../lib/supabase-auth';
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showCharacterCreation, setShowCharacterCreation] = useState(true);
+  const [showCharacterCreation, setShowCharacterCreation] = useState(false);
   const [characterStats, setCharacterStats] = useState<CharacterStats>({
     name: '',
     race: '',
@@ -44,6 +46,7 @@ export default function Home() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showCharacterSelector, setShowCharacterSelector] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<any>(null);
+  const [showLandingPage, setShowLandingPage] = useState(true);
   
   // Refs for auto-scrolling
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -77,39 +80,65 @@ export default function Home() {
 
   // Check for existing authentication on mount
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    const userData = localStorage.getItem('user');
-    
-    if (token && userData) {
+    const checkAuth = async () => {
       try {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
+        const user = await authService.getCurrentUser();
+        if (user) {
+          setUser(user);
+          setShowLandingPage(false);
+          setShowCharacterSelector(true);
+          setShowCharacterCreation(false);
+        } else {
+          setShowLandingPage(true);
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error);
+        setShowLandingPage(true);
+      }
+    };
+
+    checkAuth();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = authService.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        setUser(session.user);
+        setShowLandingPage(false);
         setShowCharacterSelector(true);
         setShowCharacterCreation(false);
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setShowLandingPage(true);
+        setShowCharacterSelector(false);
+        setShowCharacterCreation(false);
+        setMessages([]);
       }
-    }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // Authentication handlers
   const handleLogin = (userData: any) => {
     setUser(userData);
+    setShowLandingPage(false);
     setShowAuthModal(false);
     setShowCharacterSelector(true);
     setShowCharacterCreation(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    setUser(null);
-    setSelectedCharacter(null);
-    setShowCharacterSelector(false);
-    setShowCharacterCreation(true);
-    setMessages([]);
+  const handleLogout = async () => {
+    try {
+      await authService.signOut();
+      setUser(null);
+      setSelectedCharacter(null);
+      setShowLandingPage(true);
+      setShowCharacterSelector(false);
+      setShowCharacterCreation(false);
+      setMessages([]);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   const handleCharacterSelect = (character: any) => {
@@ -200,42 +229,27 @@ export default function Home() {
 
   const handleCharacterCreated = async (character: CharacterStats) => {
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
+      if (!user) {
         setShowAuthModal(true);
         return;
       }
 
-      // Save character to database
-      const response = await fetch('/api/characters', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(character),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setCharacterStats({ ...character, id: data.characterId });
-        setShowCharacterCreation(false);
-        
-        const openingMessage: Message = {
-          id: Date.now().toString(),
-          role: 'assistant',
-          content: `Welcome, ${character.name}! You are a ${character.race} ${character.class} beginning your epic journey. The world stretches before you, filled with possibilities and dangers. What would you like to do first?`,
-          timestamp: new Date()
-        };
-        
-        setMessages([openingMessage]);
-      } else {
-        const errorData = await response.json();
-        alert(`Failed to create character: ${errorData.error}`);
-      }
-    } catch (error) {
+      // Save character to Supabase
+      const data = await characterService.createCharacter(user.id, character);
+      setCharacterStats({ ...character, id: data.id });
+      setShowCharacterCreation(false);
+      
+      const openingMessage: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `Welcome, ${character.name}! You are a ${character.race} ${character.class} beginning your epic journey. The world stretches before you, filled with possibilities and dangers. What would you like to do first?`,
+        timestamp: new Date()
+      };
+      
+      setMessages([openingMessage]);
+    } catch (error: any) {
       console.error('Error creating character:', error);
-      alert('Network error creating character');
+      alert(`Failed to create character: ${error.message}`);
     }
   };
 
@@ -297,15 +311,21 @@ export default function Home() {
     }
   };
 
+  // Show landing page
+  if (showLandingPage) {
+    return <LandingPage onLogin={handleLogin} />;
+  }
+
   // Show authentication modal
   if (showAuthModal) {
-    return <AuthModal isOpen={true} onClose={() => setShowAuthModal(false)} onLogin={handleLogin} />;
+    return <SupabaseAuthModal isOpen={true} onClose={() => setShowAuthModal(false)} onLogin={handleLogin} />;
   }
 
   // Show character selector
-  if (showCharacterSelector) {
+  if (showCharacterSelector && user) {
     return (
-      <CharacterSelector
+      <SupabaseCharacterSelector
+        userId={user.id}
         onCharacterSelect={handleCharacterSelect}
         onNewCharacter={handleNewCharacter}
         onLogout={handleLogout}
@@ -401,22 +421,25 @@ export default function Home() {
                 </div>
               )}
               
-                <div className="space-y-3">
-                  <button
-                    onClick={() => handleCharacterCreated(characterStats)}
-                    disabled={!characterStats.name || !characterStats.race || !characterStats.class}
-                    className="btn-primary w-full text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    🎭 Create Character & Start Adventure
-                  </button>
-                  
-                  <button
-                    onClick={() => setShowAuthModal(true)}
-                    className="btn-secondary w-full text-sm py-2"
-                  >
-                    🔐 Login to Save Character
-                  </button>
-                </div>
+                    <div className="space-y-3">
+                      <button
+                        onClick={() => handleCharacterCreated(characterStats)}
+                        disabled={!characterStats.name || !characterStats.race || !characterStats.class}
+                        className="btn-primary w-full text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        🎭 Create Character & Start Adventure
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          setShowCharacterCreation(false);
+                          setShowCharacterSelector(true);
+                        }}
+                        className="btn-secondary w-full text-sm py-2"
+                      >
+                        ← Back to Character Selection
+                      </button>
+                    </div>
             </div>
           </div>
         </div>
