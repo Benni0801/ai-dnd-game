@@ -194,11 +194,13 @@ export default function Home() {
   };
 
   const handleStartGame = () => {
-    setShowAuthModal(true);
+    // This will be handled by the HomePage component's modal
+    console.log('Start game clicked - handled by HomePage modal');
   };
 
   const handleHomeLogin = () => {
-    setShowAuthModal(true);
+    // This will be handled by the HomePage component's modal
+    console.log('Login clicked - handled by HomePage modal');
   };
 
   const handleDiceRoll = (results: any[]) => {

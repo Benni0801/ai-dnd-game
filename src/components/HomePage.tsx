@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import SupabaseAuthModal from './SupabaseAuthModal';
 
 interface HomePageProps {
   onStartGame: () => void;
@@ -9,6 +10,7 @@ interface HomePageProps {
 
 export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
   const [activeTab, setActiveTab] = useState<'updates' | 'blog'>('updates');
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const updates = [
     {
@@ -98,6 +100,19 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
     }
   ];
 
+  const handleAuthSuccess = (user: any) => {
+    setShowAuthModal(false);
+    onLogin(); // This will trigger the login flow in the parent component
+  };
+
+  const handleStartGame = () => {
+    setShowAuthModal(true);
+  };
+
+  const handleLogin = () => {
+    setShowAuthModal(true);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
       {/* Background Effects */}
@@ -123,13 +138,13 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
               </div>
               <div className="flex items-center space-x-4">
                 <button
-                  onClick={onLogin}
+                  onClick={handleLogin}
                   className="px-6 py-2 bg-purple-600/20 border border-purple-500/50 rounded-lg text-purple-300 hover:bg-purple-600/30 hover:border-purple-400/70 transition-all duration-300 font-medium"
                 >
                   🔐 Login
                 </button>
                 <button
-                  onClick={onStartGame}
+                  onClick={handleStartGame}
                   className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg text-white hover:from-purple-700 hover:to-pink-700 transition-all duration-300 font-medium shadow-lg hover:shadow-purple-500/25"
                 >
                   🎮 Start Game
@@ -155,13 +170,13 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
-                onClick={onStartGame}
+                onClick={handleStartGame}
                 className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white text-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-xl hover:shadow-purple-500/25 transform hover:-translate-y-1"
               >
                 🎮 Start Your Adventure
               </button>
               <button
-                onClick={onLogin}
+                onClick={handleLogin}
                 className="px-8 py-4 bg-black/20 border border-purple-500/50 rounded-xl text-purple-300 text-lg font-semibold hover:bg-purple-600/20 hover:border-purple-400/70 transition-all duration-300"
               >
                 🔐 Sign In
@@ -300,7 +315,7 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
                     Join thousands of players in epic AI-powered adventures!
                   </p>
                   <button
-                    onClick={onStartGame}
+                    onClick={handleStartGame}
                     className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-purple-500/25"
                   >
                     🎮 Start Your Adventure
@@ -320,6 +335,13 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
           </div>
         </footer>
       </div>
+
+      {/* Authentication Modal */}
+      <SupabaseAuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onLogin={handleAuthSuccess}
+      />
     </div>
   );
 }
