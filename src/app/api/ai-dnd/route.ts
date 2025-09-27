@@ -316,16 +316,21 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
     if (aiResponse) {
       const itemMatches = aiResponse.match(/\[ITEM:([^\]]+)\]/g);
       if (itemMatches) {
+        console.log('Found item matches:', itemMatches);
         for (const match of itemMatches) {
           try {
             const itemJson = match.replace(/\[ITEM:(.+)\]/, '$1');
+            console.log('Attempting to parse item JSON:', itemJson);
             const item = JSON.parse(itemJson);
             items.push(item);
-            console.log('Parsed item:', item);
+            console.log('Successfully parsed item:', item);
           } catch (error) {
-            console.error('Failed to parse item:', match, error);
+            console.error('Failed to parse item:', match, 'Error:', error);
+            console.error('Item JSON was:', match.replace(/\[ITEM:(.+)\]/, '$1'));
           }
         }
+      } else {
+        console.log('No item matches found in response');
       }
       
       // Remove item markers from the response text

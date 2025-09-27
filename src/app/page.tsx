@@ -380,11 +380,18 @@ export default function Home() {
       }
 
       // Handle items from AI response
+      console.log('AI response data:', data);
+      console.log('Items from AI:', data.items);
+      
       if (data.items && data.items.length > 0) {
+        console.log('Processing items:', data.items);
         for (const item of data.items) {
+          console.log('Adding item to inventory:', item);
           if (inventoryRef.current) {
             inventoryRef.current.addItem(item);
-            console.log('Added item from AI:', item);
+            console.log('Successfully added item from AI:', item);
+          } else {
+            console.error('Inventory ref is null!');
           }
         }
         
@@ -397,6 +404,8 @@ export default function Home() {
           timestamp: new Date()
         };
         setMessages(prev => [...prev, itemMessage]);
+      } else {
+        console.log('No items received from AI');
       }
 
       const aiMessage: Message = {
