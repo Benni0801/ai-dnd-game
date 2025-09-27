@@ -122,24 +122,24 @@ const EnhancedMultiplayerGameRoom: React.FC<EnhancedMultiplayerGameRoomProps> = 
     if (!newMessage.trim()) return;
 
     try {
-      // Check if message is for AI (starts with @ai or /ai)
-      if (newMessage.trim().toLowerCase().startsWith('@ai') || newMessage.trim().toLowerCase().startsWith('/ai')) {
+      // Check if message is for teammates (starts with @team or /team)
+      if (newMessage.trim().toLowerCase().startsWith('@team') || newMessage.trim().toLowerCase().startsWith('/team')) {
+        // Remove @team or /team prefix and send to team chat
+        const teamMessage = newMessage.trim().replace(/^@team\s+/i, '').replace(/^\/team\s+/i, '');
+        
+        await multiplayerService.sendTeamMessage(roomId, {
+          userId,
+          content: teamMessage,
+          messageType: 'chat'
+        });
+        setNewMessage('');
+      } else {
+        // Default: Send to AI (Dungeon Master)
         const currentPlayer = players.find(p => p.user_id === userId);
         const characterData = currentPlayer?.character;
         
-        // Remove @ai or /ai prefix
-        const aiMessage = newMessage.trim().replace(/^@ai\s+/i, '').replace(/^\/ai\s+/i, '');
-        
         // Send to AI
-        await multiplayerService.sendAIMessage(roomId, aiMessage, characterData);
-        setNewMessage('');
-      } else {
-        // Regular message
-        await multiplayerService.sendMessage(roomId, {
-          userId,
-          content: newMessage.trim(),
-          messageType: 'chat'
-        });
+        await multiplayerService.sendAIMessage(roomId, newMessage.trim(), characterData);
         setNewMessage('');
       }
     } catch (error: any) {
@@ -508,13 +508,21 @@ const EnhancedMultiplayerGameRoom: React.FC<EnhancedMultiplayerGameRoomProps> = 
                   fontSize: '1.25rem',
                   fontWeight: 'bold',
                   color: '#e2e8f0',
-                  marginBottom: '1rem',
+                  marginBottom: '0.5rem',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem'
                 }}>
                   💬 Team Chat
                 </h3>
+                <p style={{
+                  fontSize: '0.875rem',
+                  color: '#94a3b8',
+                  marginBottom: '1rem',
+                  lineHeight: '1.4'
+                }}>
+                  Private chat between players only. DM cannot see these messages.
+                </p>
                 
                 <div style={{
                   height: '300px',
@@ -567,7 +575,7 @@ const EnhancedMultiplayerGameRoom: React.FC<EnhancedMultiplayerGameRoomProps> = 
                     value={newTeamMessage}
                     onChange={(e) => setNewTeamMessage(e.target.value)}
                     onKeyPress={handleTeamKeyPress}
-                    placeholder="Team message..."
+                    placeholder="Team message... (or use @team in main chat)"
                     style={{
                       flex: 1,
                       padding: '0.5rem',
@@ -850,8 +858,34 @@ const EnhancedMultiplayerGameRoom: React.FC<EnhancedMultiplayerGameRoomProps> = 
           </div>
         </div>
 
-        {/* Main Chat Area */}
+        {/* Main Chat Area - AI Chat */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {/* Chat Header */}
+          <div style={{
+            padding: '1rem 1.5rem',
+            borderBottom: '1px solid rgba(139, 92, 246, 0.2)',
+            background: 'rgba(15, 15, 35, 0.6)'
+          }}>
+            <h3 style={{
+              fontSize: '1.125rem',
+              fontWeight: '600',
+              color: '#e2e8f0',
+              margin: 0,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              🤖 AI Dungeon Master Chat
+            </h3>
+            <p style={{
+              fontSize: '0.875rem',
+              color: '#94a3b8',
+              margin: '0.25rem 0 0 0'
+            }}>
+              Talk to the AI DM directly. Use @team or /team to message teammates.
+            </p>
+          </div>
+          
           {/* Messages */}
           <div style={{
             flex: 1,
@@ -962,7 +996,7 @@ const EnhancedMultiplayerGameRoom: React.FC<EnhancedMultiplayerGameRoomProps> = 
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Type your message... (Use @ai or /ai to talk to AI)"
+                placeholder="Type your message to AI... (Use @team or /team for teammates)"
                 style={{
                   flex: 1,
                   padding: '0.75rem 1rem',
