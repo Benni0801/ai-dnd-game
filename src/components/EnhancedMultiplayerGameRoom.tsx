@@ -82,18 +82,30 @@ const EnhancedMultiplayerGameRoom: React.FC<EnhancedMultiplayerGameRoomProps> = 
   }, [roomId, userId]);
 
   const setupRealtimeSubscriptions = useCallback(() => {
-    const subscription = multiplayerService.subscribeToRoom(roomId, {
+    const subscription = multiplayerService.subscribeToRoomEnhanced(roomId, {
       onMessage: (message) => {
+        console.log('Received new message:', message);
         setMessages(prev => [...prev, message]);
       },
       onPlayerJoin: (player) => {
+        console.log('Player joined:', player);
         setPlayers(prev => [...prev, player]);
       },
       onPlayerLeave: (player) => {
+        console.log('Player left:', player);
         setPlayers(prev => prev.filter(p => p.id !== player.id));
       },
       onRoomUpdate: (roomData) => {
+        console.log('Room updated:', roomData);
         setRoom(roomData);
+      },
+      onTeamMessage: (message) => {
+        console.log('New team message:', message);
+        setTeamMessages(prev => [...prev, message]);
+      },
+      onAdventureQueueUpdate: (entry) => {
+        console.log('Adventure queue updated:', entry);
+        setAdventureQueue(prev => [...prev, entry]);
       }
     });
 
@@ -110,12 +122,26 @@ const EnhancedMultiplayerGameRoom: React.FC<EnhancedMultiplayerGameRoomProps> = 
     if (!newMessage.trim()) return;
 
     try {
-      await multiplayerService.sendMessage(roomId, {
-        userId,
-        content: newMessage.trim(),
-        messageType: 'chat'
-      });
-      setNewMessage('');
+      // Check if message is for AI (starts with @ai or /ai)
+      if (newMessage.trim().toLowerCase().startsWith('@ai') || newMessage.trim().toLowerCase().startsWith('/ai')) {
+        const currentPlayer = players.find(p => p.user_id === userId);
+        const characterData = currentPlayer?.character;
+        
+        // Remove @ai or /ai prefix
+        const aiMessage = newMessage.trim().replace(/^@ai\s+/i, '').replace(/^\/ai\s+/i, '');
+        
+        // Send to AI
+        await multiplayerService.sendAIMessage(roomId, aiMessage, characterData);
+        setNewMessage('');
+      } else {
+        // Regular message
+        await multiplayerService.sendMessage(roomId, {
+          userId,
+          content: newMessage.trim(),
+          messageType: 'chat'
+        });
+        setNewMessage('');
+      }
     } catch (error: any) {
       setError(error.message || 'Failed to send message');
     }
@@ -936,7 +962,7 @@ const EnhancedMultiplayerGameRoom: React.FC<EnhancedMultiplayerGameRoomProps> = 
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Type your message..."
+                placeholder="Type your message... (Use @ai or /ai to talk to AI)"
                 style={{
                   flex: 1,
                   padding: '0.75rem 1rem',

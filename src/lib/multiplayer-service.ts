@@ -784,5 +784,181 @@ export const multiplayerService = {
       ...msg,
       dice_roll: msg.dice_roll ? JSON.parse(msg.dice_roll) : undefined
     })).reverse();
+  },
+
+  // AI Chat Integration
+  async sendAIMessage(roomId: string, message: string, characterData?: any): Promise<RoomMessage> {
+    try {
+      // Send the message to AI API
+      const response = await fetch('/api/ai-dnd', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: message,
+          character: characterData,
+          roomId: roomId,
+          isMultiplayer: true
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`AI API error: ${response.status}`);
+      }
+
+      const aiResponse = await response.json();
+      
+      // Save AI response as a system message
+      const systemMessage = await this.sendMessage(roomId, {
+        userId: 'ai-dm', // Special ID for AI
+        content: aiResponse.response || aiResponse.message || 'AI response received',
+        messageType: 'system'
+      });
+
+      return systemMessage;
+    } catch (error: any) {
+      console.error('AI chat error:', error);
+      // Fallback: send error as system message
+      return await this.sendMessage(roomId, {
+        userId: 'ai-dm',
+        content: `AI Error: ${error.message}`,
+        messageType: 'system'
+      });
+    }
+  },
+
+  // Enhanced real-time subscriptions with better error handling
+  subscribeToRoomEnhanced(roomId: string, callbacks: {
+    onMessage?: (message: RoomMessage) => void;
+    onPlayerJoin?: (player: RoomPlayer) => void;
+    onPlayerLeave?: (player: RoomPlayer) => void;
+    onRoomUpdate?: (room: GameRoom) => void;
+    onTeamMessage?: (message: TeamChatMessage) => void;
+    onAdventureQueueUpdate?: (entry: AdventureQueueEntry) => void;
+  }) {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+    const subscriptions: any[] = [];
+
+    // Subscribe to main room messages
+    if (callbacks.onMessage) {
+      const messageSub = supabase
+        .channel(`room-messages-${roomId}`)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'room_messages',
+          filter: `room_id=eq.${roomId}`
+        }, (payload: any) => {
+          console.log('New message received:', payload.new);
+          callbacks.onMessage?.(payload.new as RoomMessage);
+        })
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'room_messages',
+          filter: `room_id=eq.${roomId}`
+        }, (payload: any) => {
+          console.log('Message updated:', payload.new);
+          callbacks.onMessage?.(payload.new as RoomMessage);
+        })
+        .subscribe();
+
+      subscriptions.push(messageSub);
+    }
+
+    // Subscribe to team messages
+    if (callbacks.onTeamMessage) {
+      const teamMessageSub = supabase
+        .channel(`team-messages-${roomId}`)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'team_chat_messages',
+          filter: `room_id=eq.${roomId}`
+        }, (payload: any) => {
+          console.log('New team message received:', payload.new);
+          callbacks.onTeamMessage?.(payload.new as TeamChatMessage);
+        })
+        .subscribe();
+
+      subscriptions.push(teamMessageSub);
+    }
+
+    // Subscribe to player changes
+    if (callbacks.onPlayerJoin || callbacks.onPlayerLeave) {
+      const playerSub = supabase
+        .channel(`room-players-${roomId}`)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'room_players',
+          filter: `room_id=eq.${roomId}`
+        }, (payload: any) => {
+          console.log('Player joined:', payload.new);
+          callbacks.onPlayerJoin?.(payload.new as RoomPlayer);
+        })
+        .on('postgres_changes', {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'room_players',
+          filter: `room_id=eq.${roomId}`
+        }, (payload: any) => {
+          console.log('Player left:', payload.old);
+          callbacks.onPlayerLeave?.(payload.old as RoomPlayer);
+        })
+        .subscribe();
+
+      subscriptions.push(playerSub);
+    }
+
+    // Subscribe to room updates
+    if (callbacks.onRoomUpdate) {
+      const roomSub = supabase
+        .channel(`room-updates-${roomId}`)
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'game_rooms',
+          filter: `id=eq.${roomId}`
+        }, (payload: any) => {
+          console.log('Room updated:', payload.new);
+          callbacks.onRoomUpdate?.(payload.new as GameRoom);
+        })
+        .subscribe();
+
+      subscriptions.push(roomSub);
+    }
+
+    // Subscribe to adventure queue updates
+    if (callbacks.onAdventureQueueUpdate) {
+      const queueSub = supabase
+        .channel(`adventure-queue-${roomId}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'adventure_queue',
+          filter: `room_id=eq.${roomId}`
+        }, (payload: any) => {
+          console.log('Adventure queue updated:', payload);
+          if (payload.eventType === 'INSERT') {
+            callbacks.onAdventureQueueUpdate?.(payload.new as AdventureQueueEntry);
+          }
+        })
+        .subscribe();
+
+      subscriptions.push(queueSub);
+    }
+
+    return {
+      unsubscribe: () => {
+        console.log('Unsubscribing from room subscriptions');
+        subscriptions.forEach(sub => sub.unsubscribe());
+      }
+    };
   }
 };

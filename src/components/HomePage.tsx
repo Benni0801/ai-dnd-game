@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SupabaseAuthModal from './SupabaseAuthModal';
+import FriendManager from './FriendManager';
+import { authService } from '../lib/supabase-auth';
 
 interface HomePageProps {
   onStartGame: () => void;
@@ -12,9 +14,31 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
   const [activeTab, setActiveTab] = useState<'updates' | 'blog'>('updates');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
+  const [user, setUser] = useState<any>(null);
+  const [showFriendManager, setShowFriendManager] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleAuthSuccess = (user: any) => {
-    console.log('Auth success:', user);
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const currentUser = await authService.getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+        onLogin(); // Automatically log in if user is already authenticated
+      }
+    } catch (error) {
+      console.log('No authenticated user found');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAuthSuccess = (userData: any) => {
+    console.log('Auth success:', userData);
+    setUser(userData);
     setShowAuthModal(false);
     onLogin();
   };
@@ -35,6 +59,56 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
     setAuthMode('login');
     setShowAuthModal(true);
   };
+
+  const handleLogout = async () => {
+    try {
+      await authService.signOut();
+      setUser(null);
+      // Optionally redirect or refresh the page
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
+        color: '#e2e8f0',
+        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{
+          background: 'rgba(26, 26, 46, 0.8)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(139, 92, 246, 0.3)',
+          borderRadius: '24px',
+          padding: '3rem',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            border: '4px solid rgba(139, 92, 246, 0.3)',
+            borderTop: '4px solid #8b5cf6',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 1.5rem auto'
+          }}></div>
+          <p style={{ color: '#94a3b8', fontSize: '1.125rem' }}>Loading...</p>
+        </div>
+        <style jsx global>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -315,13 +389,21 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
       </section>
 
 
-      {/* Modal */}
+      {/* Auth Modal */}
       <SupabaseAuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         onLogin={handleAuthSuccess}
         initialMode={authMode}
       />
+
+      {/* Friend Manager Modal */}
+      {showFriendManager && user && (
+        <FriendManager
+          userId={user.id}
+          onClose={() => setShowFriendManager(false)}
+        />
+      )}
     </div>
   );
 }
