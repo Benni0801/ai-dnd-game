@@ -834,7 +834,6 @@ export const multiplayerService = {
         content: aiContent,
         message_type: 'system',
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
         user: { username: 'AI Dungeon Master' },
         character: undefined
       };
