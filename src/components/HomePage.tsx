@@ -6,9 +6,10 @@ import SupabaseAuthModal from './SupabaseAuthModal';
 interface HomePageProps {
   onStartGame: () => void;
   onLogin: () => void;
+  onMultiplayer: () => void;
 }
 
-export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
+export default function HomePage({ onStartGame, onLogin, onMultiplayer }: HomePageProps) {
   const [activeTab, setActiveTab] = useState<'updates' | 'blog'>('updates');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
@@ -231,6 +232,33 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
             }}
           >
             🔐 Sign In
+          </button>
+          <button
+            onClick={onMultiplayer}
+            style={{
+              padding: '1rem 2.5rem',
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              border: 'none',
+              borderRadius: '12px',
+              color: 'white',
+              fontSize: '1.125rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, #059669, #047857)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 12px 30px rgba(16, 185, 129, 0.4)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 8px 25px rgba(16, 185, 129, 0.3)';
+            }}
+          >
+            🎮 Multiplayer
           </button>
         </div>
       </section>

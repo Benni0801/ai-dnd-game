@@ -11,6 +11,7 @@ import SupabaseCharacterSelector from '../components/SupabaseCharacterSelector';
 import HomePage from '../components/HomePage';
 import { authService, characterService } from '../lib/supabase-auth';
 import { adventureService } from '../lib/adventure-service';
+import MultiplayerLobby from '../components/MultiplayerLobby';
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -48,6 +49,10 @@ export default function Home() {
   const [showCharacterSelector, setShowCharacterSelector] = useState(false);
   const [selectedCharacter, setSelectedCharacter] = useState<any>(null);
   const [showHomePage, setShowHomePage] = useState(true);
+  
+  // Multiplayer state
+  const [showMultiplayerLobby, setShowMultiplayerLobby] = useState(false);
+  const [currentRoomId, setCurrentRoomId] = useState<string | null>(null);
   
   // Refs for auto-scrolling
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -367,9 +372,46 @@ export default function Home() {
     }
   };
 
+  // Multiplayer handlers
+  const handleShowMultiplayerLobby = () => {
+    setShowMultiplayerLobby(true);
+    setShowHomePage(false);
+  };
+
+  const handleBackFromMultiplayer = () => {
+    setShowMultiplayerLobby(false);
+    setShowHomePage(true);
+  };
+
+  const handleCreateRoom = (roomId: string) => {
+    setCurrentRoomId(roomId);
+    setShowMultiplayerLobby(false);
+    // TODO: Navigate to multiplayer game room
+    console.log('Created room:', roomId);
+  };
+
+  const handleJoinRoom = (roomId: string) => {
+    setCurrentRoomId(roomId);
+    setShowMultiplayerLobby(false);
+    // TODO: Navigate to multiplayer game room
+    console.log('Joined room:', roomId);
+  };
+
   // Show homepage
   if (showHomePage) {
-    return <HomePage onStartGame={handleStartGame} onLogin={handleHomeLogin} />;
+    return <HomePage onStartGame={handleStartGame} onLogin={handleHomeLogin} onMultiplayer={handleShowMultiplayerLobby} />;
+  }
+
+  // Show multiplayer lobby
+  if (showMultiplayerLobby) {
+    return (
+      <MultiplayerLobby
+        onJoinRoom={handleJoinRoom}
+        onCreateRoom={handleCreateRoom}
+        onBack={handleBackFromMultiplayer}
+        currentUserId={user?.id}
+      />
+    );
   }
 
   // Show authentication modal
