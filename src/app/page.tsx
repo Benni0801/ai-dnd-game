@@ -197,7 +197,12 @@ export default function Home() {
       if (session && session.session_data) {
         console.log('Loading existing adventure session:', session.session_data);
         if (session.session_data.messages) {
-          setMessages(session.session_data.messages);
+          // Convert timestamp strings back to Date objects
+          const messagesWithDates = session.session_data.messages.map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }));
+          setMessages(messagesWithDates);
         }
         if (session.session_data.characterStats) {
           setCharacterStats(prev => ({ ...prev, ...session.session_data.characterStats }));
