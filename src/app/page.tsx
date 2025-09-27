@@ -60,6 +60,7 @@ export default function Home() {
   // Game mode state
   const [showGameModeSelector, setShowGameModeSelector] = useState(false);
   const [gameMode, setGameMode] = useState<'single' | 'multiplayer' | null>(null);
+  const [userHasChosenMode, setUserHasChosenMode] = useState(false);
   
   // Refs for auto-scrolling
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -122,16 +123,22 @@ export default function Home() {
         const user = await authService.getCurrentUser();
         if (user) {
           setUser(user);
-          setShowHomePage(false);
-          setShowGameModeSelector(true);
-          setShowCharacterSelector(false);
-          setShowCharacterCreation(false);
+          // Only show game mode selector if user hasn't chosen a mode yet
+          if (!userHasChosenMode) {
+            setShowHomePage(false);
+            setShowGameModeSelector(true);
+            setShowCharacterSelector(false);
+            setShowCharacterCreation(false);
+          }
+          // If user has chosen a mode, let them stay where they are
         } else {
           setShowHomePage(true);
+          setUserHasChosenMode(false); // Reset choice when logged out
         }
       } catch (error) {
         console.error('Error checking auth:', error);
         setShowHomePage(true);
+        setUserHasChosenMode(false); // Reset choice on error
       }
     };
 
@@ -141,10 +148,13 @@ export default function Home() {
     const { data: { subscription } } = authService.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         setUser(session.user);
-        setShowHomePage(false);
-        setShowGameModeSelector(true);
-        setShowCharacterSelector(false);
-        setShowCharacterCreation(false);
+        // Only show game mode selector if user hasn't chosen a mode yet
+        if (!userHasChosenMode) {
+          setShowHomePage(false);
+          setShowGameModeSelector(true);
+          setShowCharacterSelector(false);
+          setShowCharacterCreation(false);
+        }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setShowHomePage(true);
@@ -153,11 +163,12 @@ export default function Home() {
         setShowCharacterCreation(false);
         setShowMultiplayerLobby(false);
         setMessages([]);
+        setUserHasChosenMode(false); // Reset choice when signed out
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [userHasChosenMode]);
 
   const handleLogout = async () => {
     try {
@@ -266,7 +277,10 @@ export default function Home() {
     setUser(user);
     setShowAuthModal(false);
     setShowHomePage(false);
-    setShowGameModeSelector(true);
+    // Only show game mode selector if user hasn't chosen a mode yet
+    if (!userHasChosenMode) {
+      setShowGameModeSelector(true);
+    }
   };
 
   const handleDiceRoll = (results: any[]) => {
@@ -421,17 +435,20 @@ export default function Home() {
     setGameMode('single');
     setShowGameModeSelector(false);
     setShowCharacterSelector(true);
+    setUserHasChosenMode(true); // Mark that user has chosen a mode
   };
 
   const handleMultiplayer = () => {
     setGameMode('multiplayer');
     setShowGameModeSelector(false);
     setShowMultiplayerLobby(true);
+    setUserHasChosenMode(true); // Mark that user has chosen a mode
   };
 
   const handleBackFromGameMode = () => {
     setShowGameModeSelector(false);
     setShowHomePage(true);
+    setUserHasChosenMode(false); // Reset choice when going back
   };
 
   // Show homepage

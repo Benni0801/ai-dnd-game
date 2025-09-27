@@ -30,9 +30,9 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
       const currentUser = await authService.getCurrentUser();
       if (currentUser) {
         setUser(currentUser);
-        onLogin(); // Automatically log in if user is already authenticated
         // Load friend requests for notifications
         loadFriendRequests(currentUser.id);
+        // Don't automatically redirect - let user stay where they are
       }
     } catch (error) {
       console.log('No authenticated user found');
