@@ -73,6 +73,8 @@ export const multiplayerService = {
 
     const supabase = getSupabase();
 
+    console.log('Creating room with data:', roomData);
+
     const { data, error } = await supabase
       .from('game_rooms')
       .insert({
@@ -88,10 +90,21 @@ export const multiplayerService = {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error creating room:', error);
+      throw error;
+    }
+
+    console.log('Room created successfully:', data);
 
     // Add the DM as the first player
-    await this.joinRoom(data.id, roomData.dmId, undefined, true);
+    try {
+      await this.joinRoom(data.id, roomData.dmId, undefined, true);
+      console.log('DM added to room successfully');
+    } catch (joinError) {
+      console.error('Error adding DM to room:', joinError);
+      // Don't throw here, room was created successfully
+    }
 
     return data;
   },
@@ -261,6 +274,8 @@ export const multiplayerService = {
 
     const supabase = getSupabase();
 
+    console.log('Getting players for room:', roomId);
+
     const { data, error } = await supabase
       .from('room_players')
       .select(`
@@ -271,7 +286,12 @@ export const multiplayerService = {
       .eq('room_id', roomId)
       .order('joined_at', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error getting room players:', error);
+      throw error;
+    }
+
+    console.log('Room players retrieved:', data);
     return data || [];
   },
 
