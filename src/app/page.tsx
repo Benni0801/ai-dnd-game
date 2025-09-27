@@ -1095,7 +1095,7 @@ export default function Home() {
                   ref={inventoryRef}
                   characterStats={characterStats}
                   onInventoryChange={setInventory}
-                  initialInventory={inventory}
+                  initialInventory={inventory.length > 0 ? inventory : undefined}
                 />
               )}
               {activeTab === 'combat' && (
@@ -1200,7 +1200,7 @@ export default function Home() {
                   ref={inventoryRef}
                   characterStats={characterStats}
                   onInventoryChange={setInventory}
-                  initialInventory={inventory}
+                  initialInventory={inventory.length > 0 ? inventory : undefined}
                 />
               )}
               {activeTab === 'combat' && (

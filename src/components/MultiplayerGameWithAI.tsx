@@ -611,7 +611,7 @@ export default function MultiplayerGameWithAI({ roomId, userId, onLeaveRoom }: M
                   ref={inventoryRef}
                   characterStats={characterStats}
                   onInventoryChange={setInventory}
-                  initialInventory={inventory}
+                  initialInventory={inventory.length > 0 ? inventory : undefined}
                 />
               </div>
             )}
