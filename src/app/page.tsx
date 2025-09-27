@@ -379,6 +379,26 @@ export default function Home() {
         throw new Error(data.error);
       }
 
+      // Handle items from AI response
+      if (data.items && data.items.length > 0) {
+        for (const item of data.items) {
+          if (inventoryRef.current) {
+            inventoryRef.current.addItem(item);
+            console.log('Added item from AI:', item);
+          }
+        }
+        
+        // Add a notification message about received items
+        const itemNames = data.items.map((item: any) => item.name).join(', ');
+        const itemMessage: Message = {
+          id: (Date.now() + 0.5).toString(),
+          content: `🎒 You received: ${itemNames}`,
+          role: 'assistant',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, itemMessage]);
+      }
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -1054,8 +1074,10 @@ export default function Home() {
               )}
               {activeTab === 'inventory' && (
                 <InventorySystem
+                  ref={inventoryRef}
                   characterStats={characterStats}
                   onInventoryChange={setInventory}
+                  initialInventory={inventory}
                 />
               )}
               {activeTab === 'combat' && (
@@ -1157,8 +1179,10 @@ export default function Home() {
               )}
               {activeTab === 'inventory' && (
                 <InventorySystem
+                  ref={inventoryRef}
                   characterStats={characterStats}
                   onInventoryChange={setInventory}
+                  initialInventory={inventory}
                 />
               )}
               {activeTab === 'combat' && (
