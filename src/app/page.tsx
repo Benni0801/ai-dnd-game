@@ -12,7 +12,7 @@ import HomePage from '../components/HomePage';
 import { authService, characterService } from '../lib/supabase-auth';
 import { adventureService } from '../lib/adventure-service';
 import MultiplayerLobby from '../components/MultiplayerLobby';
-import EnhancedMultiplayerGameRoom from '../components/EnhancedMultiplayerGameRoom';
+import MultiplayerGameWithAI from '../components/MultiplayerGameWithAI';
 import GameModeSelector from '../components/GameModeSelector';
 
 export default function Home() {
@@ -466,7 +466,7 @@ export default function Home() {
     // Show multiplayer game room
     if (showMultiplayerGameRoom && currentRoomId && user) {
       return (
-        <EnhancedMultiplayerGameRoom
+        <MultiplayerGameWithAI
           roomId={currentRoomId}
           userId={user.id}
           onLeaveRoom={handleLeaveMultiplayerRoom}
