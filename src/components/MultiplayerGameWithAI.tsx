@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { CharacterStats, Message } from '../types';
 import AdvancedDiceRoller from './AdvancedDiceRoller';
-import InventorySystem from './InventorySystem';
+import InventorySystem, { InventorySystemRef } from './InventorySystem';
 import CombatSystem from './CombatSystem';
 import CharacterProgression from './CharacterProgression';
 import { multiplayerService, RoomPlayer } from '../lib/multiplayer-service';
@@ -51,6 +51,7 @@ export default function MultiplayerGameWithAI({ roomId, userId, onLeaveRoom }: M
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const inventoryRef = useRef<InventorySystemRef>(null);
 
   // Load room data and players
   const loadRoomData = useCallback(async () => {
@@ -176,6 +177,26 @@ export default function MultiplayerGameWithAI({ roomId, userId, onLeaveRoom }: M
       }
 
       const data = await response.json();
+      
+      // Handle items from AI response
+      if (data.items && data.items.length > 0) {
+        for (const item of data.items) {
+          if (inventoryRef.current) {
+            inventoryRef.current.addItem(item);
+            console.log('Added item from AI:', item);
+          }
+        }
+        
+        // Add a notification message about received items
+        const itemNames = data.items.map((item: any) => item.name).join(', ');
+        const itemMessage: Message = {
+          id: (Date.now() + 0.5).toString(),
+          content: `🎒 You received: ${itemNames}`,
+          role: 'assistant',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, itemMessage]);
+      }
       
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -574,8 +595,10 @@ export default function MultiplayerGameWithAI({ roomId, userId, onLeaveRoom }: M
             {activeTab === 'inventory' && (
               <div style={{ padding: '1.5rem', height: '100%', overflowY: 'auto' }}>
                 <InventorySystem
+                  ref={inventoryRef}
                   characterStats={characterStats}
                   onInventoryChange={setInventory}
+                  initialInventory={inventory}
                 />
               </div>
             )}

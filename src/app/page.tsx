@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { CharacterStats, Message } from '../types';
 import AdvancedDiceRoller from '../components/AdvancedDiceRoller';
-import InventorySystem from '../components/InventorySystem';
+import InventorySystem, { InventorySystemRef } from '../components/InventorySystem';
 import CombatSystem from '../components/CombatSystem';
 import CharacterProgression from '../components/CharacterProgression';
 import SupabaseAuthModal from '../components/SupabaseAuthModal';
@@ -62,9 +62,10 @@ export default function Home() {
   const [gameMode, setGameMode] = useState<'single' | 'multiplayer' | null>(null);
   const [userHasChosenMode, setUserHasChosenMode] = useState(false);
   
-  // Refs for auto-scrolling
+  // Refs for auto-scrolling and inventory
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const inventoryRef = useRef<InventorySystemRef>(null);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {

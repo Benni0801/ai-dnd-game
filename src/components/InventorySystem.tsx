@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useImperativeHandle, forwardRef } from 'react';
 
 interface Item {
   id: string;
@@ -22,6 +22,13 @@ interface Item {
 interface InventorySystemProps {
   characterStats: any;
   onInventoryChange: (items: Item[]) => void;
+  initialInventory?: Item[];
+  onAddItem?: (item: Item) => void;
+}
+
+export interface InventorySystemRef {
+  addItem: (item: Item) => void;
+  getItems: () => Item[];
 }
 
 const STARTER_ITEMS: Item[] = [
@@ -82,8 +89,8 @@ const STARTER_ITEMS: Item[] = [
   }
 ];
 
-export default function InventorySystem({ characterStats, onInventoryChange }: InventorySystemProps) {
-  const [items, setItems] = useState<Item[]>(STARTER_ITEMS);
+const InventorySystem = forwardRef<InventorySystemRef, InventorySystemProps>(({ characterStats, onInventoryChange, initialInventory, onAddItem }, ref) => {
+  const [items, setItems] = useState<Item[]>(initialInventory || STARTER_ITEMS);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItem, setNewItem] = useState<Partial<Item>>({
@@ -135,6 +142,44 @@ export default function InventorySystem({ characterStats, onInventoryChange }: I
     }
   };
 
+  // Function to add items from external sources (like AI)
+  const addItem = (item: Item) => {
+    const newItem = {
+      ...item,
+      id: item.id || `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    };
+    
+    // Check if item already exists (by name) and stack it
+    const existingItemIndex = items.findIndex(i => i.name === newItem.name && i.type === newItem.type);
+    
+    if (existingItemIndex !== -1) {
+      // Stack the item
+      const updatedItems = [...items];
+      updatedItems[existingItemIndex] = {
+        ...updatedItems[existingItemIndex],
+        quantity: updatedItems[existingItemIndex].quantity + newItem.quantity
+      };
+      setItems(updatedItems);
+      onInventoryChange(updatedItems);
+    } else {
+      // Add new item
+      const updatedItems = [...items, newItem];
+      setItems(updatedItems);
+      onInventoryChange(updatedItems);
+    }
+    
+    // Notify parent component
+    if (onAddItem) {
+      onAddItem(newItem);
+    }
+  };
+
+  // Expose functions to parent component
+  useImperativeHandle(ref, () => ({
+    addItem,
+    getItems: () => items
+  }));
+
   const consumeItem = (item: Item) => {
     if (item.type === 'consumable') {
       const updatedItems = items.map(i => {
@@ -156,7 +201,7 @@ export default function InventorySystem({ characterStats, onInventoryChange }: I
     }
   };
 
-  const addItem = () => {
+  const addNewItem = () => {
     if (newItem.name) {
       const item: Item = {
         id: Date.now().toString(),
@@ -363,7 +408,7 @@ export default function InventorySystem({ characterStats, onInventoryChange }: I
             
             <div className="flex gap-2 mt-4">
               <button
-                onClick={addItem}
+                onClick={addNewItem}
                 className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
               >
                 Add Item
@@ -380,4 +425,8 @@ export default function InventorySystem({ characterStats, onInventoryChange }: I
       )}
     </div>
   );
-}
+});
+
+InventorySystem.displayName = 'InventorySystem';
+
+export default InventorySystem;

@@ -100,6 +100,15 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
 - Quest Sheets: Main Quest, Current Mission, Current Location
 - Lore Sheets: Characters, World, Races
 
+**ITEM MANAGEMENT:**
+When players find, loot, buy, or receive items, you can add them to their inventory using this special format:
+[ITEM:{"name":"Item Name","type":"weapon|armor|consumable|tool|misc","rarity":"common|uncommon|rare|epic|legendary","value":10,"weight":2,"description":"Item description","quantity":1,"stats":{"damage":"1d8+1"}}]
+
+Examples:
+- [ITEM:{"name":"Magic Sword","type":"weapon","rarity":"rare","value":250,"weight":3,"description":"A gleaming sword that glows faintly with magical energy.","quantity":1,"stats":{"damage":"1d8+3"}}]
+- [ITEM:{"name":"Health Potion","type":"consumable","rarity":"common","value":25,"weight":0.5,"description":"A red potion that restores 2d4+2 hit points.","quantity":2}]
+- [ITEM:{"name":"Gold Coins","type":"misc","rarity":"common","value":1,"weight":0.02,"description":"Shiny gold coins.","quantity":50}]
+
 **CORE GAME MECHANICS:**
 - Use d20 + modifiers for all checks (GM rolls internally)
 - Set appropriate DCs for challenges
@@ -140,7 +149,8 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
 - Use internal dice rolls for all checks (announce results)
 - Track all character progression and world changes
 - Provide detailed descriptions and immersive roleplay
-- Respond as GAL for meta-game communication, as NPCs for in-game interactions`;
+- Respond as GAL for meta-game communication, as NPCs for in-game interactions
+- Use the [ITEM:] format when giving players items, loot, or purchases`;
 
     // Prepare the prompt for Gemini
     const fullPrompt = `${systemPrompt}\n\n${characterContext}\n\nConversation:\n${conversationHistory.map((msg: any) => `${msg.role}: ${msg.content}`).join('\n')}\n\nPlease respond as the Dungeon Master:`;
@@ -301,6 +311,27 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
       console.log('Cleaned AI response:', aiResponse);
     }
 
+    // Parse items from the response
+    const items: any[] = [];
+    if (aiResponse) {
+      const itemMatches = aiResponse.match(/\[ITEM:([^\]]+)\]/g);
+      if (itemMatches) {
+        for (const match of itemMatches) {
+          try {
+            const itemJson = match.replace(/\[ITEM:(.+)\]/, '$1');
+            const item = JSON.parse(itemJson);
+            items.push(item);
+            console.log('Parsed item:', item);
+          } catch (error) {
+            console.error('Failed to parse item:', match, error);
+          }
+        }
+      }
+      
+      // Remove item markers from the response text
+      aiResponse = aiResponse.replace(/\[ITEM:[^\]]+\]/g, '').trim();
+    }
+
         // Check if response is valid
     if (!aiResponse || aiResponse.length < 10) {
           console.log('AI response too short or empty');
@@ -312,8 +343,9 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
 
     return NextResponse.json({
       message: aiResponse,
-          usage: { total_tokens: 0 },
-          debug: 'Successfully connected to Gemini API'
+      items: items,
+      usage: { total_tokens: 0 },
+      debug: 'Successfully connected to Gemini API'
     });
 
   } catch (error: any) {
