@@ -391,42 +391,152 @@ export default function Home() {
 
   if (showCharacterCreation) {
     return (
-      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #0f0f23 0%, #0a0a1a 100%)' }}>
-        <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
-          <div className="glass-card max-w-2xl w-full p-6 md:p-8">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold mb-4 purple-gradient bg-clip-text text-transparent">
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
+        color: '#e2e8f0',
+        fontFamily: 'sans-serif',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Background Effects */}
+        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+          <div style={{
+            position: 'absolute',
+            top: '-20%',
+            right: '-20%',
+            width: '400px',
+            height: '400px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%)',
+            animation: 'float1 15s infinite ease-in-out'
+          }}></div>
+          <div style={{
+            position: 'absolute',
+            bottom: '-20%',
+            left: '-20%',
+            width: '500px',
+            height: '500px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(236, 72, 153, 0.2) 0%, transparent 70%)',
+            animation: 'float2 20s infinite ease-in-out'
+          }}></div>
+        </div>
+
+        <style jsx global>{`
+          @keyframes float1 {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-20px, 30px) scale(1.05); }
+            100% { transform: translate(0, 0) scale(1); }
+          }
+          @keyframes float2 {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, -20px) scale(1.1); }
+            100% { transform: translate(0, 0) scale(1); }
+          }
+        `}</style>
+
+        <div style={{ position: 'relative', zIndex: 10, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+          <div style={{
+            background: 'rgba(26, 26, 46, 0.8)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(139, 92, 246, 0.3)',
+            borderRadius: '24px',
+            maxWidth: '600px',
+            width: '100%',
+            padding: '3rem',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)'
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <h1 style={{
+                fontSize: '2.5rem',
+                fontWeight: 'bold',
+                marginBottom: '1rem',
+                background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>
                 ⚔️ Create Your Character
               </h1>
-              <p className="text-sm md:text-base" style={{ color: 'var(--text-muted)' }}>
+              <p style={{ color: '#94a3b8', fontSize: '1.125rem' }}>
                 Choose your race and class to begin your epic adventure
               </p>
             </div>
             
-            <div className="space-y-6">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {/* Character Name */}
               <div>
-                <label className="block text-sm font-medium mb-3" style={{ color: 'var(--text-muted)' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  marginBottom: '0.75rem',
+                  color: '#94a3b8'
+                }}>
                   Character Name
                 </label>
                 <input
                   type="text"
                   value={characterStats.name}
                   onChange={(e) => setCharacterStats(prev => ({ ...prev, name: e.target.value }))}
-                  className="input-field w-full"
                   placeholder="Enter your character's name"
                   maxLength={20}
+                  style={{
+                    width: '100%',
+                    padding: '1rem 1.25rem',
+                    background: 'rgba(15, 15, 35, 0.6)',
+                    border: '1px solid rgba(139, 92, 246, 0.3)',
+                    borderRadius: '12px',
+                    color: '#e2e8f0',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'rgba(139, 92, 246, 0.5)';
+                    e.target.style.background = 'rgba(15, 15, 35, 0.8)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+                    e.target.style.background = 'rgba(15, 15, 35, 0.6)';
+                  }}
                 />
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Race and Class Selection */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
                 <div>
-                  <label className="block text-sm font-medium mb-3" style={{ color: 'var(--text-muted)' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    marginBottom: '0.75rem',
+                    color: '#94a3b8'
+                  }}>
                     Race
                   </label>
                   <select
                     value={characterStats.race || ''}
                     onChange={(e) => setCharacterStats(prev => ({ ...prev, race: e.target.value }))}
-                    className="input-field w-full"
+                    style={{
+                      width: '100%',
+                      padding: '1rem 1.25rem',
+                      background: 'rgba(15, 15, 35, 0.6)',
+                      border: '1px solid rgba(139, 92, 246, 0.3)',
+                      borderRadius: '12px',
+                      color: '#e2e8f0',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'rgba(139, 92, 246, 0.5)';
+                      e.target.style.background = 'rgba(15, 15, 35, 0.8)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+                      e.target.style.background = 'rgba(15, 15, 35, 0.6)';
+                    }}
                   >
                     <option value="">Select a race</option>
                     <option value="Human">Human</option>
@@ -439,13 +549,37 @@ export default function Home() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-3" style={{ color: 'var(--text-muted)' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    marginBottom: '0.75rem',
+                    color: '#94a3b8'
+                  }}>
                     Class
                   </label>
                   <select
                     value={characterStats.class || ''}
                     onChange={(e) => setCharacterStats(prev => ({ ...prev, class: e.target.value }))}
-                    className="input-field w-full"
+                    style={{
+                      width: '100%',
+                      padding: '1rem 1.25rem',
+                      background: 'rgba(15, 15, 35, 0.6)',
+                      border: '1px solid rgba(139, 92, 246, 0.3)',
+                      borderRadius: '12px',
+                      color: '#e2e8f0',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'rgba(139, 92, 246, 0.5)';
+                      e.target.style.background = 'rgba(15, 15, 35, 0.8)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+                      e.target.style.background = 'rgba(15, 15, 35, 0.6)';
+                    }}
                   >
                     <option value="">Select a class</option>
                     <option value="Fighter">Fighter</option>
@@ -462,40 +596,95 @@ export default function Home() {
               
               {/* Character Preview */}
               {(characterStats.name || characterStats.race || characterStats.class) && (
-                <div className="glass-panel p-4">
-                  <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--text-muted)' }}>
+                <div style={{
+                  background: 'rgba(15, 15, 35, 0.6)',
+                  border: '1px solid rgba(139, 92, 246, 0.2)',
+                  borderRadius: '16px',
+                  padding: '1.5rem',
+                  marginTop: '1rem'
+                }}>
+                  <h3 style={{
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    marginBottom: '1rem',
+                    color: '#94a3b8'
+                  }}>
                     Character Preview
                   </h3>
-                  <div className="text-center">
-                    <div className="text-lg font-bold" style={{ color: 'var(--text-light)' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{
+                      fontSize: '1.5rem',
+                      fontWeight: 'bold',
+                      color: '#e2e8f0',
+                      marginBottom: '0.5rem'
+                    }}>
                       {characterStats.name || 'Unnamed Hero'}
                     </div>
-                    <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    <div style={{ color: '#94a3b8', fontSize: '1rem' }}>
                       {characterStats.race || 'Unknown'} {characterStats.class || 'Adventurer'}
                     </div>
                   </div>
                 </div>
               )}
               
-                    <div className="space-y-3">
-                      <button
-                        onClick={() => handleCharacterCreated(characterStats)}
-                        disabled={!characterStats.name || !characterStats.race || !characterStats.class}
-                        className="btn-primary w-full text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        🎭 Create Character & Start Adventure
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          setShowCharacterCreation(false);
-                          setShowCharacterSelector(true);
-                        }}
-                        className="btn-secondary w-full text-sm py-2"
-                      >
-                        ← Back to Character Selection
-                      </button>
-                    </div>
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+                <button
+                  onClick={() => handleCharacterCreated(characterStats)}
+                  disabled={!characterStats.name || !characterStats.race || !characterStats.class}
+                  style={{
+                    width: '100%',
+                    padding: '1.25rem 2rem',
+                    background: (!characterStats.name || !characterStats.race || !characterStats.class)
+                      ? 'rgba(55, 65, 81, 0.5)'
+                      : 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    color: 'white',
+                    fontSize: '1.125rem',
+                    fontWeight: '600',
+                    cursor: (!characterStats.name || !characterStats.race || !characterStats.class) ? 'not-allowed' : 'pointer',
+                    opacity: (!characterStats.name || !characterStats.race || !characterStats.class) ? 0.5 : 1,
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem'
+                  }}
+                >
+                  <span>🎭</span>
+                  Create Character & Start Adventure
+                </button>
+                
+                <button
+                  onClick={() => {
+                    setShowCharacterCreation(false);
+                    setShowCharacterSelector(true);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 1.5rem',
+                    background: 'rgba(139, 92, 246, 0.1)',
+                    border: '1px solid rgba(139, 92, 246, 0.3)',
+                    borderRadius: '8px',
+                    color: '#a78bfa',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)';
+                    e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.5)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+                  }}
+                >
+                  ← Back to Character Selection
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -504,107 +693,240 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #0f0f23 0%, #0a0a1a 100%)' }}>
-      <div className="relative z-10 min-h-screen">
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
+      color: '#e2e8f0',
+      fontFamily: 'sans-serif',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      {/* Background Effects */}
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+        <div style={{
+          position: 'absolute',
+          top: '-20%',
+          right: '-20%',
+          width: '400px',
+          height: '400px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%)',
+          animation: 'float1 15s infinite ease-in-out'
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          bottom: '-20%',
+          left: '-20%',
+          width: '500px',
+          height: '500px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(236, 72, 153, 0.2) 0%, transparent 70%)',
+          animation: 'float2 20s infinite ease-in-out'
+        }}></div>
+      </div>
+
+      <style jsx global>{`
+        @keyframes float1 {
+          0% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(-20px, 30px) scale(1.05); }
+          100% { transform: translate(0, 0) scale(1); }
+        }
+        @keyframes float2 {
+          0% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(30px, -20px) scale(1.1); }
+          100% { transform: translate(0, 0) scale(1); }
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
+
+      <div style={{ position: 'relative', zIndex: 10, minHeight: '100vh' }}>
         {/* Mobile Header */}
-        <div className="lg:hidden glass-panel m-4 p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold purple-gradient bg-clip-text text-transparent">
+        <div style={{
+          display: window.innerWidth < 1024 ? 'block' : 'none',
+          background: 'rgba(26, 26, 46, 0.8)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(139, 92, 246, 0.2)',
+          borderRadius: '16px',
+          margin: '1rem',
+          padding: '1.5rem'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h1 style={{
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              margin: 0
+            }}>
               ⚔️ AI D&D
             </h1>
             <button
               onClick={() => setShowCharacterCreation(true)}
-              className="btn-secondary text-sm px-3 py-2"
+              style={{
+                padding: '0.5rem 1rem',
+                background: 'rgba(139, 92, 246, 0.1)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                borderRadius: '8px',
+                color: '#a78bfa',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
             >
               ✏️ Edit
             </button>
           </div>
           
           {/* Character Info Mobile */}
-          <div className="grid grid-cols-3 gap-2 text-center text-sm">
-            <div className="glass-panel p-2">
-              <div style={{ color: 'var(--text-muted)' }}>Level</div>
-              <div className="font-bold" style={{ color: 'var(--text-light)' }}>{characterStats.level || 1}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+            <div style={{
+              background: 'rgba(15, 15, 35, 0.6)',
+              borderRadius: '8px',
+              padding: '0.75rem',
+              textAlign: 'center'
+            }}>
+              <div style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Level</div>
+              <div style={{ color: '#e2e8f0', fontWeight: 'bold', fontSize: '1rem' }}>{characterStats.level || 1}</div>
             </div>
-            <div className="glass-panel p-2">
-              <div style={{ color: 'var(--text-muted)' }}>HP</div>
-              <div className="font-bold" style={{ color: 'var(--text-light)' }}>{characterStats.hp}/{characterStats.maxHp || characterStats.hp}</div>
+            <div style={{
+              background: 'rgba(15, 15, 35, 0.6)',
+              borderRadius: '8px',
+              padding: '0.75rem',
+              textAlign: 'center'
+            }}>
+              <div style={{ color: '#94a3b8', fontSize: '0.75rem' }}>HP</div>
+              <div style={{ color: '#e2e8f0', fontWeight: 'bold', fontSize: '1rem' }}>{characterStats.hp}/{characterStats.maxHp || characterStats.hp}</div>
             </div>
-            <div className="glass-panel p-2">
-              <div style={{ color: 'var(--text-muted)' }}>XP</div>
-              <div className="font-bold" style={{ color: 'var(--text-light)' }}>{characterStats.xp || 0}</div>
+            <div style={{
+              background: 'rgba(15, 15, 35, 0.6)',
+              borderRadius: '8px',
+              padding: '0.75rem',
+              textAlign: 'center'
+            }}>
+              <div style={{ color: '#94a3b8', fontSize: '0.75rem' }}>XP</div>
+              <div style={{ color: '#e2e8f0', fontWeight: 'bold', fontSize: '1rem' }}>{characterStats.xp || 0}</div>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row min-h-screen">
+        <div style={{ display: 'flex', flexDirection: window.innerWidth < 1024 ? 'column' : 'row', minHeight: '100vh' }}>
           {/* Desktop Sidebar */}
-          <div className="hidden lg:block w-80 m-4 space-y-4">
+          <div style={{
+            display: window.innerWidth >= 1024 ? 'block' : 'none',
+            width: '320px',
+            margin: '1rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem'
+          }}>
             {/* Character Info */}
-            <div className="glass-panel p-6">
-              <h3 className="text-xl font-bold mb-4 purple-gradient bg-clip-text text-transparent">
+            <div style={{
+              background: 'rgba(26, 26, 46, 0.8)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+              borderRadius: '16px',
+              padding: '1.5rem'
+            }}>
+              <h3 style={{
+                fontSize: '1.25rem',
+                fontWeight: 'bold',
+                background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                marginBottom: '1rem'
+              }}>
                 📋 {characterStats.name}
               </h3>
-              <div className="space-y-3 text-sm">
-                <div className="character-stat">
-                  <span className="character-stat-label">Level {characterStats.level || 1} {characterStats.race} {characterStats.class}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.875rem' }}>
+                <div style={{ color: '#94a3b8' }}>
+                  Level {characterStats.level || 1} {characterStats.race} {characterStats.class}
                 </div>
-                <div className="character-stat">
-                  <span className="character-stat-label">HP:</span>
-                  <span className="character-stat-value">{characterStats.hp}/{characterStats.maxHp || characterStats.hp}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#94a3b8' }}>HP:</span>
+                  <span style={{ color: '#e2e8f0' }}>{characterStats.hp}/{characterStats.maxHp || characterStats.hp}</span>
                 </div>
-                <div className="character-stat">
-                  <span className="character-stat-label">XP:</span>
-                  <span className="character-stat-value">{characterStats.xp || 0}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#94a3b8' }}>XP:</span>
+                  <span style={{ color: '#e2e8f0' }}>{characterStats.xp || 0}</span>
                 </div>
               </div>
               
               <button
                 onClick={() => setShowCharacterCreation(true)}
-                className="btn-secondary w-full mt-4 text-sm"
+                style={{
+                  width: '100%',
+                  marginTop: '1rem',
+                  padding: '0.75rem',
+                  background: 'rgba(139, 92, 246, 0.1)',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  borderRadius: '8px',
+                  color: '#a78bfa',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
               >
                 ✏️ Edit Character
               </button>
             </div>
 
             {/* Tab Navigation */}
-            <div className="glass-panel p-4">
-              <div className="tab-nav">
-                <button
-                  onClick={() => setActiveTab('chat')}
-                  className={`tab-button ${activeTab === 'chat' ? 'active' : ''}`}
-                >
-                  💬 Chat
-                </button>
-                <button
-                  onClick={() => setActiveTab('character')}
-                  className={`tab-button ${activeTab === 'character' ? 'active' : ''}`}
-                >
-                  📈 Stats
-                </button>
-                <button
-                  onClick={() => setActiveTab('inventory')}
-                  className={`tab-button ${activeTab === 'inventory' ? 'active' : ''}`}
-                >
-                  🎒 Items
-                </button>
-                <button
-                  onClick={() => setActiveTab('combat')}
-                  className={`tab-button ${activeTab === 'combat' ? 'active' : ''}`}
-                >
-                  ⚔️ Combat
-                </button>
-                <button
-                  onClick={() => setActiveTab('dice')}
-                  className={`tab-button ${activeTab === 'dice' ? 'active' : ''}`}
-                >
-                  🎲 Dice
-                </button>
+            <div style={{
+              background: 'rgba(26, 26, 46, 0.8)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+              borderRadius: '16px',
+              padding: '1rem'
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {[
+                  { id: 'chat', label: '💬 Chat', icon: '💬' },
+                  { id: 'character', label: '📈 Stats', icon: '📈' },
+                  { id: 'inventory', label: '🎒 Items', icon: '🎒' },
+                  { id: 'combat', label: '⚔️ Combat', icon: '⚔️' },
+                  { id: 'dice', label: '🎲 Dice', icon: '🎲' }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    style={{
+                      padding: '0.75rem 1rem',
+                      borderRadius: '8px',
+                      fontWeight: '500',
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      background: activeTab === tab.id ? 'linear-gradient(135deg, #8b5cf6, #ec4899)' : 'transparent',
+                      color: activeTab === tab.id ? 'white' : '#94a3b8',
+                      border: activeTab === tab.id ? 'none' : '1px solid rgba(139, 92, 246, 0.2)',
+                      textAlign: 'left'
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
             </div>
 
             {/* Active Tab Content */}
-            <div className="glass-panel">
+            <div style={{
+              background: 'rgba(26, 26, 46, 0.8)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+              borderRadius: '16px',
+              padding: '1.5rem',
+              flex: 1
+            }}>
               {activeTab === 'character' && (
                 <CharacterProgression
                   characterStats={characterStats}
@@ -632,55 +954,82 @@ export default function Home() {
           </div>
 
           {/* Main Chat Area */}
-          <div className="flex-1 flex flex-col">
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             {/* Desktop Header */}
-            <div className="hidden lg:block glass-panel m-4 p-6">
-              <h1 className="text-3xl font-bold purple-gradient bg-clip-text text-transparent">
+            <div style={{
+              display: window.innerWidth >= 1024 ? 'block' : 'none',
+              background: 'rgba(26, 26, 46, 0.8)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+              borderRadius: '16px',
+              margin: '1rem',
+              padding: '2rem'
+            }}>
+              <h1 style={{
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                marginBottom: '0.5rem'
+              }}>
                 ⚔️ AI D&D Adventure
               </h1>
-              <p className="mt-2" style={{ color: 'var(--text-muted)' }}>
+              <p style={{ color: '#94a3b8', margin: 0 }}>
                 Playing as {characterStats.name} the {characterStats.race} {characterStats.class}
               </p>
             </div>
 
             {/* Mobile Tab Navigation */}
-            <div className="lg:hidden glass-panel m-4 p-2">
-              <div className="flex overflow-x-auto gap-2">
-                <button
-                  onClick={() => setActiveTab('chat')}
-                  className={`tab-button whitespace-nowrap ${activeTab === 'chat' ? 'active' : ''}`}
-                >
-                  💬 Chat
-                </button>
-                <button
-                  onClick={() => setActiveTab('character')}
-                  className={`tab-button whitespace-nowrap ${activeTab === 'character' ? 'active' : ''}`}
-                >
-                  📈 Stats
-                </button>
-                <button
-                  onClick={() => setActiveTab('inventory')}
-                  className={`tab-button whitespace-nowrap ${activeTab === 'inventory' ? 'active' : ''}`}
-                >
-                  🎒 Items
-                </button>
-                <button
-                  onClick={() => setActiveTab('combat')}
-                  className={`tab-button whitespace-nowrap ${activeTab === 'combat' ? 'active' : ''}`}
-                >
-                  ⚔️ Combat
-                </button>
-                <button
-                  onClick={() => setActiveTab('dice')}
-                  className={`tab-button whitespace-nowrap ${activeTab === 'dice' ? 'active' : ''}`}
-                >
-                  🎲 Dice
-                </button>
+            <div style={{
+              display: window.innerWidth < 1024 ? 'block' : 'none',
+              background: 'rgba(26, 26, 46, 0.8)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+              borderRadius: '16px',
+              margin: '1rem',
+              padding: '0.5rem'
+            }}>
+              <div style={{ display: 'flex', overflowX: 'auto', gap: '0.5rem' }}>
+                {[
+                  { id: 'chat', label: '💬 Chat' },
+                  { id: 'character', label: '📈 Stats' },
+                  { id: 'inventory', label: '🎒 Items' },
+                  { id: 'combat', label: '⚔️ Combat' },
+                  { id: 'dice', label: '🎲 Dice' }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      borderRadius: '8px',
+                      fontWeight: '500',
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      background: activeTab === tab.id ? 'linear-gradient(135deg, #8b5cf6, #ec4899)' : 'transparent',
+                      color: activeTab === tab.id ? 'white' : '#94a3b8',
+                      border: activeTab === tab.id ? 'none' : '1px solid rgba(139, 92, 246, 0.2)',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
             </div>
 
             {/* Mobile Tab Content */}
-            <div className="lg:hidden glass-panel m-4">
+            <div style={{
+              display: window.innerWidth < 1024 ? 'block' : 'none',
+              background: 'rgba(26, 26, 46, 0.8)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+              borderRadius: '16px',
+              margin: '1rem',
+              padding: '1.5rem'
+            }}>
               {activeTab === 'character' && (
                 <CharacterProgression
                   characterStats={characterStats}
@@ -709,49 +1058,102 @@ export default function Home() {
             {/* Messages */}
             <div 
               ref={messagesContainerRef}
-              className="flex-1 p-4 overflow-y-auto relative" 
-              style={{ maxHeight: 'calc(100vh - 300px)' }}
+              style={{ 
+                flex: 1,
+                padding: '1rem',
+                overflowY: 'auto',
+                maxHeight: 'calc(100vh - 300px)'
+              }}
               onScroll={handleScroll}
             >
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`message-card ${message.role === 'user' ? 'user' : 'ai'} mb-4`}
+                  style={{
+                    background: message.role === 'user' 
+                      ? 'rgba(139, 92, 246, 0.1)' 
+                      : 'rgba(26, 26, 46, 0.8)',
+                    backdropFilter: 'blur(10px)',
+                    border: message.role === 'user' 
+                      ? '1px solid rgba(139, 92, 246, 0.3)' 
+                      : '1px solid rgba(139, 92, 246, 0.2)',
+                    borderRadius: '16px',
+                    padding: '1.5rem',
+                    marginBottom: '1rem',
+                    transition: 'all 0.3s ease'
+                  }}
                 >
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" 
-                         style={{ 
-                           background: message.role === 'user' ? 'var(--primary-purple)' : 'var(--dark-purple)',
-                           color: 'white'
-                         }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.25rem',
+                      background: message.role === 'user' 
+                        ? 'linear-gradient(135deg, #8b5cf6, #ec4899)' 
+                        : 'linear-gradient(135deg, #1e40af, #3b82f6)',
+                      color: 'white'
+                    }}>
                       {message.role === 'user' ? '👤' : '🧙‍♂️'}
                     </div>
-                    <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    <div style={{ fontSize: '0.875rem', color: '#94a3b8' }}>
                       {message.role === 'user' ? 'You' : 'Dungeon Master'} • {message.timestamp.toLocaleTimeString()}
                     </div>
                   </div>
-                  <div style={{ color: 'var(--text-light)' }} className="leading-relaxed">
+                  <div style={{ 
+                    color: '#e2e8f0', 
+                    lineHeight: '1.6',
+                    fontSize: '1rem'
+                  }}>
                     {message.content}
                   </div>
                 </div>
               ))}
 
               {isLoading && (
-                <div className="message-card ai mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" 
-                         style={{ 
-                           background: 'var(--dark-purple)',
-                           color: 'white'
-                         }}>
+                <div style={{
+                  background: 'rgba(26, 26, 46, 0.8)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(139, 92, 246, 0.2)',
+                  borderRadius: '16px',
+                  padding: '1.5rem',
+                  marginBottom: '1rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.25rem',
+                      background: 'linear-gradient(135deg, #1e40af, #3b82f6)',
+                      color: 'white'
+                    }}>
                       🧙‍♂️
                     </div>
-                    <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    <div style={{ fontSize: '0.875rem', color: '#94a3b8' }}>
                       Dungeon Master • thinking...
                     </div>
                   </div>
-                  <div style={{ color: 'var(--text-light)' }} className="flex items-center gap-2">
-                    <div className="loading-spinner"></div>
+                  <div style={{ 
+                    color: '#e2e8f0', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.75rem' 
+                  }}>
+                    <div style={{
+                      width: '20px',
+                      height: '20px',
+                      border: '2px solid rgba(139, 92, 246, 0.3)',
+                      borderTop: '2px solid #8b5cf6',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }}></div>
                     The AI is crafting your adventure...
                   </div>
                 </div>
@@ -764,11 +1166,32 @@ export default function Home() {
               {showScrollButton && (
                 <button
                   onClick={scrollToBottom}
-                  className="fixed bottom-20 right-6 w-12 h-12 rounded-full glass-panel flex items-center justify-center text-xl hover:scale-110 transition-all duration-200 z-10"
-                  style={{ 
-                    background: 'var(--primary-purple)',
+                  style={{
+                    position: 'fixed',
+                    bottom: '5rem',
+                    right: '1.5rem',
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
                     color: 'white',
-                    boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)'
+                    border: 'none',
+                    fontSize: '1.25rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)',
+                    zIndex: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.1)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(139, 92, 246, 0.5)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.4)';
                   }}
                   title="Scroll to bottom"
                 >
@@ -778,7 +1201,14 @@ export default function Home() {
             </div>
 
             {/* Input */}
-            <div className="glass-panel m-4 p-4">
+            <div style={{
+              background: 'rgba(26, 26, 46, 0.8)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+              borderRadius: '16px',
+              margin: '1rem',
+              padding: '1.5rem'
+            }}>
               <form onSubmit={(e) => {
                 e.preventDefault();
                 if (inputMessage.trim() && !isLoading) {
@@ -786,19 +1216,53 @@ export default function Home() {
                   setInputMessage('');
                 }
               }}>
-                <div className="flex gap-3">
+                <div style={{ display: 'flex', gap: '1rem' }}>
                   <input
                     type="text"
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     placeholder="What would you like to do, adventurer?"
                     disabled={isLoading}
-                    className="input-field flex-1"
+                    style={{
+                      flex: 1,
+                      padding: '1rem 1.25rem',
+                      background: 'rgba(15, 15, 35, 0.6)',
+                      border: '1px solid rgba(139, 92, 246, 0.3)',
+                      borderRadius: '12px',
+                      color: '#e2e8f0',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'rgba(139, 92, 246, 0.5)';
+                      e.target.style.background = 'rgba(15, 15, 35, 0.8)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+                      e.target.style.background = 'rgba(15, 15, 35, 0.6)';
+                    }}
                   />
                   <button
                     type="submit"
                     disabled={!inputMessage.trim() || isLoading}
-                    className="btn-primary px-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      padding: '1rem 1.5rem',
+                      background: (!inputMessage.trim() || isLoading) 
+                        ? 'rgba(55, 65, 81, 0.5)' 
+                        : 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                      border: 'none',
+                      borderRadius: '12px',
+                      color: 'white',
+                      fontSize: '1.25rem',
+                      cursor: (!inputMessage.trim() || isLoading) ? 'not-allowed' : 'pointer',
+                      opacity: (!inputMessage.trim() || isLoading) ? 0.5 : 1,
+                      transition: 'all 0.3s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: '60px'
+                    }}
                   >
                     {isLoading ? '⏳' : '🚀'}
                   </button>
