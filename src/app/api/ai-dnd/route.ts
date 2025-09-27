@@ -3,7 +3,9 @@ import { createInitialGameState, formatGameSheet, GameState } from '../../../uti
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('AI API: Request received');
     const body = await request.json();
+    console.log('AI API: Body parsed:', { messages: body.messages?.length, characterStats: !!body.characterStats });
     const { messages, characterStats } = body || {};
 
         // Check for API key - if not available, use fallback responses
@@ -17,13 +19,13 @@ export async function POST(request: NextRequest) {
             error: 'No Google API key configured. Please add GOOGLE_API_KEY to your environment variables.',
             message: 'API key missing - cannot generate AI response'
           }, { status: 500 });
-        }
+    }
 
-        // Build the conversation context
+    // Build the conversation context
         const conversationHistory = messages.slice(-10).map((msg: any) => ({
-          role: msg.role === 'assistant' ? 'model' : 'user',
-          content: msg.content
-        }));
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      content: msg.content
+    }));
 
         // Create comprehensive game state
         const gameState = createInitialGameState();
@@ -188,27 +190,27 @@ Current Mission: ${gameState.quests.currentMission.title}
             try {
               console.log(`Trying endpoint: ${endpoint}`);
               modelResponse = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
                   'X-goog-api-key': apiKey
-                },
-                body: JSON.stringify({
-                  contents: [{
-                    parts: [{
-                      text: fullPrompt
-                    }]
-                  }],
-                  generationConfig: {
-                    temperature: 0.7,
-                    maxOutputTokens: 300,
-                    topP: 0.8,
-                    topK: 40
-                  }
-                }),
-                signal: AbortSignal.timeout(30000)
-              });
-              
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: fullPrompt
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 300,
+          topP: 0.8,
+          topK: 40
+        }
+      }),
+      signal: AbortSignal.timeout(30000)
+    });
+
               if (modelResponse.ok) {
                 response = modelResponse;
                 console.log(`Successfully connected to model: ${model} with endpoint: ${endpoint}`);
@@ -307,33 +309,33 @@ Current Mission: ${gameState.quests.currentMission.title}
     }
 
         // Check if response is valid
-        if (!aiResponse || aiResponse.length < 10) {
+    if (!aiResponse || aiResponse.length < 10) {
           console.log('AI response too short or empty');
           return NextResponse.json({
             error: 'AI response was empty or too short',
             message: 'AI service returned invalid response'
           }, { status: 500 });
-        }
+    }
 
-        return NextResponse.json({
-          message: aiResponse,
+    return NextResponse.json({
+      message: aiResponse,
           usage: { total_tokens: 0 },
           debug: 'Successfully connected to Gemini API'
-        });
+    });
 
   } catch (error: any) {
     console.error('Error generating AI response:', error);
     
-        // Check if it's a timeout error
-        if (error?.name === 'AbortError') {
-          return NextResponse.json({
+    // Check if it's a timeout error
+    if (error?.name === 'AbortError') {
+      return NextResponse.json({
             error: 'Request timeout - AI service took too long to respond',
             message: 'AI service timeout - please try again'
           }, { status: 500 });
-        }
-        
-        // Check if it's an API key error
-        if (error?.message?.includes('403') || error?.message?.includes('API_KEY')) {
+    }
+    
+    // Check if it's an API key error
+    if (error?.message?.includes('403') || error?.message?.includes('API_KEY')) {
           return NextResponse.json({
             error: 'Invalid Google API key. Please check your GOOGLE_API_KEY configuration.',
             message: 'API key authentication failed'
@@ -341,9 +343,16 @@ Current Mission: ${gameState.quests.currentMission.title}
         }
         
         // Return actual error
+        console.error('AI API: Unexpected error:', error);
         return NextResponse.json({
           error: `Unexpected error: ${error.message}`,
           message: 'AI service error - please check configuration'
         }, { status: 500 });
+  } catch (error: any) {
+    console.error('AI API: Top-level error:', error);
+    return NextResponse.json({
+      error: `Server error: ${error.message}`,
+      message: 'Internal server error'
+    }, { status: 500 });
   }
 }

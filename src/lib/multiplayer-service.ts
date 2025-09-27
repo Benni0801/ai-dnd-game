@@ -820,6 +820,22 @@ export const multiplayerService = {
 
       const supabase = getSupabase();
 
+      // First, ensure the AI user exists
+      const aiUserId = '00000000-0000-0000-0000-000000000000';
+      const { error: userError } = await supabase
+        .from('users')
+        .upsert({
+          id: aiUserId,
+          username: 'AI Dungeon Master',
+          email: 'ai@dungeonmaster.local',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+
+      if (userError) {
+        console.error('Error ensuring AI user exists:', userError);
+      }
+
       // Extract the AI response content
       let aiContent = '';
       if (aiResponse.response) {
@@ -832,12 +848,12 @@ export const multiplayerService = {
         aiContent = 'AI response received';
       }
 
-      // Insert AI message directly with a special user_id that doesn't need to exist in users table
+      // Insert AI message directly with the AI user ID
       const { data, error } = await supabase
         .from('room_messages')
         .insert({
           room_id: roomId,
-          user_id: '00000000-0000-0000-0000-000000000000', // Special UUID for AI
+          user_id: aiUserId,
           content: aiContent,
           message_type: 'system'
         })
@@ -861,29 +877,20 @@ export const multiplayerService = {
     } catch (error: any) {
       console.error('AI chat error:', error);
       
-      // Fallback: create error message
-      try {
-        const supabase = getSupabase();
-        const { data } = await supabase
-          .from('room_messages')
-          .insert({
-            room_id: roomId,
-            user_id: '00000000-0000-0000-0000-000000000000',
-            content: `AI Error: ${error.message}`,
-            message_type: 'system'
-          })
-          .select()
-          .single();
-
-        return {
-          ...data,
-          user: data.user || { username: 'AI Dungeon Master' },
-          character: undefined
-        };
-      } catch (fallbackError) {
-        console.error('Fallback error:', fallbackError);
-        throw error;
-      }
+      // Fallback: create error message without trying to save to database
+      console.error('AI chat fallback: Not saving error message to avoid conflicts');
+      
+      // Return a mock message object that won't cause database conflicts
+      return {
+        id: `error-${Date.now()}`,
+        room_id: roomId,
+        user_id: '00000000-0000-0000-0000-000000000000',
+        content: `AI Error: ${error.message}`,
+        message_type: 'system',
+        created_at: new Date().toISOString(),
+        user: { username: 'AI Dungeon Master' },
+        character: undefined
+      };
     }
   },
 
