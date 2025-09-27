@@ -12,6 +12,7 @@ import HomePage from '../components/HomePage';
 import { authService, characterService } from '../lib/supabase-auth';
 import { adventureService } from '../lib/adventure-service';
 import MultiplayerLobby from '../components/MultiplayerLobby';
+import GameModeSelector from '../components/GameModeSelector';
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -53,6 +54,10 @@ export default function Home() {
   // Multiplayer state
   const [showMultiplayerLobby, setShowMultiplayerLobby] = useState(false);
   const [currentRoomId, setCurrentRoomId] = useState<string | null>(null);
+  
+  // Game mode state
+  const [showGameModeSelector, setShowGameModeSelector] = useState(false);
+  const [gameMode, setGameMode] = useState<'single' | 'multiplayer' | null>(null);
   
   // Refs for auto-scrolling
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -116,7 +121,8 @@ export default function Home() {
         if (user) {
           setUser(user);
           setShowHomePage(false);
-          setShowCharacterSelector(true);
+          setShowGameModeSelector(true);
+          setShowCharacterSelector(false);
           setShowCharacterCreation(false);
         } else {
           setShowHomePage(true);
@@ -134,13 +140,16 @@ export default function Home() {
       if (event === 'SIGNED_IN' && session?.user) {
         setUser(session.user);
         setShowHomePage(false);
-        setShowCharacterSelector(true);
+        setShowGameModeSelector(true);
+        setShowCharacterSelector(false);
         setShowCharacterCreation(false);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setShowHomePage(true);
+        setShowGameModeSelector(false);
         setShowCharacterSelector(false);
         setShowCharacterCreation(false);
+        setShowMultiplayerLobby(false);
         setMessages([]);
       }
     });
@@ -148,23 +157,18 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Authentication handlers
-  const handleLogin = (userData: any) => {
-    setUser(userData);
-    setShowHomePage(false);
-    setShowAuthModal(false);
-    setShowCharacterSelector(true);
-    setShowCharacterCreation(false);
-  };
-
   const handleLogout = async () => {
     try {
       await authService.signOut();
       setUser(null);
       setSelectedCharacter(null);
       setShowHomePage(true);
+      setShowGameModeSelector(false);
       setShowCharacterSelector(false);
       setShowCharacterCreation(false);
+      setShowMultiplayerLobby(false);
+      setGameMode(null);
+      setCurrentRoomId(null);
       setMessages([]);
     } catch (error) {
       console.error('Error signing out:', error);
@@ -252,6 +256,14 @@ export default function Home() {
   const handleHomeLogin = () => {
     // This will be handled by the HomePage component's modal
     console.log('Login clicked - handled by HomePage modal');
+  };
+
+  const handleLogin = (user: any) => {
+    console.log('Login successful:', user);
+    setUser(user);
+    setShowAuthModal(false);
+    setShowHomePage(false);
+    setShowGameModeSelector(true);
   };
 
   const handleDiceRoll = (results: any[]) => {
@@ -397,9 +409,39 @@ export default function Home() {
     console.log('Joined room:', roomId);
   };
 
+  // Game mode handlers
+  const handleSinglePlayer = () => {
+    setGameMode('single');
+    setShowGameModeSelector(false);
+    setShowCharacterSelector(true);
+  };
+
+  const handleMultiplayer = () => {
+    setGameMode('multiplayer');
+    setShowGameModeSelector(false);
+    setShowMultiplayerLobby(true);
+  };
+
+  const handleBackFromGameMode = () => {
+    setShowGameModeSelector(false);
+    setShowHomePage(true);
+  };
+
   // Show homepage
   if (showHomePage) {
-    return <HomePage onStartGame={handleStartGame} onLogin={handleHomeLogin} onMultiplayer={handleShowMultiplayerLobby} />;
+    return <HomePage onStartGame={handleStartGame} onLogin={handleHomeLogin} />;
+  }
+
+  // Show game mode selector
+  if (showGameModeSelector && user) {
+    return (
+      <GameModeSelector
+        onSinglePlayer={handleSinglePlayer}
+        onMultiplayer={handleMultiplayer}
+        onBack={handleBackFromGameMode}
+        username={user.user_metadata?.username || user.email}
+      />
+    );
   }
 
   // Show multiplayer lobby
