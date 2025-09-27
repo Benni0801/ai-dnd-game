@@ -821,10 +821,9 @@ export default function Home() {
         <div style={{ display: 'flex', flexDirection: window.innerWidth < 1024 ? 'column' : 'row', minHeight: '100vh' }}>
           {/* Desktop Sidebar */}
           <div style={{
-            display: window.innerWidth >= 1024 ? 'block' : 'none',
+            display: window.innerWidth >= 1024 ? 'flex' : 'none',
             width: '320px',
             margin: '1rem',
-            display: 'flex',
             flexDirection: 'column',
             gap: '1rem'
           }}>
