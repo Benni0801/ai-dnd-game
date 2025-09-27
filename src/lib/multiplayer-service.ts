@@ -519,74 +519,7 @@ export const multiplayerService = {
     };
   },
 
-  // Friends Management
-  async getFriends(userId: string): Promise<Friend[]> {
-    if (!isSupabaseConfigured()) {
-      throw new Error('Supabase is not configured');
-    }
 
-    const supabase = getSupabase();
-
-    const { data, error } = await supabase
-      .from('friends')
-      .select(`
-        *,
-        friend:users!friends_friend_id_fkey(id, username, email)
-      `)
-      .eq('user_id', userId)
-      .eq('status', 'accepted');
-
-    if (error) throw error;
-    return data || [];
-  },
-
-  async sendFriendRequest(userId: string, friendId: string): Promise<Friend> {
-    if (!isSupabaseConfigured()) {
-      throw new Error('Supabase is not configured');
-    }
-
-    const supabase = getSupabase();
-
-    const { data, error } = await supabase
-      .from('friends')
-      .insert({
-        user_id: userId,
-        friend_id: friendId,
-        status: 'pending'
-      })
-      .select(`
-        *,
-        friend:users!friends_friend_id_fkey(id, username, email)
-      `)
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async acceptFriendRequest(friendshipId: string): Promise<Friend> {
-    if (!isSupabaseConfigured()) {
-      throw new Error('Supabase is not configured');
-    }
-
-    const supabase = getSupabase();
-
-    const { data, error } = await supabase
-      .from('friends')
-      .update({
-        status: 'accepted',
-        accepted_at: new Date().toISOString()
-      })
-      .eq('id', friendshipId)
-      .select(`
-        *,
-        friend:users!friends_friend_id_fkey(id, username, email)
-      `)
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
 
   // Friend Invitations
   async inviteFriendToRoom(fromUserId: string, toUserId: string, roomId: string, message?: string): Promise<FriendInvitation> {
@@ -784,6 +717,191 @@ export const multiplayerService = {
       ...msg,
       dice_roll: msg.dice_roll ? JSON.parse(msg.dice_roll) : undefined
     })).reverse();
+  },
+
+  // Friend Management Functions
+  async searchUserByUsername(username: string): Promise<any> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, username, email')
+      .eq('username', username)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        throw new Error('User not found');
+      }
+      throw error;
+    }
+
+    return data;
+  },
+
+  async sendFriendRequest(fromUserId: string, toUsername: string): Promise<any> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    // First, find the user by username
+    const toUser = await this.searchUserByUsername(toUsername);
+    
+    if (toUser.id === fromUserId) {
+      throw new Error('You cannot send a friend request to yourself');
+    }
+
+    // Check if already friends
+    const { data: existingFriendship } = await supabase
+      .from('friends')
+      .select('id')
+      .or(`and(user_id.eq.${fromUserId},friend_id.eq.${toUser.id}),and(user_id.eq.${toUser.id},friend_id.eq.${fromUserId})`)
+      .single();
+
+    if (existingFriendship) {
+      throw new Error('You are already friends with this user');
+    }
+
+    // Check if there's already a pending request
+    const { data: existingRequest } = await supabase
+      .from('friend_invitations')
+      .select('id')
+      .or(`and(from_user_id.eq.${fromUserId},to_user_id.eq.${toUser.id}),and(from_user_id.eq.${toUser.id},to_user_id.eq.${fromUserId})`)
+      .eq('status', 'pending')
+      .single();
+
+    if (existingRequest) {
+      throw new Error('There is already a pending friend request between you and this user');
+    }
+
+    // Create friend request
+    const { data, error } = await supabase
+      .from('friend_invitations')
+      .insert({
+        from_user_id: fromUserId,
+        to_user_id: toUser.id,
+        message: `${fromUserId} wants to be your friend`,
+        status: 'pending'
+      })
+      .select(`
+        *,
+        from_user:users!friend_invitations_from_user_id_fkey(username),
+        to_user:users!friend_invitations_to_user_id_fkey(username)
+      `)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async getFriends(userId: string): Promise<Friend[]> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    const { data, error } = await supabase
+      .from('friends')
+      .select(`
+        *,
+        friend:users!friends_friend_id_fkey(username, email),
+        user:users!friends_user_id_fkey(username, email)
+      `)
+      .or(`user_id.eq.${userId},friend_id.eq.${userId}`)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    // Transform the data to a consistent format
+    return (data || []).map((friendship: any) => {
+      const isUser1 = friendship.user_id === userId;
+      return {
+        id: friendship.id,
+        user_id: userId,
+        friend_id: isUser1 ? friendship.friend_id : friendship.user_id,
+        username: isUser1 ? friendship.friend.username : friendship.user.username,
+        email: isUser1 ? friendship.friend.email : friendship.user.email,
+        created_at: friendship.created_at
+      };
+    });
+  },
+
+  async getPendingFriendRequests(userId: string): Promise<any[]> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    const { data, error } = await supabase
+      .from('friend_invitations')
+      .select(`
+        *,
+        from_user:users!friend_invitations_from_user_id_fkey(username, email)
+      `)
+      .eq('to_user_id', userId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async respondToFriendRequest(invitationId: string, accepted: boolean): Promise<void> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    if (accepted) {
+      // Get the invitation details
+      const { data: invitation } = await supabase
+        .from('friend_invitations')
+        .select('from_user_id, to_user_id')
+        .eq('id', invitationId)
+        .single();
+
+      if (invitation) {
+        // Create friendship record
+        await supabase
+          .from('friends')
+          .insert({
+            user_id: invitation.from_user_id,
+            friend_id: invitation.to_user_id
+          });
+      }
+    }
+
+    // Update invitation status
+    const { error } = await supabase
+      .from('friend_invitations')
+      .update({ status: accepted ? 'accepted' : 'declined' })
+      .eq('id', invitationId);
+
+    if (error) throw error;
+  },
+
+  async removeFriend(userId: string, friendId: string): Promise<void> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    const { error } = await supabase
+      .from('friends')
+      .delete()
+      .or(`and(user_id.eq.${userId},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${userId})`);
+
+    if (error) throw error;
   },
 
   // AI Chat Integration

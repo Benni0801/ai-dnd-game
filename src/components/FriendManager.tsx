@@ -6,17 +6,21 @@ import { multiplayerService, Friend } from '../lib/multiplayer-service';
 interface FriendManagerProps {
   userId: string;
   onClose: () => void;
+  onRequestsChange?: (requests: any[]) => void;
 }
 
-const FriendManager: React.FC<FriendManagerProps> = ({ userId, onClose }) => {
+const FriendManager: React.FC<FriendManagerProps> = ({ userId, onClose, onRequestsChange }) => {
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [searchUsername, setSearchUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [activeTab, setActiveTab] = useState<'friends' | 'requests'>('friends');
 
   useEffect(() => {
     loadFriends();
+    loadPendingRequests();
   }, [userId]);
 
   const loadFriends = async () => {
@@ -28,6 +32,19 @@ const FriendManager: React.FC<FriendManagerProps> = ({ userId, onClose }) => {
     }
   };
 
+  const loadPendingRequests = async () => {
+    try {
+      const requests = await multiplayerService.getPendingFriendRequests(userId);
+      setPendingRequests(requests);
+      // Notify parent component about requests change
+      if (onRequestsChange) {
+        onRequestsChange(requests);
+      }
+    } catch (error: any) {
+      console.error('Failed to load pending requests:', error);
+    }
+  };
+
   const searchAndAddFriend = async () => {
     if (!searchUsername.trim()) return;
 
@@ -36,14 +53,28 @@ const FriendManager: React.FC<FriendManagerProps> = ({ userId, onClose }) => {
     setSuccess('');
 
     try {
-      // For now, we'll create a mock friend request
-      // In a real implementation, you'd search for users by username
+      await multiplayerService.sendFriendRequest(userId, searchUsername.trim());
       setSuccess(`Friend request sent to ${searchUsername}!`);
       setSearchUsername('');
     } catch (error: any) {
       setError(error.message || 'Failed to send friend request');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFriendRequest = async (invitationId: string, accepted: boolean) => {
+    try {
+      await multiplayerService.respondToFriendRequest(invitationId, accepted);
+      await loadPendingRequests();
+      if (accepted) {
+        await loadFriends();
+        setSuccess('Friend request accepted!');
+      } else {
+        setSuccess('Friend request declined.');
+      }
+    } catch (error: any) {
+      setError(error.message || 'Failed to respond to friend request');
     }
   };
 
@@ -107,6 +138,47 @@ const FriendManager: React.FC<FriendManagerProps> = ({ userId, onClose }) => {
             }}
           >
             ✕
+          </button>
+        </div>
+
+        {/* Tab Navigation */}
+        <div style={{
+          display: 'flex',
+          gap: '0.5rem',
+          marginBottom: '1.5rem',
+          borderBottom: '1px solid rgba(139, 92, 246, 0.2)'
+        }}>
+          <button
+            onClick={() => setActiveTab('friends')}
+            style={{
+              padding: '0.75rem 1.25rem',
+              background: activeTab === 'friends' ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
+              border: 'none',
+              borderBottom: activeTab === 'friends' ? '2px solid #8b5cf6' : '2px solid transparent',
+              color: activeTab === 'friends' ? '#a78bfa' : '#94a3b8',
+              fontWeight: activeTab === 'friends' ? '600' : '500',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              fontSize: '0.875rem'
+            }}
+          >
+            👥 Friends ({friends.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('requests')}
+            style={{
+              padding: '0.75rem 1.25rem',
+              background: activeTab === 'requests' ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
+              border: 'none',
+              borderBottom: activeTab === 'requests' ? '2px solid #8b5cf6' : '2px solid transparent',
+              color: activeTab === 'requests' ? '#a78bfa' : '#94a3b8',
+              fontWeight: activeTab === 'requests' ? '600' : '500',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              fontSize: '0.875rem'
+            }}
+          >
+            📨 Requests ({pendingRequests.length})
           </button>
         </div>
 
@@ -293,6 +365,116 @@ const FriendManager: React.FC<FriendManagerProps> = ({ userId, onClose }) => {
             </div>
           )}
         </div>
+
+        {/* Friend Requests Tab Content */}
+        {activeTab === 'requests' && (
+          <div>
+            <h3 style={{
+              fontSize: '1.125rem',
+              fontWeight: '600',
+              color: '#e2e8f0',
+              marginBottom: '1rem'
+            }}>
+              Friend Requests ({pendingRequests.length})
+            </h3>
+
+            {pendingRequests.length === 0 ? (
+              <div style={{
+                textAlign: 'center',
+                padding: '2rem',
+                color: '#94a3b8'
+              }}>
+                <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📨</div>
+                <p>No pending friend requests.</p>
+                <p style={{ fontSize: '0.875rem' }}>When someone sends you a friend request, it will appear here!</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {pendingRequests.map((request) => (
+                  <div
+                    key={request.id}
+                    style={{
+                      background: 'rgba(15, 15, 35, 0.4)',
+                      border: '1px solid rgba(139, 92, 246, 0.2)',
+                      borderRadius: '12px',
+                      padding: '1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.25rem'
+                      }}>
+                        👤
+                      </div>
+                      <div>
+                        <div style={{
+                          fontSize: '1rem',
+                          fontWeight: '600',
+                          color: '#e2e8f0',
+                          marginBottom: '0.25rem'
+                        }}>
+                          {request.from_user?.username || 'Unknown'}
+                        </div>
+                        <div style={{
+                          fontSize: '0.875rem',
+                          color: '#94a3b8'
+                        }}>
+                          {request.from_user?.email || ''}
+                        </div>
+                        <div style={{
+                          fontSize: '0.75rem',
+                          color: '#64748b'
+                        }}>
+                          Sent {new Date(request.created_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        onClick={() => handleFriendRequest(request.id, true)}
+                        style={{
+                          background: 'rgba(34, 197, 94, 0.1)',
+                          border: '1px solid rgba(34, 197, 94, 0.3)',
+                          borderRadius: '6px',
+                          color: '#86efac',
+                          padding: '0.5rem 1rem',
+                          cursor: 'pointer',
+                          fontSize: '0.875rem'
+                        }}
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handleFriendRequest(request.id, false)}
+                        style={{
+                          background: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                          borderRadius: '6px',
+                          color: '#fca5a5',
+                          padding: '0.5rem 1rem',
+                          cursor: 'pointer',
+                          fontSize: '0.875rem'
+                        }}
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

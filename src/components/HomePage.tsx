@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import SupabaseAuthModal from './SupabaseAuthModal';
 import FriendManager from './FriendManager';
 import { authService } from '../lib/supabase-auth';
+import { multiplayerService } from '../lib/multiplayer-service';
 
 interface HomePageProps {
   onStartGame: () => void;
@@ -17,6 +18,8 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
   const [user, setUser] = useState<any>(null);
   const [showFriendManager, setShowFriendManager] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
     checkAuthStatus();
@@ -28,6 +31,8 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
       if (currentUser) {
         setUser(currentUser);
         onLogin(); // Automatically log in if user is already authenticated
+        // Load friend requests for notifications
+        loadFriendRequests(currentUser.id);
       }
     } catch (error) {
       console.log('No authenticated user found');
@@ -36,11 +41,22 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
     }
   };
 
+  const loadFriendRequests = async (userId: string) => {
+    try {
+      const requests = await multiplayerService.getPendingFriendRequests(userId);
+      setPendingRequests(requests);
+    } catch (error) {
+      console.error('Failed to load friend requests:', error);
+    }
+  };
+
   const handleAuthSuccess = (userData: any) => {
     console.log('Auth success:', userData);
     setUser(userData);
     setShowAuthModal(false);
     onLogin();
+    // Load friend requests for the newly logged in user
+    loadFriendRequests(userData.id);
   };
 
   const handleAuthError = (error: any) => {
@@ -196,29 +212,54 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
                   </span>
                 </div>
                 
-                <button
-                  onClick={() => setShowFriendManager(true)}
-                  style={{
-                    padding: '0.625rem 1.5rem',
-                    background: 'rgba(34, 197, 94, 0.1)',
-                    border: '1px solid rgba(34, 197, 94, 0.3)',
-                    borderRadius: '8px',
-                    color: '#86efac',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.background = 'rgba(34, 197, 94, 0.2)';
-                    e.currentTarget.style.borderColor = 'rgba(34, 197, 94, 0.5)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.background = 'rgba(34, 197, 94, 0.1)';
-                    e.currentTarget.style.borderColor = 'rgba(34, 197, 94, 0.3)';
-                  }}
-                >
-                  👥 Friends
-                </button>
+                <div style={{ position: 'relative' }}>
+                  <button
+                    onClick={() => setShowFriendManager(true)}
+                    style={{
+                      padding: '0.625rem 1.5rem',
+                      background: 'rgba(34, 197, 94, 0.1)',
+                      border: '1px solid rgba(34, 197, 94, 0.3)',
+                      borderRadius: '8px',
+                      color: '#86efac',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = 'rgba(34, 197, 94, 0.2)';
+                      e.currentTarget.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = 'rgba(34, 197, 94, 0.1)';
+                      e.currentTarget.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+                    }}
+                  >
+                    👥 Friends
+                  </button>
+                  
+                  {/* Notification Badge */}
+                  {pendingRequests.length > 0 && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '-8px',
+                      right: '-8px',
+                      background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                      color: 'white',
+                      borderRadius: '50%',
+                      width: '24px',
+                      height: '24px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold',
+                      boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)',
+                      animation: 'pulse 2s infinite'
+                    }}>
+                      {pendingRequests.length > 9 ? '9+' : pendingRequests.length}
+                    </div>
+                  )}
+                </div>
                 
                 <button
                   onClick={handleLogout}
@@ -489,8 +530,23 @@ export default function HomePage({ onStartGame, onLogin }: HomePageProps) {
         <FriendManager
           userId={user.id}
           onClose={() => setShowFriendManager(false)}
+          onRequestsChange={setPendingRequests}
         />
       )}
+
+      {/* CSS Animations */}
+      <style jsx global>{`
+        @keyframes pulse {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.1);
+            opacity: 0.8;
+          }
+        }
+      `}</style>
     </div>
   );
 }
