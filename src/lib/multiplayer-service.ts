@@ -91,7 +91,7 @@ export const multiplayerService = {
     if (error) throw error;
 
     // Add the DM as the first player
-    await this.joinRoom(data.id, roomData.dmId, true);
+    await this.joinRoom(data.id, roomData.dmId, undefined, true);
 
     return data;
   },
@@ -169,7 +169,7 @@ export const multiplayerService = {
   },
 
   // Player Management
-  async joinRoom(roomId: string, userId: string, isDm: boolean = false): Promise<RoomPlayer> {
+  async joinRoom(roomId: string, userId: string, characterId?: string, isDm: boolean = false): Promise<RoomPlayer> {
     if (!isSupabaseConfigured()) {
       throw new Error('Supabase is not configured');
     }
@@ -209,6 +209,7 @@ export const multiplayerService = {
       .insert({
         room_id: roomId,
         user_id: userId,
+        character_id: characterId,
         is_dm: isDm,
         joined_at: new Date().toISOString(),
         last_seen: new Date().toISOString()

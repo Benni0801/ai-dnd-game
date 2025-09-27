@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { multiplayerService, GameRoom } from '../lib/multiplayer-service';
+import { characterService } from '../lib/supabase-auth';
 
 interface MultiplayerLobbyProps {
-  onJoinRoom: (roomId: string) => void;
-  onCreateRoom: (roomId: string) => void;
+  onJoinRoom: (roomId: string, characterId?: string) => void;
+  onCreateRoom: (roomId: string, characterId?: string) => void;
   onBack: () => void;
   currentUserId?: string;
 }
@@ -22,10 +23,27 @@ const MultiplayerLobby: React.FC<MultiplayerLobbyProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
   const [error, setError] = useState('');
+  
+  // Character selection state
+  const [characters, setCharacters] = useState<any[]>([]);
+  const [selectedCharacter, setSelectedCharacter] = useState<any>(null);
+  const [showCharacterSelection, setShowCharacterSelection] = useState(false);
+  const [pendingRoomAction, setPendingRoomAction] = useState<{
+    type: 'create' | 'join';
+    roomId?: string;
+  } | null>(null);
 
-  useEffect(() => {
-    fetchRooms();
-  }, []);
+  const loadCharacters = useCallback(async () => {
+    if (!currentUserId) return;
+    
+    try {
+      const charactersData = await characterService.getCharacters(currentUserId);
+      setCharacters(charactersData);
+    } catch (error: any) {
+      console.error('Error loading characters:', error);
+      setError(error.message || 'Failed to load characters');
+    }
+  }, [currentUserId]);
 
   const fetchRooms = async () => {
     try {
@@ -40,6 +58,13 @@ const MultiplayerLobby: React.FC<MultiplayerLobbyProps> = ({
     }
   };
 
+  useEffect(() => {
+    fetchRooms();
+    if (currentUserId) {
+      loadCharacters();
+    }
+  }, [currentUserId, loadCharacters]);
+
   const handleCreateRoom = async () => {
     if (!newRoomName.trim()) {
       setError('Please enter a room name');
@@ -51,25 +76,14 @@ const MultiplayerLobby: React.FC<MultiplayerLobbyProps> = ({
       return;
     }
 
-    setIsLoading(true);
-    setError('');
-
-    try {
-      const room = await multiplayerService.createRoom({
-        name: newRoomName.trim(),
-        description: newRoomDescription.trim(),
-        dmId: currentUserId,
-        maxPlayers: 6
-      });
-
-      setNewRoomName('');
-      setNewRoomDescription('');
-      onCreateRoom(room.id);
-    } catch (error: any) {
-      setError(error.message || 'Failed to create room');
-    } finally {
-      setIsLoading(false);
+    if (characters.length === 0) {
+      setError('You need to create a character first before joining multiplayer');
+      return;
     }
+
+    // Show character selection
+    setPendingRoomAction({ type: 'create' });
+    setShowCharacterSelection(true);
   };
 
   const handleJoinRoom = async (roomId: string) => {
@@ -78,11 +92,48 @@ const MultiplayerLobby: React.FC<MultiplayerLobbyProps> = ({
       return;
     }
 
+    if (characters.length === 0) {
+      setError('You need to create a character first before joining multiplayer');
+      return;
+    }
+
+    // Show character selection
+    setPendingRoomAction({ type: 'join', roomId });
+    setShowCharacterSelection(true);
+  };
+
+  const handleCharacterSelected = async (character: any) => {
+    if (!pendingRoomAction) return;
+
+    setIsLoading(true);
+    setError('');
+
     try {
-      await multiplayerService.joinRoom(roomId, currentUserId);
-      onJoinRoom(roomId);
+      if (pendingRoomAction.type === 'create') {
+        const room = await multiplayerService.createRoom({
+          name: newRoomName.trim(),
+          description: newRoomDescription.trim(),
+          dmId: currentUserId!,
+          maxPlayers: 6
+        });
+
+        // Join the room with the selected character
+        await multiplayerService.joinRoom(room.id, currentUserId!, character.id);
+
+        setNewRoomName('');
+        setNewRoomDescription('');
+        onCreateRoom(room.id, character.id);
+      } else if (pendingRoomAction.type === 'join' && pendingRoomAction.roomId) {
+        // Join the room with the selected character
+        await multiplayerService.joinRoom(pendingRoomAction.roomId, currentUserId!, character.id);
+        onJoinRoom(pendingRoomAction.roomId, character.id);
+      }
     } catch (error: any) {
       setError(error.message || 'Failed to join room');
+    } finally {
+      setIsLoading(false);
+      setShowCharacterSelection(false);
+      setPendingRoomAction(null);
     }
   };
 
@@ -479,6 +530,102 @@ const MultiplayerLobby: React.FC<MultiplayerLobbyProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Character Selection Modal */}
+      {showCharacterSelection && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '2rem'
+        }}>
+          <div style={{
+            background: 'rgba(26, 26, 46, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(139, 92, 246, 0.3)',
+            borderRadius: '24px',
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '80vh',
+            overflowY: 'auto',
+            padding: '2rem'
+          }}>
+            <h3 style={{
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              color: '#e2e8f0',
+              marginBottom: '1.5rem',
+              textAlign: 'center'
+            }}>
+              Select Your Character
+            </h3>
+            
+            <div style={{ display: 'grid', gap: '1rem', marginBottom: '2rem' }}>
+              {characters.map((character) => (
+                <div
+                  key={character.id}
+                  onClick={() => handleCharacterSelected(character)}
+                  style={{
+                    background: 'rgba(15, 15, 35, 0.6)',
+                    border: '1px solid rgba(139, 92, 246, 0.2)',
+                    borderRadius: '16px',
+                    padding: '1.5rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.5)';
+                    e.currentTarget.style.background = 'rgba(15, 15, 35, 0.8)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.2)';
+                    e.currentTarget.style.background = 'rgba(15, 15, 35, 0.6)';
+                  }}
+                >
+                  <h4 style={{
+                    fontSize: '1.25rem',
+                    fontWeight: 'bold',
+                    color: '#e2e8f0',
+                    marginBottom: '0.5rem'
+                  }}>
+                    {character.name}
+                  </h4>
+                  <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>
+                    Level {character.level} {character.race} {character.class}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <button
+                onClick={() => {
+                  setShowCharacterSelection(false);
+                  setPendingRoomAction(null);
+                }}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  background: 'rgba(55, 65, 81, 0.5)',
+                  border: '1px solid rgba(55, 65, 81, 0.3)',
+                  borderRadius: '8px',
+                  color: '#9ca3af',
+                  fontWeight: '500',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
