@@ -348,11 +348,5 @@ Current Mission: ${gameState.quests.currentMission.title}
           error: `Unexpected error: ${error.message}`,
           message: 'AI service error - please check configuration'
         }, { status: 500 });
-  } catch (error: any) {
-    console.error('AI API: Top-level error:', error);
-    return NextResponse.json({
-      error: `Server error: ${error.message}`,
-      message: 'Internal server error'
-    }, { status: 500 });
   }
 }
