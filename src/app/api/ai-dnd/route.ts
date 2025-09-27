@@ -102,12 +102,12 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
 
 **ITEM MANAGEMENT:**
 When players find, loot, buy, or receive items, you can add them to their inventory using this special format:
-[ITEM:{"name":"Item Name","type":"weapon|armor|consumable|tool|misc","rarity":"common|uncommon|rare|epic|legendary","value":10,"weight":2,"description":"Item description","quantity":1,"stats":{"damage":"1d8+1"}}]
+[ITEM:{"name":"Item Name","type":"weapon|armor|consumable|tool|misc","rarity":"common|uncommon|rare","value":10,"weight":2,"quantity":1}]
 
-Examples:
-- [ITEM:{"name":"Magic Sword","type":"weapon","rarity":"rare","value":250,"weight":3,"description":"A gleaming sword that glows faintly with magical energy.","quantity":1,"stats":{"damage":"1d8+3"}}]
-- [ITEM:{"name":"Health Potion","type":"consumable","rarity":"common","value":25,"weight":0.5,"description":"A red potion that restores 2d4+2 hit points.","quantity":2}]
-- [ITEM:{"name":"Gold Coins","type":"misc","rarity":"common","value":1,"weight":0.02,"description":"Shiny gold coins.","quantity":50}]
+IMPORTANT: Keep item JSON SHORT and SIMPLE. Use minimal descriptions. Examples:
+- [ITEM:{"name":"Health Potion","type":"consumable","rarity":"common","value":25,"weight":0.5,"quantity":1}]
+- [ITEM:{"name":"Iron Sword","type":"weapon","rarity":"common","value":10,"weight":3,"quantity":1}]
+- [ITEM:{"name":"Gold Coins","type":"misc","rarity":"common","value":1,"weight":0.02,"quantity":50}]
 
 **CORE GAME MECHANICS:**
 - Use d20 + modifiers for all checks (GM rolls internally)
@@ -206,7 +206,7 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
         }],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 300,
+          maxOutputTokens: 500,
           topP: 0.8,
           topK: 40
         }
@@ -263,7 +263,7 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
           }],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 300,
+            maxOutputTokens: 500,
             topP: 0.8,
             topK: 40
           }
@@ -314,6 +314,7 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
     // Parse items from the response
     const items: any[] = [];
     if (aiResponse) {
+      // Look for complete [ITEM:...] blocks
       const itemMatches = aiResponse.match(/\[ITEM:([^\]]+)\]/g);
       if (itemMatches) {
         console.log('Found item matches:', itemMatches);
@@ -322,11 +323,52 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
             const itemJson = match.replace(/\[ITEM:(.+)\]/, '$1');
             console.log('Attempting to parse item JSON:', itemJson);
             const item = JSON.parse(itemJson);
-            items.push(item);
-            console.log('Successfully parsed item:', item);
+            
+            // Validate required fields
+            if (!item.name || !item.type) {
+              console.error('Item missing required fields:', item);
+              continue;
+            }
+            
+            // Set defaults for missing fields
+            const completeItem = {
+              name: item.name,
+              type: item.type,
+              rarity: item.rarity || 'common',
+              value: item.value || 1,
+              weight: item.weight || 1,
+              quantity: item.quantity || 1,
+              description: item.description || `A ${item.type} item.`
+            };
+            
+            items.push(completeItem);
+            console.log('Successfully parsed item:', completeItem);
           } catch (error) {
             console.error('Failed to parse item:', match, 'Error:', error);
             console.error('Item JSON was:', match.replace(/\[ITEM:(.+)\]/, '$1'));
+            
+            // Try to extract basic info from malformed JSON
+            const itemJson = match.replace(/\[ITEM:(.+)\]/, '$1');
+            if (itemJson.includes('"name"')) {
+              try {
+                const nameMatch = itemJson.match(/"name":"([^"]+)"/);
+                if (nameMatch) {
+                  const fallbackItem = {
+                    name: nameMatch[1],
+                    type: 'misc',
+                    rarity: 'common',
+                    value: 1,
+                    weight: 1,
+                    quantity: 1,
+                    description: 'An item found during your adventure.'
+                  };
+                  items.push(fallbackItem);
+                  console.log('Created fallback item from partial JSON:', fallbackItem);
+                }
+              } catch (fallbackError) {
+                console.error('Fallback parsing also failed:', fallbackError);
+              }
+            }
           }
         }
       } else {
