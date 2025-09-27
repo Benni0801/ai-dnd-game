@@ -789,17 +789,20 @@ export const multiplayerService = {
   // AI Chat Integration
   async sendAIMessage(roomId: string, message: string, characterData?: any): Promise<RoomMessage> {
     try {
-      // Send the message to AI API
+      // Send the message to AI API in the correct format
       const response = await fetch('/api/ai-dnd', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: message,
-          character: characterData,
-          roomId: roomId,
-          isMultiplayer: true
+          messages: [
+            {
+              role: 'user',
+              content: message
+            }
+          ],
+          characterStats: characterData
         }),
       });
 
@@ -808,23 +811,79 @@ export const multiplayerService = {
       }
 
       const aiResponse = await response.json();
+      console.log('AI Response:', aiResponse);
       
-      // Save AI response as a system message
-      const systemMessage = await this.sendMessage(roomId, {
-        userId: 'ai-dm', // Special ID for AI
-        content: aiResponse.response || aiResponse.message || 'AI response received',
-        messageType: 'system'
-      });
+      // Create a special AI message without using sendMessage (to avoid UUID issues)
+      if (!isSupabaseConfigured()) {
+        throw new Error('Supabase is not configured');
+      }
 
-      return systemMessage;
+      const supabase = getSupabase();
+
+      // Extract the AI response content
+      let aiContent = '';
+      if (aiResponse.response) {
+        aiContent = aiResponse.response;
+      } else if (aiResponse.message) {
+        aiContent = aiResponse.message;
+      } else if (typeof aiResponse === 'string') {
+        aiContent = aiResponse;
+      } else {
+        aiContent = 'AI response received';
+      }
+
+      // Insert AI message directly with a special user_id that doesn't need to exist in users table
+      const { data, error } = await supabase
+        .from('room_messages')
+        .insert({
+          room_id: roomId,
+          user_id: '00000000-0000-0000-0000-000000000000', // Special UUID for AI
+          content: aiContent,
+          message_type: 'system'
+        })
+        .select(`
+          *,
+          user:users(username),
+          character:characters(name)
+        `)
+        .single();
+
+      if (error) {
+        console.error('Error saving AI message:', error);
+        throw error;
+      }
+
+      return {
+        ...data,
+        user: data.user || { username: 'AI Dungeon Master' }, // Use actual user data if available
+        character: undefined
+      };
     } catch (error: any) {
       console.error('AI chat error:', error);
-      // Fallback: send error as system message
-      return await this.sendMessage(roomId, {
-        userId: 'ai-dm',
-        content: `AI Error: ${error.message}`,
-        messageType: 'system'
-      });
+      
+      // Fallback: create error message
+      try {
+        const supabase = getSupabase();
+        const { data } = await supabase
+          .from('room_messages')
+          .insert({
+            room_id: roomId,
+            user_id: '00000000-0000-0000-0000-000000000000',
+            content: `AI Error: ${error.message}`,
+            message_type: 'system'
+          })
+          .select()
+          .single();
+
+        return {
+          ...data,
+          user: data.user || { username: 'AI Dungeon Master' },
+          character: undefined
+        };
+      } catch (fallbackError) {
+        console.error('Fallback error:', fallbackError);
+        throw error;
+      }
     }
   },
 
