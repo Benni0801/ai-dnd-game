@@ -180,14 +180,9 @@ export default function MultiplayerGameWithAI({ roomId, userId, onLeaveRoom }: M
       
       // Handle items from AI response
       if (data.items && data.items.length > 0) {
-        for (const item of data.items) {
-          if (inventoryRef.current) {
-            inventoryRef.current.addItem(item);
-            console.log('Added item from AI:', item);
-          }
-        }
+        console.log('Processing items in multiplayer:', data.items);
         
-        // Add a notification message about received items
+        // Add a notification message about received items first
         const itemNames = data.items.map((item: any) => item.name).join(', ');
         const itemMessage: Message = {
           id: (Date.now() + 0.5).toString(),
@@ -196,6 +191,24 @@ export default function MultiplayerGameWithAI({ roomId, userId, onLeaveRoom }: M
           timestamp: new Date()
         };
         setMessages(prev => [...prev, itemMessage]);
+        
+        // Try to add items to inventory with retry logic
+        const addItemsToInventory = () => {
+          if (inventoryRef.current) {
+            console.log('Inventory ref is available in multiplayer, adding items');
+            for (const item of data.items) {
+              console.log('Adding item to inventory:', item);
+              inventoryRef.current.addItem(item);
+              console.log('Successfully added item from AI:', item);
+            }
+          } else {
+            console.log('Inventory ref not available yet in multiplayer, retrying in 100ms');
+            setTimeout(addItemsToInventory, 100);
+          }
+        };
+        
+        // Start the retry process
+        addItemsToInventory();
       }
       
       const aiMessage: Message = {

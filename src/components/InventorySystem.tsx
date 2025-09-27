@@ -144,6 +144,7 @@ const InventorySystem = forwardRef<InventorySystemRef, InventorySystemProps>(({ 
 
   // Function to add items from external sources (like AI)
   const addItem = (item: Item) => {
+    console.log('InventorySystem.addItem called with:', item);
     const newItem = {
       ...item,
       id: item.id || `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
@@ -154,6 +155,7 @@ const InventorySystem = forwardRef<InventorySystemRef, InventorySystemProps>(({ 
     
     if (existingItemIndex !== -1) {
       // Stack the item
+      console.log('Stacking existing item:', newItem.name);
       const updatedItems = [...items];
       updatedItems[existingItemIndex] = {
         ...updatedItems[existingItemIndex],
@@ -163,6 +165,7 @@ const InventorySystem = forwardRef<InventorySystemRef, InventorySystemProps>(({ 
       onInventoryChange(updatedItems);
     } else {
       // Add new item
+      console.log('Adding new item:', newItem.name);
       const updatedItems = [...items, newItem];
       setItems(updatedItems);
       onInventoryChange(updatedItems);
@@ -175,10 +178,13 @@ const InventorySystem = forwardRef<InventorySystemRef, InventorySystemProps>(({ 
   };
 
   // Expose functions to parent component
-  useImperativeHandle(ref, () => ({
-    addItem,
-    getItems: () => items
-  }));
+  useImperativeHandle(ref, () => {
+    console.log('InventorySystem ref exposed to parent');
+    return {
+      addItem,
+      getItems: () => items
+    };
+  });
 
   const consumeItem = (item: Item) => {
     if (item.type === 'consumable') {

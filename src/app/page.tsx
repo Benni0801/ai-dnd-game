@@ -385,17 +385,8 @@ export default function Home() {
       
       if (data.items && data.items.length > 0) {
         console.log('Processing items:', data.items);
-        for (const item of data.items) {
-          console.log('Adding item to inventory:', item);
-          if (inventoryRef.current) {
-            inventoryRef.current.addItem(item);
-            console.log('Successfully added item from AI:', item);
-          } else {
-            console.error('Inventory ref is null!');
-          }
-        }
         
-        // Add a notification message about received items
+        // Add a notification message about received items first
         const itemNames = data.items.map((item: any) => item.name).join(', ');
         const itemMessage: Message = {
           id: (Date.now() + 0.5).toString(),
@@ -404,6 +395,24 @@ export default function Home() {
           timestamp: new Date()
         };
         setMessages(prev => [...prev, itemMessage]);
+        
+        // Try to add items to inventory with retry logic
+        const addItemsToInventory = () => {
+          if (inventoryRef.current) {
+            console.log('Inventory ref is available, adding items');
+            for (const item of data.items) {
+              console.log('Adding item to inventory:', item);
+              inventoryRef.current.addItem(item);
+              console.log('Successfully added item from AI:', item);
+            }
+          } else {
+            console.log('Inventory ref not available yet, retrying in 100ms');
+            setTimeout(addItemsToInventory, 100);
+          }
+        };
+        
+        // Start the retry process
+        addItemsToInventory();
       } else {
         console.log('No items received from AI');
       }
