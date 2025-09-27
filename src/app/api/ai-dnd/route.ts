@@ -100,14 +100,18 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
 - Quest Sheets: Main Quest, Current Mission, Current Location
 - Lore Sheets: Characters, World, Races
 
-**ITEM MANAGEMENT:**
-When players find, loot, buy, or receive items, you can add them to their inventory using this special format:
+**CRITICAL ITEM MANAGEMENT RULES:**
+When giving players ANY items (loot, purchases, rewards, starting equipment), you MUST use this EXACT format:
+
 [ITEM:{"name":"Item Name","type":"weapon|armor|consumable|tool|misc","rarity":"common|uncommon|rare","value":10,"weight":2,"quantity":1}]
 
-IMPORTANT: Keep item JSON SHORT and SIMPLE. Use minimal descriptions. Examples:
+**MANDATORY EXAMPLES:**
 - [ITEM:{"name":"Health Potion","type":"consumable","rarity":"common","value":25,"weight":0.5,"quantity":1}]
 - [ITEM:{"name":"Iron Sword","type":"weapon","rarity":"common","value":10,"weight":3,"quantity":1}]
 - [ITEM:{"name":"Gold Coins","type":"misc","rarity":"common","value":1,"weight":0.02,"quantity":50}]
+
+**NEVER mention items in text without using [ITEM:] format!**
+**If you say "You receive a sword" - you MUST include [ITEM:{"name":"Sword",...}] in the same message!**
 
 **CORE GAME MECHANICS:**
 - Use d20 + modifiers for all checks (GM rolls internally)
@@ -150,7 +154,9 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
 - Track all character progression and world changes
 - Provide detailed descriptions and immersive roleplay
 - Respond as GAL for meta-game communication, as NPCs for in-game interactions
-- Use the [ITEM:] format when giving players items, loot, or purchases`;
+
+**FINAL REMINDER - ITEM FORMAT IS MANDATORY:**
+When you mention ANY item being given to the player, you MUST include the [ITEM:{"name":"Item Name","type":"weapon","rarity":"common","value":10,"weight":1,"quantity":1}] format in your response. Do not just describe items in text - use the structured format!`;
 
     // Prepare the prompt for Gemini
     const fullPrompt = `${systemPrompt}\n\n${characterContext}\n\nConversation:\n${conversationHistory.map((msg: any) => `${msg.role}: ${msg.content}`).join('\n')}\n\nPlease respond as the Dungeon Master:`;
@@ -309,6 +315,7 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
     if (aiResponse) {
       aiResponse = aiResponse.replace(/Please respond as the Dungeon Master:/g, '').trim();
       console.log('Cleaned AI response:', aiResponse);
+      console.log('AI response contains [ITEM: markers:', aiResponse.includes('[ITEM:'));
     }
 
     // Parse items from the response
