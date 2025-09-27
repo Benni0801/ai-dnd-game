@@ -1094,7 +1094,10 @@ export default function Home() {
                 <InventorySystem
                   ref={inventoryRef}
                   characterStats={characterStats}
-                  onInventoryChange={setInventory}
+                  onInventoryChange={(newInventory) => {
+                    console.log('Parent inventory changed, new count:', newInventory.length, 'items:', newInventory.map(i => i.name));
+                    setInventory(newInventory);
+                  }}
                   initialInventory={inventory.length > 0 ? inventory : undefined}
                 />
               )}
@@ -1199,7 +1202,10 @@ export default function Home() {
                 <InventorySystem
                   ref={inventoryRef}
                   characterStats={characterStats}
-                  onInventoryChange={setInventory}
+                  onInventoryChange={(newInventory) => {
+                    console.log('Parent inventory changed (mobile), new count:', newInventory.length, 'items:', newInventory.map(i => i.name));
+                    setInventory(newInventory);
+                  }}
                   initialInventory={inventory.length > 0 ? inventory : undefined}
                 />
               )}

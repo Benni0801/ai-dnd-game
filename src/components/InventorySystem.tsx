@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useImperativeHandle, forwardRef, useEffect } from 'react';
 
 interface Item {
   id: string;
@@ -179,12 +179,17 @@ const InventorySystem = forwardRef<InventorySystemRef, InventorySystemProps>(({ 
 
   // Expose functions to parent component
   useImperativeHandle(ref, () => {
-    console.log('InventorySystem ref exposed to parent');
+    console.log('InventorySystem ref exposed to parent, current items count:', items.length);
     return {
       addItem,
       getItems: () => items
     };
   });
+
+  // Debug: Log when items change
+  useEffect(() => {
+    console.log('InventorySystem items changed, count:', items.length, 'items:', items.map(i => i.name));
+  }, [items]);
 
   const consumeItem = (item: Item) => {
     if (item.type === 'consumable') {
