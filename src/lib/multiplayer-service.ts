@@ -813,29 +813,6 @@ export const multiplayerService = {
       const aiResponse = await response.json();
       console.log('AI Response:', aiResponse);
       
-      // Create a special AI message without using sendMessage (to avoid UUID issues)
-      if (!isSupabaseConfigured()) {
-        throw new Error('Supabase is not configured');
-      }
-
-      const supabase = getSupabase();
-
-      // First, ensure the AI user exists
-      const aiUserId = '00000000-0000-0000-0000-000000000000';
-      const { error: userError } = await supabase
-        .from('users')
-        .upsert({
-          id: aiUserId,
-          username: 'AI Dungeon Master',
-          email: 'ai@dungeonmaster.local',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'id' });
-
-      if (userError) {
-        console.error('Error ensuring AI user exists:', userError);
-      }
-
       // Extract the AI response content
       let aiContent = '';
       if (aiResponse.response) {
@@ -848,32 +825,22 @@ export const multiplayerService = {
         aiContent = 'AI response received';
       }
 
-      // Insert AI message directly with the AI user ID
-      const { data, error } = await supabase
-        .from('room_messages')
-        .insert({
-          room_id: roomId,
-          user_id: aiUserId,
-          content: aiContent,
-          message_type: 'system'
-        })
-        .select(`
-          *,
-          user:users(username),
-          character:characters(name)
-        `)
-        .single();
-
-      if (error) {
-        console.error('Error saving AI message:', error);
-        throw error;
-      }
-
-      return {
-        ...data,
-        user: data.user || { username: 'AI Dungeon Master' }, // Use actual user data if available
+      // Instead of saving to database, return a mock message object
+      // This avoids all the database conflicts and foreign key issues
+      const mockMessage: RoomMessage = {
+        id: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        room_id: roomId,
+        user_id: '00000000-0000-0000-0000-000000000000',
+        content: aiContent,
+        message_type: 'system',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        user: { username: 'AI Dungeon Master' },
         character: undefined
       };
+
+      console.log('Returning AI message:', mockMessage);
+      return mockMessage;
     } catch (error: any) {
       console.error('AI chat error:', error);
       
