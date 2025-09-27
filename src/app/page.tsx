@@ -10,6 +10,7 @@ import SupabaseAuthModal from '../components/SupabaseAuthModal';
 import SupabaseCharacterSelector from '../components/SupabaseCharacterSelector';
 import HomePage from '../components/HomePage';
 import { authService, characterService } from '../lib/supabase-auth';
+import { adventureService } from '../lib/adventure-service';
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -70,6 +71,30 @@ export default function Home() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Auto-save adventure session when messages or character stats change
+  useEffect(() => {
+    if (user && selectedCharacter && messages.length > 0) {
+      const saveSession = async () => {
+        try {
+          const sessionData = {
+            messages,
+            characterStats,
+            lastSaved: new Date().toISOString()
+          };
+          
+          await adventureService.saveAdventureSession(user.id, selectedCharacter.id, sessionData);
+          console.log('Adventure session auto-saved');
+        } catch (error) {
+          console.error('Error auto-saving adventure session:', error);
+        }
+      };
+
+      // Debounce auto-save to avoid too many saves
+      const timeoutId = setTimeout(saveSession, 2000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [messages, characterStats, user, selectedCharacter]);
 
   // Scroll to bottom when loading state changes
   useEffect(() => {
@@ -141,7 +166,7 @@ export default function Home() {
     }
   };
 
-  const handleCharacterSelect = (character: any) => {
+  const handleCharacterSelect = async (character: any) => {
     setSelectedCharacter(character);
     setCharacterStats({
       name: character.name,
@@ -165,6 +190,22 @@ export default function Home() {
     });
     setShowCharacterSelector(false);
     setShowCharacterCreation(false);
+
+    // Load existing adventure session
+    try {
+      const session = await adventureService.loadAdventureSession(character.id);
+      if (session && session.session_data) {
+        console.log('Loading existing adventure session:', session.session_data);
+        if (session.session_data.messages) {
+          setMessages(session.session_data.messages);
+        }
+        if (session.session_data.characterStats) {
+          setCharacterStats(prev => ({ ...prev, ...session.session_data.characterStats }));
+        }
+      }
+    } catch (error) {
+      console.error('Error loading adventure session:', error);
+    }
   };
 
   const handleNewCharacter = () => {

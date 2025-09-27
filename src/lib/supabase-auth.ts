@@ -1,12 +1,12 @@
 import { supabase } from './supabase';
 
 // Check if Supabase is configured
-const isSupabaseConfigured = () => {
+export const isSupabaseConfigured = () => {
   return supabase !== null;
 };
 
 // Helper function to get supabase client or throw error
-const getSupabase = () => {
+export const getSupabase = () => {
   if (!isSupabaseConfigured()) {
     throw new Error('Supabase is not configured. Please set up your environment variables.');
   }
