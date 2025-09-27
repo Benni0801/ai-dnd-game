@@ -12,6 +12,8 @@ export interface GameRoom {
   updated_at: string;
   game_state?: any;
   settings?: any;
+  current_adventure?: any;
+  adventure_status?: string;
 }
 
 export interface RoomPlayer {
@@ -49,6 +51,77 @@ export interface RoomMessage {
     modifier?: number;
     total: number;
   };
+  created_at: string;
+  user?: {
+    username: string;
+  };
+  character?: {
+    name: string;
+  };
+}
+
+export interface Friend {
+  id: string;
+  user_id: string;
+  friend_id: string;
+  status: string;
+  created_at: string;
+  accepted_at?: string;
+  user?: {
+    id: string;
+    username: string;
+    email: string;
+  };
+  friend?: {
+    id: string;
+    username: string;
+    email: string;
+  };
+}
+
+export interface FriendInvitation {
+  id: string;
+  from_user_id: string;
+  to_user_id: string;
+  room_id?: string;
+  message?: string;
+  status: string;
+  created_at: string;
+  responded_at?: string;
+  from_user?: {
+    username: string;
+  };
+  room?: {
+    name: string;
+  };
+}
+
+export interface AdventureQueueEntry {
+  id: string;
+  room_id: string;
+  player_id: string;
+  character_id?: string;
+  adventure_type: string;
+  status: string;
+  queued_at: string;
+  started_at?: string;
+  completed_at?: string;
+  player?: {
+    username: string;
+  };
+  character?: {
+    name: string;
+  };
+}
+
+export interface TeamChatMessage {
+  id: string;
+  room_id: string;
+  user_id: string;
+  character_id?: string;
+  content: string;
+  message_type: string;
+  dice_roll?: any;
   created_at: string;
   user?: {
     username: string;
@@ -444,5 +517,272 @@ export const multiplayerService = {
         subscriptions.forEach(sub => sub.unsubscribe());
       }
     };
+  },
+
+  // Friends Management
+  async getFriends(userId: string): Promise<Friend[]> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    const { data, error } = await supabase
+      .from('friends')
+      .select(`
+        *,
+        friend:users!friends_friend_id_fkey(id, username, email)
+      `)
+      .eq('user_id', userId)
+      .eq('status', 'accepted');
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async sendFriendRequest(userId: string, friendId: string): Promise<Friend> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    const { data, error } = await supabase
+      .from('friends')
+      .insert({
+        user_id: userId,
+        friend_id: friendId,
+        status: 'pending'
+      })
+      .select(`
+        *,
+        friend:users!friends_friend_id_fkey(id, username, email)
+      `)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async acceptFriendRequest(friendshipId: string): Promise<Friend> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    const { data, error } = await supabase
+      .from('friends')
+      .update({
+        status: 'accepted',
+        accepted_at: new Date().toISOString()
+      })
+      .eq('id', friendshipId)
+      .select(`
+        *,
+        friend:users!friends_friend_id_fkey(id, username, email)
+      `)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Friend Invitations
+  async inviteFriendToRoom(fromUserId: string, toUserId: string, roomId: string, message?: string): Promise<FriendInvitation> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    const { data, error } = await supabase
+      .from('friend_invitations')
+      .insert({
+        from_user_id: fromUserId,
+        to_user_id: toUserId,
+        room_id: roomId,
+        message: message || '',
+        status: 'pending'
+      })
+      .select(`
+        *,
+        from_user:users!friend_invitations_from_user_id_fkey(username),
+        room:game_rooms(name)
+      `)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async getFriendInvitations(userId: string): Promise<FriendInvitation[]> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    const { data, error } = await supabase
+      .from('friend_invitations')
+      .select(`
+        *,
+        from_user:users!friend_invitations_from_user_id_fkey(username),
+        room:game_rooms(name)
+      `)
+      .eq('to_user_id', userId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async respondToInvitation(invitationId: string, accepted: boolean): Promise<void> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    const { error } = await supabase
+      .from('friend_invitations')
+      .update({
+        status: accepted ? 'accepted' : 'declined',
+        responded_at: new Date().toISOString()
+      })
+      .eq('id', invitationId);
+
+    if (error) throw error;
+  },
+
+  // Adventure Queue
+  async joinAdventureQueue(roomId: string, playerId: string, characterId?: string, adventureType: string = 'general'): Promise<AdventureQueueEntry> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    const { data, error } = await supabase
+      .from('adventure_queue')
+      .insert({
+        room_id: roomId,
+        player_id: playerId,
+        character_id: characterId,
+        adventure_type: adventureType,
+        status: 'waiting'
+      })
+      .select(`
+        *,
+        player:users(username),
+        character:characters(name)
+      `)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  async getAdventureQueue(roomId: string): Promise<AdventureQueueEntry[]> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    const { data, error } = await supabase
+      .from('adventure_queue')
+      .select(`
+        *,
+        player:users(username),
+        character:characters(name)
+      `)
+      .eq('room_id', roomId)
+      .order('queued_at', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async leaveAdventureQueue(roomId: string, playerId: string): Promise<void> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    const { error } = await supabase
+      .from('adventure_queue')
+      .delete()
+      .eq('room_id', roomId)
+      .eq('player_id', playerId);
+
+    if (error) throw error;
+  },
+
+  // Team Chat (Players Only)
+  async sendTeamMessage(roomId: string, messageData: {
+    userId: string;
+    characterId?: string;
+    content: string;
+    messageType: string;
+    diceRoll?: any;
+  }): Promise<TeamChatMessage> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    const { data, error } = await supabase
+      .from('team_chat_messages')
+      .insert({
+        room_id: roomId,
+        user_id: messageData.userId,
+        character_id: messageData.characterId,
+        content: messageData.content,
+        message_type: messageData.messageType,
+        dice_roll: messageData.diceRoll ? JSON.stringify(messageData.diceRoll) : null
+      })
+      .select(`
+        *,
+        user:users(username),
+        character:characters(name)
+      `)
+      .single();
+
+    if (error) throw error;
+
+    return {
+      ...data,
+      dice_roll: data.dice_roll ? JSON.parse(data.dice_roll) : undefined
+    };
+  },
+
+  async getTeamMessages(roomId: string, limit: number = 50): Promise<TeamChatMessage[]> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured');
+    }
+
+    const supabase = getSupabase();
+
+    const { data, error } = await supabase
+      .from('team_chat_messages')
+      .select(`
+        *,
+        user:users(username),
+        character:characters(name)
+      `)
+      .eq('room_id', roomId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    return (data || []).map((msg: any) => ({
+      ...msg,
+      dice_roll: msg.dice_roll ? JSON.parse(msg.dice_roll) : undefined
+    })).reverse();
   }
 };

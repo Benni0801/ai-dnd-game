@@ -12,7 +12,7 @@ import HomePage from '../components/HomePage';
 import { authService, characterService } from '../lib/supabase-auth';
 import { adventureService } from '../lib/adventure-service';
 import MultiplayerLobby from '../components/MultiplayerLobby';
-import MultiplayerGameRoom from '../components/MultiplayerGameRoom';
+import EnhancedMultiplayerGameRoom from '../components/EnhancedMultiplayerGameRoom';
 import GameModeSelector from '../components/GameModeSelector';
 
 export default function Home() {
@@ -463,16 +463,16 @@ export default function Home() {
     );
   }
 
-  // Show multiplayer game room
-  if (showMultiplayerGameRoom && currentRoomId && user) {
-    return (
-      <MultiplayerGameRoom
-        roomId={currentRoomId}
-        userId={user.id}
-        onLeaveRoom={handleLeaveMultiplayerRoom}
-      />
-    );
-  }
+    // Show multiplayer game room
+    if (showMultiplayerGameRoom && currentRoomId && user) {
+      return (
+        <EnhancedMultiplayerGameRoom
+          roomId={currentRoomId}
+          userId={user.id}
+          onLeaveRoom={handleLeaveMultiplayerRoom}
+        />
+      );
+    }
 
   // Show authentication modal
   if (showAuthModal) {
