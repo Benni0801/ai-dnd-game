@@ -36,6 +36,7 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin, initialMod
     console.log('Form submission started:', { isLogin, formData });
     console.log('Email field:', formData.email);
     console.log('Password field length:', formData.password.length);
+    console.log('Password field value:', formData.password);
     console.log('Username field:', formData.username);
 
     try {
@@ -129,6 +130,7 @@ export default function SupabaseAuthModal({ isOpen, onClose, onLogin, initialMod
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('Input change:', e.target.name, '=', e.target.value);
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
