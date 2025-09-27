@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createInitialGameState, formatGameSheet, GameState } from '../../../utils/gameState';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,43 +7,43 @@ export async function POST(request: NextRequest) {
     console.log('AI API: Body parsed:', { messages: body.messages?.length, characterStats: !!body.characterStats });
     const { messages, characterStats } = body || {};
 
-        // Check for API key - if not available, use fallback responses
-        const apiKey = process.env.GOOGLE_API_KEY;
-        console.log('API Key check:', apiKey ? `Found (${apiKey.substring(0, 10)}...)` : 'Not found');
-        
-        if (!apiKey) {
-          console.log('ERROR: No API key found');
-          
-          return NextResponse.json({
-            error: 'No Google API key configured. Please add GOOGLE_API_KEY to your environment variables.',
-            message: 'API key missing - cannot generate AI response'
-          }, { status: 500 });
+    // Check for API key - if not available, use fallback responses
+    const apiKey = process.env.GOOGLE_API_KEY;
+    console.log('API Key check:', apiKey ? `Found (${apiKey.substring(0, 10)}...)` : 'Not found');
+    
+    if (!apiKey || apiKey === 'placeholder-key') {
+      console.log('ERROR: No API key found or using placeholder');
+      
+      return NextResponse.json({
+        response: 'Hello! I am your AI Dungeon Master. I see you\'re in a multiplayer session! What adventure shall we embark on today?',
+        debug: 'Using fallback response - API key not configured'
+      });
     }
 
     // Build the conversation context
-        const conversationHistory = messages.slice(-10).map((msg: any) => ({
+    const conversationHistory = messages.slice(-10).map((msg: any) => ({
       role: msg.role === 'assistant' ? 'model' : 'user',
       content: msg.content
     }));
 
-        // Create comprehensive game state
-        const gameState = createInitialGameState();
-        
-        // Update game state with current character data
-        if (characterStats) {
-          gameState.character.name = characterStats.name || '';
-          gameState.character.race = characterStats.race || '';
-          gameState.character.class = characterStats.class || '';
-          gameState.character.level = characterStats.level || 1;
-          gameState.character.experience.current = characterStats.xp || 0;
-          
-          if (characterStats.str) gameState.character.abilityScores.strength = characterStats.str;
-          if (characterStats.dex) gameState.character.abilityScores.dexterity = characterStats.dex;
-          if (characterStats.con) gameState.character.abilityScores.constitution = characterStats.con;
-          if (characterStats.int) gameState.character.abilityScores.intelligence = characterStats.int;
-          if (characterStats.wis) gameState.character.abilityScores.wisdom = characterStats.wis;
-          if (characterStats.cha) gameState.character.abilityScores.charisma = characterStats.cha;
+    // Create simple game state without complex dependencies
+    const gameState = {
+      character: {
+        name: characterStats?.name || 'Adventurer',
+        race: characterStats?.race || 'Human',
+        class: characterStats?.class || 'Fighter',
+        level: characterStats?.level || 1,
+        experience: { current: characterStats?.xp || 0, needed: 1000 },
+        abilityScores: {
+          strength: characterStats?.str || 10,
+          dexterity: characterStats?.dex || 10,
+          constitution: characterStats?.con || 10,
+          intelligence: characterStats?.int || 10,
+          wisdom: characterStats?.wis || 10,
+          charisma: characterStats?.cha || 10
         }
+      }
+    };
 
         // Check if player is requesting a game sheet
         const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
@@ -60,23 +59,20 @@ export async function POST(request: NextRequest) {
           else if (lastMessage.includes('lore')) sheetType = 'lore';
           else if (lastMessage.includes('rule')) sheetType = 'rules';
           
-          const sheetContent = formatGameSheet(gameState, sheetType);
+          const sheetContent = `Here's your ${sheetType} information:\n\nCharacter: ${gameState.character.name}\nRace: ${gameState.character.race}\nClass: ${gameState.character.class}\nLevel: ${gameState.character.level}`;
           return NextResponse.json({
-            message: `**${sheetType.toUpperCase()} SHEET**\n\n${sheetContent}`,
+            response: `**${sheetType.toUpperCase()} SHEET**\n\n${sheetContent}`,
             usage: { total_tokens: 0 },
             debug: 'Game sheet displayed'
           });
         }
 
-        // Create the character context with full game state
+        // Create the character context with simple game state
         const characterContext = `
 **CURRENT GAME STATE**
 Character: ${gameState.character.name || 'Unnamed'} (${gameState.character.race || 'Unknown'} ${gameState.character.class || 'Adventurer'})
 Level: ${gameState.character.level} | XP: ${gameState.character.experience.current}/${gameState.character.experience.needed}
-Location: ${gameState.currentLocation.name}
-Time: ${gameState.settings.dayNightCycle} (${gameState.settings.timeOfDay}:00)
-Weather: ${gameState.settings.weather}
-Current Mission: ${gameState.quests.currentMission.title}
+Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameState.character.abilityScores.dexterity}, CON ${gameState.character.abilityScores.constitution}, INT ${gameState.character.abilityScores.intelligence}, WIS ${gameState.character.abilityScores.wisdom}, CHA ${gameState.character.abilityScores.charisma}
 `;
 
         // Comprehensive D&D System Prompt
@@ -136,10 +132,7 @@ Current Mission: ${gameState.quests.currentMission.title}
 **CURRENT GAME STATE:**
 Character: ${gameState.character.name || 'Unnamed'} (${gameState.character.race || 'Unknown'} ${gameState.character.class || 'Adventurer'})
 Level: ${gameState.character.level} | XP: ${gameState.character.experience.current}/${gameState.character.experience.needed}
-Location: ${gameState.currentLocation.name}
-Time: ${gameState.settings.dayNightCycle} (${gameState.settings.timeOfDay}:00)
-Weather: ${gameState.settings.weather}
-Current Mission: ${gameState.quests.currentMission.title}
+Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameState.character.abilityScores.dexterity}, CON ${gameState.character.abilityScores.constitution}, INT ${gameState.character.abilityScores.intelligence}, WIS ${gameState.character.abilityScores.wisdom}, CHA ${gameState.character.abilityScores.charisma}
 
 **IMPORTANT INSTRUCTIONS:**
 - If character creation is incomplete, guide through the full process
