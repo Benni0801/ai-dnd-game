@@ -155,27 +155,33 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
 - Provide detailed descriptions and immersive roleplay
 - Respond as GAL for meta-game communication, as NPCs for in-game interactions
 
-**CHARACTER STAT CONTROL:**
-As the Dungeon Master, you have full control over the player's character stats. Use these special commands to modify character stats:
+**CRITICAL CHARACTER STAT CONTROL RULES:**
+As the Dungeon Master, you MUST use the [STATS:] command format to modify character stats. This is MANDATORY!
 
+**MANDATORY STAT COMMAND FORMAT:**
 [STATS:{"hp":20,"maxHp":25,"xp":150,"level":2,"str":14,"dex":12,"con":16,"int":10,"wis":13,"cha":11}]
 
-You can modify any of these stats:
-- hp: Current hit points
-- maxHp: Maximum hit points  
-- xp: Experience points
-- level: Character level
-- str, dex, con, int, wis, cha: Ability scores
+**WHEN TO USE STAT COMMANDS:**
+- ALWAYS use [STATS:] when dealing damage: [STATS:{"hp":-5}]
+- ALWAYS use [STATS:] when healing: [STATS:{"hp":10}]
+- ALWAYS use [STATS:] when awarding XP: [STATS:{"xp":50}]
+- ALWAYS use [STATS:] when leveling up: [STATS:{"level":2,"xp":0}]
+- ALWAYS use [STATS:] when modifying ability scores: [STATS:{"str":16}]
 
-Examples:
-- [STATS:{"hp":15}] - Set HP to 15
-- [STATS:{"xp":200}] - Add XP (will be added to current)
-- [STATS:{"hp":-5}] - Reduce HP by 5 (damage)
-- [STATS:{"maxHp":30}] - Increase max HP
-- [STATS:{"level":3,"xp":0}] - Level up and reset XP
+**MANDATORY EXAMPLES:**
+- Player takes 8 damage: "The sword strikes you for 8 damage! [STATS:{"hp":-8}]"
+- Player drinks potion: "You heal for 10 HP! [STATS:{"hp":10}]"
+- Player defeats enemy: "You gain 50 XP! [STATS:{"xp":50}]"
+- Player levels up: "You level up to 2! [STATS:{"level":2,"maxHp":25,"hp":25}]"
 
-**FINAL REMINDER - ITEM FORMAT IS MANDATORY:**
-When you mention ANY item being given to the player, you MUST include the [ITEM:{"name":"Item Name","type":"weapon","rarity":"common","value":10,"weight":1,"quantity":1}] format in your response. Do not just describe items in text - use the structured format!`;
+**CRITICAL RULE:** NEVER just describe stat changes in text. You MUST include the [STATS:] command for ANY stat modification!
+
+**FINAL REMINDER - BOTH FORMATS ARE MANDATORY:**
+1. When you mention ANY item being given to the player, you MUST include the [ITEM:{"name":"Item Name","type":"weapon","rarity":"common","value":10,"weight":1,"quantity":1}] format in your response.
+2. When you modify ANY character stat (HP, XP, level, abilities), you MUST include the [STATS:{"hp":-5}] format in your response.
+3. Do not just describe items or stat changes in text - use the structured formats!
+
+**CRITICAL:** If you deal damage, heal, award XP, or change any stat, you MUST use [STATS:] commands!`;
 
     // Prepare the prompt for Gemini
     const fullPrompt = `${systemPrompt}\n\n${characterContext}\n\nConversation:\n${conversationHistory.map((msg: any) => `${msg.role}: ${msg.content}`).join('\n')}\n\nPlease respond as the Dungeon Master:`;
@@ -335,6 +341,8 @@ When you mention ANY item being given to the player, you MUST include the [ITEM:
       aiResponse = aiResponse.replace(/Please respond as the Dungeon Master:/g, '').trim();
       console.log('Cleaned AI response:', aiResponse);
       console.log('AI response contains [ITEM: markers:', aiResponse.includes('[ITEM:'));
+      console.log('AI response contains [STATS: markers:', aiResponse.includes('[STATS:'));
+      console.log('Full AI response for debugging:', aiResponse);
     }
 
     // Parse items and stats from the response
