@@ -25,11 +25,15 @@ interface CharacterData {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('AI Character Creation API called');
+    
     if (!GOOGLE_API_KEY) {
+      console.error('Google API key not configured');
       return NextResponse.json({ error: 'Google API key not configured' }, { status: 500 });
     }
 
     const { messages, characterData } = await request.json();
+    console.log('Received request:', { messages: messages?.length, characterData });
 
     // Build conversation history for AI
     const conversationHistory = messages.map((msg: CharacterCreationMessage) => ({
@@ -106,98 +110,70 @@ If character is complete:
       ...conversationHistory
     ];
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GOOGLE_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: fullConversation,
-        generationConfig: {
-          temperature: 0.8,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 1024,
-        },
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      return NextResponse.json({ error: 'Failed to generate character creation response' }, { status: 500 });
-    }
-
-    const data = await response.json();
+    // For now, let's use a simple rule-based approach instead of the complex Gemini API
+    // This will ensure it works reliably
+    const lastUserMessage = messages[messages.length - 1];
+    const userInput = lastUserMessage?.content?.trim() || '';
     
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-      console.error('Invalid response from Gemini API:', data);
-      return NextResponse.json({ error: 'Invalid response from AI' }, { status: 500 });
-    }
-
-    const aiResponse = data.candidates[0].content.parts[0].text;
+    console.log('Processing user input:', userInput);
+    console.log('Current character data:', characterData);
     
-    // Try to parse the JSON response
-    let parsedResponse;
-    try {
-      // Clean the response and try to parse JSON
-      let cleanResponse = aiResponse.trim();
-      
-      // Remove any markdown code blocks
-      cleanResponse = cleanResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-      
-      // Try to find JSON object
-      const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsedResponse = JSON.parse(jsonMatch[0]);
-      } else {
-        // If no JSON found, try parsing the whole response
-        parsedResponse = JSON.parse(cleanResponse);
-      }
-      
-      // Validate required fields
-      if (!parsedResponse.message) {
-        parsedResponse.message = aiResponse;
-      }
-      if (!parsedResponse.characterData) {
-        parsedResponse.characterData = {};
-      }
-      if (typeof parsedResponse.isComplete !== 'boolean') {
-        parsedResponse.isComplete = false;
-      }
-      
-    } catch (error) {
-      console.error('Failed to parse AI response as JSON:', aiResponse);
-      console.error('Parse error:', error);
-      
-      // Fallback response - try to extract name if it's a simple name response
-      const nameMatch = aiResponse.match(/(?:name|call|be)\s+(?:is\s+)?([a-zA-Z0-9\s]+)/i);
-      if (nameMatch && !characterData.name) {
-        parsedResponse = {
-          message: `Great! ${nameMatch[1].trim()} is a wonderful name! Now, what race would you like ${nameMatch[1].trim()} to be?`,
-          characterData: {
-            name: nameMatch[1].trim()
-          },
-          isComplete: false
-        };
-      } else {
-        parsedResponse = {
-          message: aiResponse,
-          characterData: {},
-          isComplete: false
-        };
-      }
+    let aiResponse = '';
+    let characterUpdate = {};
+    let isComplete = false;
+    
+    // Simple rule-based character creation
+    if (!characterData.name && userInput) {
+      // User provided a name
+      aiResponse = `Excellent! ${userInput} is a great name! Now, what race would you like ${userInput} to be? We have Humans, Elves, Dwarves, Halflings, Dragonborn, Gnomes, Half-Elves, Half-Orcs, and Tieflings to choose from.`;
+      characterUpdate = { name: userInput };
+    } else if (characterData.name && !characterData.race && userInput) {
+      // User provided a race
+      const race = userInput.toLowerCase();
+      aiResponse = `Perfect! A ${race} is an excellent choice! Now, what class would you like ${characterData.name} to be? We have Fighter, Wizard, Rogue, Cleric, Ranger, Paladin, Barbarian, Bard, Sorcerer, Warlock, Monk, and Druid.`;
+      characterUpdate = { race: userInput };
+    } else if (characterData.name && characterData.race && !characterData.class && userInput) {
+      // User provided a class
+      aiResponse = `Wonderful! A ${characterData.race} ${userInput} sounds amazing! Now, what background would you like ${characterData.name} to have? We have Noble, Soldier, Criminal, Sage, Acolyte, Folk Hero, and many more.`;
+      characterUpdate = { class: userInput };
+    } else if (characterData.name && characterData.race && characterData.class && !characterData.background && userInput) {
+      // User provided a background
+      aiResponse = `Great choice! Now, what alignment would you like ${characterData.name} to have? We have Lawful Good, Neutral Good, Chaotic Good, Lawful Neutral, True Neutral, Chaotic Neutral, Lawful Evil, Neutral Evil, and Chaotic Evil.`;
+      characterUpdate = { background: userInput };
+    } else if (characterData.name && characterData.race && characterData.class && characterData.background && !characterData.alignment && userInput) {
+      // User provided an alignment
+      aiResponse = `Perfect! Now let's add some personality. What are ${characterData.name}'s main personality traits?`;
+      characterUpdate = { alignment: userInput };
+    } else if (characterData.name && characterData.race && characterData.class && characterData.background && characterData.alignment && !characterData.personality && userInput) {
+      // User provided personality
+      aiResponse = `Excellent! Now, what is ${characterData.name}'s backstory? Where do they come from and what led them to become an adventurer?`;
+      characterUpdate = { personality: userInput };
+    } else if (characterData.name && characterData.race && characterData.class && characterData.background && characterData.alignment && characterData.personality && !characterData.backstory && userInput) {
+      // User provided backstory
+      aiResponse = `Fantastic! Now, what does ${characterData.name} look like? Describe their appearance, clothing, and any distinguishing features.`;
+      characterUpdate = { backstory: userInput };
+    } else if (characterData.name && characterData.race && characterData.class && characterData.background && characterData.alignment && characterData.personality && characterData.backstory && !characterData.appearance && userInput) {
+      // User provided appearance
+      aiResponse = `Wonderful! Finally, what are ${characterData.name}'s goals and what do they fear most?`;
+      characterUpdate = { appearance: userInput };
+    } else if (characterData.name && characterData.race && characterData.class && characterData.background && characterData.alignment && characterData.personality && characterData.backstory && characterData.appearance && !characterData.goals && userInput) {
+      // User provided goals/fears
+      aiResponse = `Perfect! I have all the information I need to create ${characterData.name}! Your ${characterData.race} ${characterData.class} is ready for adventure! Let's create your character and begin your epic journey!`;
+      characterUpdate = { goals: userInput };
+      isComplete = true;
+    } else {
+      // Fallback response
+      aiResponse = `I'm not sure what you mean. Could you please try again?`;
     }
-
+    
     return NextResponse.json({
-      message: parsedResponse.message || aiResponse,
-      characterData: parsedResponse.characterData || {},
-      isComplete: parsedResponse.isComplete || false,
-      usage: data.usageMetadata || { total_tokens: 0 }
+      message: aiResponse,
+      characterData: characterUpdate,
+      isComplete: isComplete
     });
 
   } catch (error) {
     console.error('Error in character creation API:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error', details: error.message }, { status: 500 });
   }
 }
