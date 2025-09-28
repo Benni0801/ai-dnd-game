@@ -38,6 +38,10 @@ export async function POST(request: NextRequest) {
       } else if (lastMessage.includes('attack') || lastMessage.includes('fight') || lastMessage.includes('strike')) {
         diceRoll = '1d20';
         response = 'You attack! Let me roll for your attack...';
+      } else if (lastMessage.includes('combat') || lastMessage.includes('battle') || lastMessage.includes('fight')) {
+        response = 'Combat begins! What would you like to do? You can attack, defend, cast a spell, or try something else.';
+      } else if (lastMessage.includes('initiative') || lastMessage.includes('turn')) {
+        response = 'It\'s your turn! What action would you like to take?';
       }
       
       return NextResponse.json({

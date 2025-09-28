@@ -149,7 +149,9 @@ export default function Home() {
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   };
 
   // Check if user has scrolled up to show scroll button
@@ -1413,42 +1415,6 @@ export default function Home() {
               />
             </div>
 
-            {/* Tab Navigation */}
-            <div style={{
-              background: 'rgba(26, 26, 46, 0.8)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(139, 92, 246, 0.2)',
-              borderRadius: '16px',
-              padding: '1rem'
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {[
-                  { id: 'chat', label: '💬 Chat', icon: '💬' },
-                  { id: 'character', label: '📈 Stats', icon: '📈' },
-                  { id: 'inventory', label: '🎒 Items', icon: '🎒' },
-                  { id: 'combat', label: '⚔️ Combat', icon: '⚔️' }
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    style={{
-                      padding: '0.75rem 1rem',
-                      borderRadius: '8px',
-                      fontWeight: '500',
-                      fontSize: '0.875rem',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      background: activeTab === tab.id ? 'linear-gradient(135deg, #8b5cf6, #ec4899)' : 'transparent',
-                      color: activeTab === tab.id ? 'white' : '#94a3b8',
-                      border: activeTab === tab.id ? 'none' : '1px solid rgba(139, 92, 246, 0.2)',
-                      textAlign: 'left'
-                    }}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-            </div>
 
             {/* Active Tab Content */}
             <div style={{
@@ -1518,6 +1484,58 @@ export default function Home() {
               </p>
             </div>
 
+            {/* Desktop Tab Navigation */}
+            <div style={{
+              display: window.innerWidth >= 1024 ? 'block' : 'none',
+              background: 'rgba(26, 26, 46, 0.8)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+              borderRadius: '16px',
+              margin: '0 1rem 1rem 1rem',
+              padding: '1rem'
+            }}>
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                {[
+                  { id: 'chat', label: '💬 Chat', icon: '💬' },
+                  { id: 'character', label: '📈 Stats', icon: '📈' },
+                  { id: 'inventory', label: '🎒 Items', icon: '🎒' },
+                  { id: 'combat', label: '⚔️ Combat', icon: '⚔️' }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      borderRadius: '8px',
+                      fontWeight: '500',
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      background: activeTab === tab.id ? 'linear-gradient(135deg, #8b5cf6, #ec4899)' : 'rgba(55, 65, 81, 0.6)',
+                      color: activeTab === tab.id ? 'white' : '#94a3b8',
+                      border: activeTab === tab.id ? 'none' : '1px solid rgba(139, 92, 246, 0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (activeTab !== tab.id) {
+                        e.currentTarget.style.background = 'rgba(75, 85, 99, 0.8)'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (activeTab !== tab.id) {
+                        e.currentTarget.style.background = 'rgba(55, 65, 81, 0.6)'
+                      }
+                    }}
+                  >
+                    <span>{tab.icon}</span>
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Mobile Tab Navigation */}
             <div style={{
               display: window.innerWidth < 1024 ? 'block' : 'none',
@@ -1533,8 +1551,7 @@ export default function Home() {
                   { id: 'chat', label: '💬 Chat' },
                   { id: 'character', label: '📈 Stats' },
                   { id: 'inventory', label: '🎒 Items' },
-                  { id: 'combat', label: '⚔️ Combat' },
-                  { id: 'dice', label: '🎲 Dice' }
+                  { id: 'combat', label: '⚔️ Combat' }
                 ].map((tab) => (
                   <button
                     key={tab.id}
