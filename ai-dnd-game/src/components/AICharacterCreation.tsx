@@ -38,6 +38,8 @@ export default function AICharacterCreation({ onComplete, onCancel }: AICharacte
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [characterData, setCharacterData] = useState<CharacterData>({})
+  const [showCharacterSheet, setShowCharacterSheet] = useState(false)
+  const [finalCharacter, setFinalCharacter] = useState<CharacterData>({})
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -97,7 +99,8 @@ export default function AICharacterCreation({ onComplete, onCancel }: AICharacte
       // Check if character creation is complete
       if (data.isComplete) {
         setTimeout(() => {
-          onComplete(characterData)
+          setFinalCharacter({ ...characterData, ...data.characterData })
+          setShowCharacterSheet(true)
         }, 2000) // Give user time to read the completion message
       }
 
@@ -177,34 +180,6 @@ export default function AICharacterCreation({ onComplete, onCancel }: AICharacte
         </div>
       </div>
 
-      {/* Character Progress */}
-      {Object.keys(characterData).length > 0 && (
-        <div style={{
-          padding: '1rem',
-          background: 'rgba(139, 92, 246, 0.1)',
-          borderBottom: '1px solid rgba(139, 92, 246, 0.3)'
-        }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', opacity: 0.8 }}>Character Progress:</h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              {Object.entries(characterData).map(([key, value]) => (
-                <span
-                  key={key}
-                  style={{
-                    padding: '0.25rem 0.5rem',
-                    background: 'rgba(139, 92, 246, 0.2)',
-                    border: '1px solid rgba(139, 92, 246, 0.4)',
-                    borderRadius: '4px',
-                    fontSize: '0.8rem'
-                  }}
-                >
-                  {key}: {value}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Messages */}
       <div style={{
@@ -334,6 +309,139 @@ export default function AICharacterCreation({ onComplete, onCancel }: AICharacte
           </button>
         </div>
       </div>
+
+      {/* Character Sheet Modal */}
+      {showCharacterSheet && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '2rem'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #1a1a2e, #16213e)',
+            border: '2px solid rgba(139, 92, 246, 0.5)',
+            borderRadius: '20px',
+            padding: '2rem',
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '80vh',
+            overflowY: 'auto',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)'
+          }}>
+            <h2 style={{
+              textAlign: 'center',
+              marginBottom: '2rem',
+              fontSize: '2rem',
+              background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              🎭 Character Sheet
+            </h2>
+            
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '1rem',
+              marginBottom: '2rem'
+            }}>
+              {Object.entries(finalCharacter).map(([key, value]) => (
+                <div
+                  key={key}
+                  style={{
+                    background: 'rgba(139, 92, 246, 0.1)',
+                    border: '1px solid rgba(139, 92, 246, 0.3)',
+                    borderRadius: '12px',
+                    padding: '1rem'
+                  }}
+                >
+                  <h3 style={{
+                    margin: '0 0 0.5rem 0',
+                    fontSize: '0.9rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    opacity: 0.7
+                  }}>
+                    {key}
+                  </h3>
+                  <p style={{
+                    margin: 0,
+                    fontSize: '1.1rem',
+                    fontWeight: 'bold'
+                  }}>
+                    {value}
+                  </p>
+                </div>
+              ))}
+            </div>
+            
+            <div style={{
+              display: 'flex',
+              gap: '1rem',
+              justifyContent: 'center'
+            }}>
+              <button
+                onClick={() => setShowCharacterSheet(false)}
+                style={{
+                  padding: '1rem 2rem',
+                  background: 'rgba(75, 85, 99, 0.5)',
+                  border: '1px solid rgba(75, 85, 99, 0.3)',
+                  borderRadius: '12px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  fontSize: '1rem',
+                  fontWeight: 'bold'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(75, 85, 99, 0.7)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(75, 85, 99, 0.5)'
+                }}
+              >
+                Edit Character
+              </button>
+              <button
+                onClick={() => {
+                  setShowCharacterSheet(false)
+                  onComplete(finalCharacter)
+                }}
+                style={{
+                  padding: '1rem 2rem',
+                  background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  borderRadius: '12px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  fontSize: '1rem',
+                  fontWeight: 'bold',
+                  boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)'
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(139, 92, 246, 0.4)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.3)'
+                }}
+              >
+                Start Adventure! ⚔️
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes spin {

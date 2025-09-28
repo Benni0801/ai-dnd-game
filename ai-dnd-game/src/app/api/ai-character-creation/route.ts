@@ -35,7 +35,7 @@ export async function POST(request: Request) {
         // Exact match
         if (lowerInput.includes(race)) return true
         // Fuzzy matching for common misspellings
-        if (race === 'human' && (lowerInput.includes('hunam') || lowerInput.includes('humam') || lowerInput.includes('humn'))) return true
+        if (race === 'human' && (lowerInput.includes('hunam') || lowerInput.includes('humam') || lowerInput.includes('humn') || lowerInput.includes('hunan') || lowerInput.includes('humna') || lowerInput.includes('humon'))) return true
         if (race === 'elf' && (lowerInput.includes('elv') || lowerInput.includes('elfe'))) return true
         if (race === 'dwarf' && (lowerInput.includes('dwarv') || lowerInput.includes('dwar'))) return true
         if (race === 'halfling' && (lowerInput.includes('halfing') || lowerInput.includes('halflng'))) return true
