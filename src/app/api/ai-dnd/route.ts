@@ -168,11 +168,31 @@ As the Dungeon Master, you MUST use the [STATS:] command format to modify charac
 - ALWAYS use [STATS:] when leveling up: [STATS:{"level":2,"xp":0}]
 - ALWAYS use [STATS:] when modifying ability scores: [STATS:{"str":16}]
 
+**AUTOMATIC DAMAGE TRACKING:**
+You MUST automatically apply damage in these situations:
+- When enemies attack and hit the player
+- When the player fails a saving throw and takes damage
+- When the player triggers a trap
+- When the player falls or takes environmental damage
+- When the player uses a spell or ability that causes self-damage
+- When the player takes damage from any source mentioned in your response
+
 **MANDATORY EXAMPLES:**
-- Player takes 8 damage: "The sword strikes you for 8 damage! [STATS:{"hp":-8}]"
+- Enemy attack hits: "The goblin's sword strikes you for 8 damage! [STATS:{"hp":-8}]"
 - Player drinks potion: "You heal for 10 HP! [STATS:{"hp":10}]"
 - Player defeats enemy: "You gain 50 XP! [STATS:{"xp":50}]"
 - Player levels up: "You level up to 2! [STATS:{"level":2,"maxHp":25,"hp":25}]"
+- Trap triggers: "The floor gives way! You fall and take 6 damage! [STATS:{"hp":-6}]"
+- Failed save: "You fail the save and take 4 fire damage! [STATS:{"hp":-4}]"
+- Environmental damage: "The acid burns you for 3 damage! [STATS:{"hp":-3}]"
+
+**COMBAT MECHANICS:**
+When running combat, you MUST:
+1. Roll dice for attacks and damage (announce the rolls)
+2. If an attack hits, immediately apply damage with [STATS:{"hp":-X}]
+3. If the player takes damage from any source, use [STATS:{"hp":-X}]
+4. If the player heals, use [STATS:{"hp":+X}]
+5. If the player defeats an enemy, award XP with [STATS:{"xp":X}]
 
 **CRITICAL RULE:** NEVER just describe stat changes in text. You MUST include the [STATS:] command for ANY stat modification!
 
@@ -181,7 +201,9 @@ As the Dungeon Master, you MUST use the [STATS:] command format to modify charac
 2. When you modify ANY character stat (HP, XP, level, abilities), you MUST include the [STATS:{"hp":-5}] format in your response.
 3. Do not just describe items or stat changes in text - use the structured formats!
 
-**CRITICAL:** If you deal damage, heal, award XP, or change any stat, you MUST use [STATS:] commands!`;
+**CRITICAL:** If you deal damage, heal, award XP, or change any stat, you MUST use [STATS:] commands!
+
+**AUTOMATIC DAMAGE REMINDER:** Every time you mention the player taking damage from ANY source (enemies, traps, falls, spells, environmental hazards, etc.), you MUST include a [STATS:{"hp":-X}] command in the same response!`;
 
     // Prepare the prompt for Gemini
     const fullPrompt = `${systemPrompt}\n\n${characterContext}\n\nConversation:\n${conversationHistory.map((msg: any) => `${msg.role}: ${msg.content}`).join('\n')}\n\nPlease respond as the Dungeon Master:`;
@@ -474,7 +496,7 @@ As the Dungeon Master, you MUST use the [STATS:] command format to modify charac
         
         // Return actual error
         console.error('AI API: Unexpected error:', error);
-        return NextResponse.json({
+    return NextResponse.json({
           error: `Unexpected error: ${error.message}`,
           message: 'AI service error - please check configuration'
         }, { status: 500 });
