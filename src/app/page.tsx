@@ -42,7 +42,63 @@ export default function Home() {
   });
 
   const [activeTab, setActiveTab] = useState<'chat' | 'character' | 'inventory' | 'combat' | 'dice'>('chat');
-  const [inventory, setInventory] = useState<any[]>([]);
+  const [inventory, setInventory] = useState<any[]>([
+    {
+      id: '1',
+      name: 'Iron Sword',
+      type: 'weapon',
+      rarity: 'common',
+      value: 10,
+      weight: 3,
+      description: 'A sturdy iron sword, reliable in combat.',
+      quantity: 1,
+      equipped: true,
+      stats: { damage: '1d8+1' }
+    },
+    {
+      id: '2',
+      name: 'Leather Armor',
+      type: 'armor',
+      rarity: 'common',
+      value: 10,
+      weight: 10,
+      description: 'Basic leather armor providing minimal protection.',
+      quantity: 1,
+      equipped: true,
+      stats: { armor: 1 }
+    },
+    {
+      id: '3',
+      name: 'Health Potion',
+      type: 'consumable',
+      rarity: 'common',
+      value: 25,
+      weight: 0.5,
+      description: 'A red potion that restores 2d4+2 hit points.',
+      quantity: 3,
+      stats: { bonus: 2 }
+    },
+    {
+      id: '4',
+      name: 'Rope (50ft)',
+      type: 'tool',
+      rarity: 'common',
+      value: 2,
+      weight: 10,
+      description: 'Strong hemp rope, useful for climbing and binding.',
+      quantity: 1
+    },
+    {
+      id: '5',
+      name: 'Torch',
+      type: 'tool',
+      rarity: 'common',
+      value: 1,
+      weight: 1,
+      description: 'A wooden torch that burns for 1 hour.',
+      quantity: 5
+    }
+  ]);
   const [showScrollButton, setShowScrollButton] = useState(false);
   
   // Authentication state
@@ -1098,7 +1154,7 @@ export default function Home() {
                     console.log('Parent inventory changed, new count:', newInventory.length, 'items:', newInventory.map(i => i.name));
                     setInventory(newInventory);
                   }}
-                  initialInventory={inventory.length > 0 ? inventory : undefined}
+                  initialInventory={inventory}
                 />
               )}
               {activeTab === 'combat' && (
@@ -1206,7 +1262,7 @@ export default function Home() {
                     console.log('Parent inventory changed (mobile), new count:', newInventory.length, 'items:', newInventory.map(i => i.name));
                     setInventory(newInventory);
                   }}
-                  initialInventory={inventory.length > 0 ? inventory : undefined}
+                  initialInventory={inventory}
                 />
               )}
               {activeTab === 'combat' && (

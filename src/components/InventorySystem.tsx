@@ -91,6 +91,14 @@ const STARTER_ITEMS: Item[] = [
 
 const InventorySystem = forwardRef<InventorySystemRef, InventorySystemProps>(({ characterStats, onInventoryChange, initialInventory, onAddItem }, ref) => {
   const [items, setItems] = useState<Item[]>(initialInventory || STARTER_ITEMS);
+  
+  // Update internal state when initialInventory prop changes
+  useEffect(() => {
+    if (initialInventory) {
+      console.log('InventorySystem: Updating internal state from initialInventory prop, count:', initialInventory.length);
+      setItems(initialInventory);
+    }
+  }, [initialInventory]);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItem, setNewItem] = useState<Partial<Item>>({
