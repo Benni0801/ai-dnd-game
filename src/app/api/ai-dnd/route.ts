@@ -37,7 +37,12 @@ export async function POST(request: NextRequest) {
   try {
     console.log('AI API: Request received');
     const body = await request.json();
-    console.log('AI API: Body parsed:', { messages: body.messages?.length, characterStats: !!body.characterStats, inventory: body.inventory?.length });
+    console.log('AI API: Body parsed:', { 
+      messages: body.messages?.length, 
+      characterStats: !!body.characterStats, 
+      inventory: body.inventory?.length,
+      inventoryItems: body.inventory?.map((item: any) => item.name) || []
+    });
     const { messages, characterStats, inventory, onDiceRoll } = body || {};
 
     // Check for API key - if not available, use fallback responses
@@ -141,14 +146,21 @@ export async function POST(request: NextRequest) {
         }
 
         // Create the character context with simple game state
+        console.log('Creating character context with inventory:', gameState.character.inventory);
+        const inventoryList = gameState.character.inventory && gameState.character.inventory.length > 0 
+          ? gameState.character.inventory.map((item: any) => `${item.name} (${item.quantity || 1})`).join(', ')
+          : 'Empty';
+        
         const characterContext = `
 **CURRENT GAME STATE**
 Character: ${gameState.character.name || 'Unnamed'} (${gameState.character.race || 'Unknown'} ${gameState.character.class || 'Adventurer'})
 Level: ${gameState.character.level} | XP: ${gameState.character.experience.current}/${gameState.character.experience.needed}
 Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameState.character.abilityScores.dexterity}, CON ${gameState.character.abilityScores.constitution}, INT ${gameState.character.abilityScores.intelligence}, WIS ${gameState.character.abilityScores.wisdom}, CHA ${gameState.character.abilityScores.charisma}
 Gold: ${gameState.character.gold} coins
-Current Inventory: ${gameState.character.inventory.map((item: any) => `${item.name} (${item.quantity || 1})`).join(', ') || 'Empty'}
+Current Inventory: ${inventoryList}
 `;
+        
+        console.log('Final character context being sent to AI:', characterContext);
 
         // Comprehensive D&D System Prompt
         const systemPrompt = `You are GAL (Game AI Liaison), an advanced Dungeon Master for an immersive text-based D&D role-playing game. Follow these rules strictly:
@@ -253,6 +265,13 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
 - If player tries to use an item they don't have, tell them they don't have it
 - If player tries to buy something they can't afford, tell them they don't have enough gold
 
+**INVENTORY AWARENESS:**
+- ALWAYS reference the player's current inventory when describing their equipment
+- When mentioning what the player has equipped or in their pack, use the EXACT item names from the Current Inventory list
+- NEVER use placeholder text like "your,, and have in your pack,, and" - always use actual item names
+- If inventory is empty, say "You have no equipment" or "Your pack is empty"
+- When describing the player's current state, always mention their actual equipment by name
+
 **IMPORTANT INSTRUCTIONS:**
 - If character creation is incomplete, guide through the full process
 - Always maintain game state consistency
@@ -335,6 +354,8 @@ When running combat, you MUST:
 
 **FINAL NARRATIVE RULE:** Keep your narrative pure and immersive. Describe what happens without mentioning specific numbers, HP values, or stat changes. Let the [STATS:] commands handle all the mechanical aspects silently in the background!
 
+**INVENTORY REFERENCE RULE:** When describing the player's current equipment or what they have in their pack, ALWAYS use the exact item names from the "Current Inventory" section above. NEVER use placeholder text or empty commas. If the inventory shows specific items, mention them by name. If it shows "Empty", say the player has no equipment.
+        
 **CRITICAL FINAL REMINDER:** NEVER make decisions for the player! ALWAYS ask "What do you do?" at the end of every response. The player must always have agency over their character's actions!`;
 
     // Prepare the prompt for Gemini
