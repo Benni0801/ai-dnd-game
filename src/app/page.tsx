@@ -2038,6 +2038,7 @@ export default function Home() {
                 flex: 1,
                 padding: window.innerWidth < 1024 ? '0.75rem' : '1rem',
                 overflowY: 'auto',
+                overflowX: 'hidden', // Prevent horizontal overflow
                 maxHeight: window.innerWidth < 1024 ? 'calc(100vh - 400px)' : 'calc(100vh - 300px)',
                 WebkitOverflowScrolling: 'touch', // Smooth scrolling on iOS
                 background: window.innerWidth < 1024 ? 'rgba(26, 26, 46, 0.9)' : 'transparent',
@@ -2045,7 +2046,10 @@ export default function Home() {
                 border: window.innerWidth < 1024 ? '1px solid rgba(139, 92, 246, 0.3)' : 'none',
                 borderRadius: window.innerWidth < 1024 ? '20px' : '0',
                 margin: window.innerWidth < 1024 ? '0.5rem' : '0',
-                boxShadow: window.innerWidth < 1024 ? '0 8px 32px rgba(0, 0, 0, 0.3)' : 'none'
+                boxShadow: window.innerWidth < 1024 ? '0 8px 32px rgba(0, 0, 0, 0.3)' : 'none',
+                width: '100%',
+                maxWidth: '100%',
+                boxSizing: 'border-box'
               }}
               onScroll={handleScroll}
             >
@@ -2118,35 +2122,63 @@ export default function Home() {
                       ? '1px solid rgba(139, 92, 246, 0.3)' 
                       : '1px solid rgba(139, 92, 246, 0.2)',
                     borderRadius: '16px',
-                    padding: '1.5rem',
+                    padding: window.innerWidth < 1024 ? '1rem' : '1.5rem',
                     marginBottom: '1rem',
-                    transition: 'all 0.3s ease'
+                    transition: 'all 0.3s ease',
+                    width: '100%',
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
+                    overflow: 'hidden',
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: window.innerWidth < 1024 ? '0.5rem' : '0.75rem', 
+                    marginBottom: '1rem',
+                    width: '100%',
+                    maxWidth: '100%',
+                    boxSizing: 'border-box'
+                  }}>
                     <div style={{
-                      width: '40px',
-                      height: '40px',
+                      width: window.innerWidth < 1024 ? '32px' : '40px',
+                      height: window.innerWidth < 1024 ? '32px' : '40px',
                       borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '1.25rem',
+                      fontSize: window.innerWidth < 1024 ? '1rem' : '1.25rem',
                       background: message.role === 'user' 
                         ? 'linear-gradient(135deg, #8b5cf6, #ec4899)' 
                         : 'linear-gradient(135deg, #1e40af, #3b82f6)',
-                      color: 'white'
+                      color: 'white',
+                      flexShrink: 0
                     }}>
                       {message.role === 'user' ? '👤' : '🧙‍♂️'}
                     </div>
-                    <div style={{ fontSize: '0.875rem', color: '#94a3b8' }}>
+                    <div style={{ 
+                      fontSize: window.innerWidth < 1024 ? '0.75rem' : '0.875rem', 
+                      color: '#94a3b8',
+                      flex: 1,
+                      minWidth: 0,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}>
                       {message.role === 'user' ? 'You' : 'Dungeon Master'} • {message.timestamp.toLocaleTimeString()}
                     </div>
                   </div>
                   <div style={{ 
                     color: '#e2e8f0', 
                     lineHeight: '1.6',
-                    fontSize: '1rem'
+                    fontSize: window.innerWidth < 1024 ? '0.9rem' : '1rem',
+                    width: '100%',
+                    maxWidth: '100%',
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                    whiteSpace: 'pre-wrap'
                   }}>
                     {message.content}
                   </div>
