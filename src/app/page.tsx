@@ -113,6 +113,7 @@ export default function Home() {
   ]);
   const [actionLog, setActionLog] = useState<ActionLogEntry[]>([]);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [processedItems, setProcessedItems] = useState<Set<string>>(new Set());
   
   // Authentication state
   const [user, setUser] = useState<any>(null);
@@ -137,14 +138,31 @@ export default function Home() {
   const inventoryRef = useRef<InventorySystemRef>(null);
 
   const addActionLogEntry = (type: ActionLogEntry['type'], message: string, icon: string) => {
-    const entry: ActionLogEntry = {
-      id: Date.now().toString(),
-      type,
-      message,
-      timestamp: new Date(),
-      icon
-    };
-    setActionLog(prev => [entry, ...prev.slice(0, 49)]); // Keep last 50 entries
+    // Check for duplicates within the last 10 entries to prevent spam
+    setActionLog(prev => {
+      const recentEntries = prev.slice(0, 10);
+      const isDuplicate = recentEntries.some(entry => 
+        entry.type === type && 
+        entry.message === message && 
+        entry.icon === icon &&
+        // Check if the timestamp is within the last 5 seconds (same session)
+        (Date.now() - entry.timestamp.getTime()) < 5000
+      );
+      
+      if (isDuplicate) {
+        console.log('Preventing duplicate action log entry:', message);
+        return prev; // Don't add duplicate
+      }
+      
+      const entry: ActionLogEntry = {
+        id: Date.now().toString(),
+        type,
+        message,
+        timestamp: new Date(),
+        icon
+      };
+      return [entry, ...prev.slice(0, 49)]; // Keep last 50 entries
+    });
   };
 
   // Auto-scroll to bottom when new messages arrive
@@ -539,26 +557,42 @@ export default function Home() {
       if (data.items && data.items.length > 0) {
         console.log('Processing items:', data.items);
         
-        // Add items to inventory with retry logic
-        const addItemsToInventory = () => {
-          if (inventoryRef.current) {
-            console.log('Inventory ref is available, adding items');
-            for (const item of data.items) {
-              console.log('Adding item to inventory:', item);
-              inventoryRef.current.addItem(item);
-              console.log('Successfully added item from AI:', item);
-              
-              // Add to action log
-              addActionLogEntry('item', `Found ${item.name}`, '🎒');
-            }
-          } else {
-            console.log('Inventory ref not available yet, retrying in 100ms');
-            setTimeout(addItemsToInventory, 100);
-          }
-        };
+        // Filter out items that have already been processed
+        const newItems = data.items.filter((item: any) => {
+          const itemKey = `${item.name}-${item.type}-${item.rarity}`;
+          return !processedItems.has(itemKey);
+        });
         
-        // Start the retry process
-        addItemsToInventory();
+        if (newItems.length > 0) {
+          console.log('New items to process:', newItems);
+          
+          // Add items to inventory with retry logic
+          const addItemsToInventory = () => {
+            if (inventoryRef.current) {
+              console.log('Inventory ref is available, adding items');
+              for (const item of newItems) {
+                console.log('Adding item to inventory:', item);
+                inventoryRef.current.addItem(item);
+                console.log('Successfully added item from AI:', item);
+                
+                // Add to action log
+                addActionLogEntry('item', `Found ${item.name}`, '🎒');
+                
+                // Mark item as processed
+                const itemKey = `${item.name}-${item.type}-${item.rarity}`;
+                setProcessedItems(prev => new Set(Array.from(prev).concat(itemKey)));
+              }
+            } else {
+              console.log('Inventory ref not available yet, retrying in 100ms');
+              setTimeout(addItemsToInventory, 100);
+            }
+          };
+          
+          // Start the retry process
+          addItemsToInventory();
+        } else {
+          console.log('All items have already been processed, skipping');
+        }
       } else {
         console.log('No items received from AI');
       }

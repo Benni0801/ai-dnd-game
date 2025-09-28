@@ -490,10 +490,11 @@ When running combat, you MUST:
     const statChanges: any = {};
     
     if (aiResponse) {
+      // Only parse items from the current AI response, not from conversation history
       // Look for complete [ITEM:...] blocks
       const itemMatches = aiResponse.match(/\[ITEM:([^\]]+)\]/g);
       if (itemMatches) {
-        console.log('Found item matches:', itemMatches);
+        console.log('Found item matches in current response:', itemMatches);
         for (const match of itemMatches) {
           try {
             const itemJson = match.replace(/\[ITEM:(.+)\]/, '$1');
@@ -518,7 +519,7 @@ When running combat, you MUST:
             };
             
             items.push(completeItem);
-            console.log('Successfully parsed item:', completeItem);
+            console.log('Successfully parsed item from current response:', completeItem);
           } catch (error) {
             console.error('Failed to parse item:', match, 'Error:', error);
             console.error('Item JSON was:', match.replace(/\[ITEM:(.+)\]/, '$1'));
@@ -548,9 +549,9 @@ When running combat, you MUST:
           }
         }
       } else {
-        console.log('No item matches found in response');
+        console.log('No item matches found in current response');
         
-        // Fallback: Try to detect items mentioned in the text
+        // Fallback: Try to detect items mentioned in the current response text only
         const itemKeywords = [
           'ring', 'sword', 'dagger', 'potion', 'coin', 'gold', 'silver', 'gem', 'scroll', 'pouch', 'bag',
           'armor', 'shield', 'helmet', 'boots', 'gloves', 'amulet', 'necklace', 'bracelet', 'crown',
@@ -563,7 +564,7 @@ When running combat, you MUST:
         
         for (const keyword of itemKeywords) {
           if (lowerResponse.includes(keyword)) {
-            // Check if it's mentioned as something the player found/received
+            // Check if it's mentioned as something the player found/received in the current response
             const patterns = [
               new RegExp(`you (?:find|discover|receive|get|obtain|pick up|take) (?:a |an |the )?${keyword}`, 'i'),
               new RegExp(`(?:a |an |the )?${keyword} (?:is|was) (?:found|discovered|given|received)`, 'i'),
@@ -582,7 +583,7 @@ When running combat, you MUST:
                   description: `A ${keyword} found during your adventure.`
                 };
                 foundItems.push(item);
-                console.log('Detected item from text:', item);
+                console.log('Detected item from current response text:', item);
                 break;
               }
             }
