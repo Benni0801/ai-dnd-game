@@ -1603,12 +1603,13 @@ export default function Home() {
         {/* Mobile Header */}
         <div style={{
           display: window.innerWidth < 1024 ? 'block' : 'none',
-          background: 'rgba(26, 26, 46, 0.8)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(139, 92, 246, 0.2)',
-          borderRadius: '16px',
-          margin: '1rem',
-          padding: '1.5rem'
+          background: 'rgba(26, 26, 46, 0.9)',
+          backdropFilter: 'blur(15px)',
+          border: '1px solid rgba(139, 92, 246, 0.3)',
+          borderRadius: '20px',
+          margin: '0.5rem',
+          padding: '1rem',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h1 style={{
@@ -1689,7 +1690,14 @@ export default function Home() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: window.innerWidth < 1024 ? 'column' : 'row', minHeight: '100vh' }}>
+        <div style={{ 
+          display: window.innerWidth < 1024 ? 'grid' : 'flex', 
+          gridTemplateColumns: window.innerWidth < 1024 ? '1fr' : 'none',
+          gridTemplateRows: window.innerWidth < 1024 ? 'auto auto auto 1fr auto' : 'none',
+          flexDirection: window.innerWidth >= 1024 ? 'row' : 'column', 
+          minHeight: '100vh',
+          gap: window.innerWidth < 1024 ? '0.5rem' : '1rem'
+        }}>
           {/* Desktop Sidebar */}
           <div style={{
             display: window.innerWidth >= 1024 ? 'flex' : 'none',
@@ -1989,12 +1997,17 @@ export default function Home() {
             {/* Mobile Tab Content */}
             <div style={{
               display: window.innerWidth < 1024 ? 'block' : 'none',
-              background: 'rgba(26, 26, 46, 0.8)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(139, 92, 246, 0.2)',
-              borderRadius: '16px',
-              margin: '1rem',
-              padding: '1.5rem'
+              background: 'rgba(26, 26, 46, 0.9)',
+              backdropFilter: 'blur(15px)',
+              border: '1px solid rgba(139, 92, 246, 0.3)',
+              borderRadius: '20px',
+              margin: '0.5rem',
+              padding: '1.5rem',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+              minHeight: '200px',
+              maxHeight: '300px',
+              overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch'
             }}>
               {activeTab === 'character' && (
                 <CharacterProgression
@@ -2023,10 +2036,16 @@ export default function Home() {
               ref={messagesContainerRef}
               style={{ 
                 flex: 1,
-                padding: window.innerWidth < 1024 ? '0.5rem' : '1rem',
+                padding: window.innerWidth < 1024 ? '0.75rem' : '1rem',
                 overflowY: 'auto',
-                maxHeight: window.innerWidth < 1024 ? 'calc(100vh - 200px)' : 'calc(100vh - 300px)',
-                WebkitOverflowScrolling: 'touch' // Smooth scrolling on iOS
+                maxHeight: window.innerWidth < 1024 ? 'calc(100vh - 400px)' : 'calc(100vh - 300px)',
+                WebkitOverflowScrolling: 'touch', // Smooth scrolling on iOS
+                background: window.innerWidth < 1024 ? 'rgba(26, 26, 46, 0.9)' : 'transparent',
+                backdropFilter: window.innerWidth < 1024 ? 'blur(15px)' : 'none',
+                border: window.innerWidth < 1024 ? '1px solid rgba(139, 92, 246, 0.3)' : 'none',
+                borderRadius: window.innerWidth < 1024 ? '20px' : '0',
+                margin: window.innerWidth < 1024 ? '0.5rem' : '0',
+                boxShadow: window.innerWidth < 1024 ? '0 8px 32px rgba(0, 0, 0, 0.3)' : 'none'
               }}
               onScroll={handleScroll}
             >
@@ -2255,12 +2274,13 @@ export default function Home() {
 
             {/* Input */}
             <div style={{
-              background: 'rgba(26, 26, 46, 0.8)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(139, 92, 246, 0.2)',
-              borderRadius: '16px',
-              margin: '1rem',
-              padding: '1.5rem'
+              background: window.innerWidth < 1024 ? 'rgba(26, 26, 46, 0.9)' : 'rgba(26, 26, 46, 0.8)',
+              backdropFilter: window.innerWidth < 1024 ? 'blur(15px)' : 'blur(10px)',
+              border: '1px solid rgba(139, 92, 246, 0.3)',
+              borderRadius: window.innerWidth < 1024 ? '20px' : '16px',
+              margin: window.innerWidth < 1024 ? '0.5rem' : '1rem',
+              padding: window.innerWidth < 1024 ? '1rem' : '1.5rem',
+              boxShadow: window.innerWidth < 1024 ? '0 8px 32px rgba(0, 0, 0, 0.3)' : 'none'
             }}>
               <form onSubmit={(e) => {
                 e.preventDefault();
@@ -2269,7 +2289,11 @@ export default function Home() {
                   setInputMessage('');
                 }
               }}>
-                <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  gap: window.innerWidth < 1024 ? '0.75rem' : '1rem',
+                  alignItems: 'center'
+                }}>
                   <input
                     type="text"
                     value={inputMessage}
@@ -2278,14 +2302,17 @@ export default function Home() {
                     disabled={isLoading || characterStats.isDead}
                     style={{
                       flex: 1,
-                      padding: window.innerWidth < 1024 ? '0.875rem 1rem' : '1rem 1.25rem',
-                      background: 'rgba(15, 15, 35, 0.6)',
-                      border: '1px solid rgba(139, 92, 246, 0.3)',
-                      borderRadius: '12px',
+                      padding: window.innerWidth < 1024 ? '1rem 1.25rem' : '1rem 1.25rem',
+                      background: 'rgba(15, 15, 35, 0.8)',
+                      border: '1px solid rgba(139, 92, 246, 0.4)',
+                      borderRadius: window.innerWidth < 1024 ? '16px' : '12px',
                       color: '#e2e8f0',
-                      fontSize: window.innerWidth < 1024 ? '0.9rem' : '1rem',
+                      fontSize: window.innerWidth < 1024 ? '1rem' : '1rem',
                       outline: 'none',
-                      transition: 'all 0.3s ease'
+                      transition: 'all 0.3s ease',
+                      minHeight: window.innerWidth < 1024 ? '48px' : 'auto',
+                      WebkitAppearance: 'none',
+                      boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.1)'
                     }}
                     onFocus={(e) => {
                       e.target.style.borderColor = 'rgba(139, 92, 246, 0.5)';
@@ -2300,21 +2327,27 @@ export default function Home() {
                     type="submit"
                     disabled={!inputMessage.trim() || isLoading || characterStats.isDead}
                     style={{
-                      padding: window.innerWidth < 1024 ? '0.875rem 1.25rem' : '1rem 1.5rem',
+                      padding: window.innerWidth < 1024 ? '1rem 1.5rem' : '1rem 1.5rem',
                       background: (!inputMessage.trim() || isLoading || characterStats.isDead) 
                         ? 'rgba(55, 65, 81, 0.5)' 
                         : 'linear-gradient(135deg, #8b5cf6, #ec4899)',
                       border: 'none',
-                      borderRadius: '12px',
+                      borderRadius: window.innerWidth < 1024 ? '16px' : '12px',
                       color: 'white',
-                      fontSize: window.innerWidth < 1024 ? '1.1rem' : '1.25rem',
+                      fontSize: window.innerWidth < 1024 ? '1.25rem' : '1.25rem',
                       cursor: (!inputMessage.trim() || isLoading || characterStats.isDead) ? 'not-allowed' : 'pointer',
                       opacity: (!inputMessage.trim() || isLoading || characterStats.isDead) ? 0.5 : 1,
                       transition: 'all 0.3s ease',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      minWidth: '60px'
+                      minWidth: window.innerWidth < 1024 ? '60px' : '60px',
+                      minHeight: window.innerWidth < 1024 ? '48px' : 'auto',
+                      boxShadow: (!inputMessage.trim() || isLoading || characterStats.isDead) 
+                        ? 'none' 
+                        : '0 4px 15px rgba(139, 92, 246, 0.4)',
+                      WebkitAppearance: 'none',
+                      touchAction: 'manipulation'
                     }}
                   >
                     {isLoading ? '⏳' : '🚀'}

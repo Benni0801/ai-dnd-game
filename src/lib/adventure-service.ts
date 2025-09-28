@@ -14,11 +14,13 @@ export const adventureService = {
     }
 
     // Check if session already exists
-    const { data: existingSession, error: checkError } = await getSupabase()
+    const { data: existingSessions, error: checkError } = await getSupabase()
       .from('story_sessions')
       .select('*')
       .eq('character_id', characterId)
-      .single();
+      .limit(1);
+
+    const existingSession = existingSessions && existingSessions.length > 0 ? existingSessions[0] : null;
 
     if (existingSession) {
       // Update existing session
@@ -99,19 +101,20 @@ export const adventureService = {
       .from('story_sessions')
       .select('*')
       .eq('character_id', characterId)
-      .single();
+      .limit(1);
 
     console.log('Session loaded:', data);
     console.log('Load error:', error);
 
-    if (error && error.code !== 'PGRST116') {
-      throw error;
+    if (error) {
+      console.log('Error loading session:', error);
+      return null;
     }
 
-    if (data) {
+    if (data && data.length > 0) {
       return {
-        ...data,
-        session_data: JSON.parse(data.session_data || '{}')
+        ...data[0],
+        session_data: JSON.parse(data[0].session_data || '{}')
       };
     }
 
