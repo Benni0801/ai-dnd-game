@@ -52,7 +52,7 @@ export default function Home() {
     inventory: 'Basic equipment'
   });
 
-  const [activeTab, setActiveTab] = useState<'chat' | 'character' | 'inventory' | 'combat'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'character' | 'inventory' | 'combat' | 'actions'>('chat');
   const [diceRolling, setDiceRolling] = useState(false);
   const [inventory, setInventory] = useState<any[]>([
     {
@@ -281,6 +281,40 @@ export default function Home() {
       }
     }
   };
+
+  // Keyboard shortcuts for better PC navigation
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Only handle shortcuts when not typing in input fields
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // Ctrl/Cmd + number keys for tab switching
+      if ((event.ctrlKey || event.metaKey) && event.key >= '1' && event.key <= '5') {
+        event.preventDefault();
+        const tabIndex = parseInt(event.key) - 1;
+        const tabs = ['chat', 'character', 'inventory', 'combat', 'actions'];
+        if (tabs[tabIndex]) {
+          setActiveTab(tabs[tabIndex] as any);
+        }
+      }
+
+      // Ctrl/Cmd + S for save
+      if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        event.preventDefault();
+        saveAdventure();
+      }
+
+      // Escape to go back to chat
+      if (event.key === 'Escape') {
+        setActiveTab('chat');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [saveAdventure]);
 
   // Scroll to bottom when loading state changes
   useEffect(() => {
@@ -1395,22 +1429,40 @@ export default function Home() {
             }}>
               ⚔️ AI D&D
             </h1>
-            <button
-              onClick={() => setShowCharacterCreation(true)}
-              style={{
-                padding: '0.5rem 1rem',
-                background: 'rgba(139, 92, 246, 0.1)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                borderRadius: '8px',
-                color: '#a78bfa',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              ✏️ Edit
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={saveAdventure}
+                style={{
+                  padding: '0.5rem 0.75rem',
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                💾 Save
+              </button>
+              <button
+                onClick={() => setShowCharacterCreation(true)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: 'rgba(139, 92, 246, 0.1)',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  borderRadius: '8px',
+                  color: '#a78bfa',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                ✏️ Edit
+              </button>
+            </div>
           </div>
           
           {/* Character Info Mobile */}
@@ -1577,7 +1629,7 @@ export default function Home() {
                 Playing as {characterStats.name} the {characterStats.race} {characterStats.class}
               </p>
               
-              {/* Save Button */}
+              {/* Save Button and Keyboard Shortcuts */}
               <div style={{ textAlign: 'center' }}>
                 <button
                   onClick={saveAdventure}
@@ -1607,6 +1659,16 @@ export default function Home() {
                 >
                   💾 Save Adventure
                 </button>
+                
+                {/* Keyboard Shortcuts Help */}
+                <div style={{ 
+                  marginTop: '0.5rem', 
+                  fontSize: '0.7rem', 
+                  color: '#64748b',
+                  lineHeight: '1.2'
+                }}>
+                  <div>⌨️ Shortcuts: Ctrl+1-5 (tabs), Ctrl+S (save), Esc (chat)</div>
+                </div>
               </div>
             </div>
 
@@ -1692,7 +1754,8 @@ export default function Home() {
                   { id: 'chat', label: '💬 Chat' },
                   { id: 'character', label: '📈 Stats' },
                   { id: 'inventory', label: '🎒 Items' },
-                  { id: 'combat', label: '⚔️ Combat' }
+                  { id: 'combat', label: '⚔️ Combat' },
+                  { id: 'actions', label: '📋 Actions' }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -1747,6 +1810,14 @@ export default function Home() {
                   onCombatEnd={handleCombatEnd}
                 />
               )}
+              
+              {/* Action Log for Mobile */}
+              {activeTab === 'actions' && (
+                <ActionLog 
+                  entries={actionLog} 
+                  onClear={() => setActionLog([])}
+                />
+              )}
             </div>
 
             {/* Messages */}
@@ -1754,9 +1825,10 @@ export default function Home() {
               ref={messagesContainerRef}
               style={{ 
                 flex: 1,
-                padding: '1rem',
+                padding: window.innerWidth < 1024 ? '0.5rem' : '1rem',
                 overflowY: 'auto',
-                maxHeight: 'calc(100vh - 300px)'
+                maxHeight: window.innerWidth < 1024 ? 'calc(100vh - 200px)' : 'calc(100vh - 300px)',
+                WebkitOverflowScrolling: 'touch' // Smooth scrolling on iOS
               }}
               onScroll={handleScroll}
             >
@@ -2008,12 +2080,12 @@ export default function Home() {
                     disabled={isLoading}
                     style={{
                       flex: 1,
-                      padding: '1rem 1.25rem',
+                      padding: window.innerWidth < 1024 ? '0.875rem 1rem' : '1rem 1.25rem',
                       background: 'rgba(15, 15, 35, 0.6)',
                       border: '1px solid rgba(139, 92, 246, 0.3)',
                       borderRadius: '12px',
                       color: '#e2e8f0',
-                      fontSize: '1rem',
+                      fontSize: window.innerWidth < 1024 ? '0.9rem' : '1rem',
                       outline: 'none',
                       transition: 'all 0.3s ease'
                     }}
@@ -2030,14 +2102,14 @@ export default function Home() {
                     type="submit"
                     disabled={!inputMessage.trim() || isLoading}
                     style={{
-                      padding: '1rem 1.5rem',
+                      padding: window.innerWidth < 1024 ? '0.875rem 1.25rem' : '1rem 1.5rem',
                       background: (!inputMessage.trim() || isLoading) 
                         ? 'rgba(55, 65, 81, 0.5)' 
                         : 'linear-gradient(135deg, #8b5cf6, #ec4899)',
                       border: 'none',
                       borderRadius: '12px',
                       color: 'white',
-                      fontSize: '1.25rem',
+                      fontSize: window.innerWidth < 1024 ? '1.1rem' : '1.25rem',
                       cursor: (!inputMessage.trim() || isLoading) ? 'not-allowed' : 'pointer',
                       opacity: (!inputMessage.trim() || isLoading) ? 0.5 : 1,
                       transition: 'all 0.3s ease',
@@ -2054,11 +2126,11 @@ export default function Home() {
             </div>
               </div>
 
-              {/* Action Log */}
+              {/* Action Log - Desktop */}
               <div style={{ width: '300px', display: window.innerWidth >= 1024 ? 'block' : 'none' }}>
                 <ActionLog 
                   entries={actionLog} 
-                  onClear={() => setActionLog([])} 
+                  onClear={() => setActionLog([])}
                 />
               </div>
             </div>
