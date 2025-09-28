@@ -40,6 +40,7 @@ export interface CharacterStats {
   goals?: string;
   fears?: string;
   imageUrl?: string;
+  isDead?: boolean; // Add death state
 }
 
 export interface Message {

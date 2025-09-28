@@ -668,11 +668,20 @@ When running combat, you MUST:
             console.log('Final statChanges object:', statChanges);
           } catch (error) {
             console.error('Failed to parse stats:', match, 'Error:', error);
+            console.error('Raw match:', match);
+            console.error('Stats JSON string:', match.replace(/\[STATS:(.+)\]/, '$1'));
           }
         }
       } else {
         console.log('No stats matches found in response');
         console.log('AI response for stats debugging:', aiResponse);
+        console.log('Looking for patterns in response:', {
+          hasStatsBracket: aiResponse.includes('[STATS:'),
+          hasHpPlus: aiResponse.includes('"hp":+'),
+          hasHpMinus: aiResponse.includes('"hp":-'),
+          hasHpNumber: aiResponse.includes('"hp":'),
+          fullResponse: aiResponse
+        });
       }
       
       // Remove item and stats markers from the response text
@@ -694,8 +703,14 @@ When running combat, you MUST:
           }, { status: 500 });
     }
 
+    console.log('Final API response:', {
+      response: aiResponse,
+      items: items.length,
+      statChanges: Object.keys(statChanges).length > 0 ? statChanges : 'none'
+    });
+
     return NextResponse.json({
-      message: aiResponse,
+      response: aiResponse,
       items: items,
       statChanges: statChanges,
       usage: { total_tokens: 0 },

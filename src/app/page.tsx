@@ -8,7 +8,7 @@ import ActionLog from '../components/ActionLog';
 
 interface ActionLogEntry {
   id: string;
-  type: 'damage' | 'heal' | 'xp' | 'level' | 'item' | 'stat' | 'gold';
+  type: 'damage' | 'heal' | 'xp' | 'level' | 'item' | 'stat' | 'gold' | 'death';
   message: string;
   timestamp: Date;
   icon: string;
@@ -50,7 +50,8 @@ export default function Home() {
     skills: [],
     abilities: [],
     spells: [],
-    inventory: 'Basic equipment'
+    inventory: 'Basic equipment',
+    isDead: false // Add death state
   });
 
   const [activeTab, setActiveTab] = useState<'chat' | 'character' | 'inventory' | 'combat' | 'actions'>('chat');
@@ -724,6 +725,18 @@ export default function Home() {
   const handleSendMessage = async (message: string) => {
     if (!message.trim() || isLoading) return;
 
+    // Check if character is dead
+    if (characterStats.isDead) {
+      const deathMessage: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `${characterStats.name} is dead and cannot take any actions. The adventure has ended.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, deathMessage]);
+      return;
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -838,6 +851,8 @@ export default function Home() {
       // Handle stat changes from AI response
       if (data.statChanges && Object.keys(data.statChanges).length > 0) {
         console.log('Processing stat changes:', data.statChanges);
+        console.log('Current HP before change:', characterStats.hp);
+        console.log('Stat changes received:', JSON.stringify(data.statChanges, null, 2));
         
         setCharacterStats(prev => {
           const updatedStats = { ...prev };
@@ -853,9 +868,17 @@ export default function Home() {
                 // For negative HP, subtract from current
                 updatedStats.hp = Math.max(0, (updatedStats.hp || 0) + value);
                 addActionLogEntry('damage', `Lost ${Math.abs(value)} HP`, '💔');
+                
+                // Check for death
+                if (updatedStats.hp === 0 && !updatedStats.isDead) {
+                  updatedStats.isDead = true;
+                  addActionLogEntry('death', 'Character has died!', '💀');
+                }
               } else if (stat === 'hp' && value > 0) {
                 // Add HP but don't exceed maxHp
+                const oldHp = updatedStats.hp || 0;
                 updatedStats.hp = Math.min((updatedStats.hp || 0) + value, updatedStats.maxHp || 20);
+                console.log(`HP healing: ${oldHp} + ${value} = ${updatedStats.hp} (max: ${updatedStats.maxHp || 20})`);
                 addActionLogEntry('heal', `Gained ${value} HP`, '❤️');
               } else if (stat === 'maxHp') {
                 updatedStats.maxHp = value;
@@ -1791,7 +1814,13 @@ export default function Home() {
                 </h1>
               </div>
               <p style={{ color: '#94a3b8', margin: 0, textAlign: 'center', marginBottom: '1rem' }}>
-                Playing as {characterStats.name} the {characterStats.race} {characterStats.class}
+                {characterStats.isDead ? (
+                  <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
+                    💀 {characterStats.name} is DEAD 💀
+                  </span>
+                ) : (
+                  `Playing as ${characterStats.name} the ${characterStats.race} ${characterStats.class}`
+                )}
               </p>
               
               {/* Save Button and Keyboard Shortcuts */}
@@ -2242,7 +2271,7 @@ export default function Home() {
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     placeholder="What would you like to do, adventurer?"
-                    disabled={isLoading}
+                    disabled={isLoading || characterStats.isDead}
                     style={{
                       flex: 1,
                       padding: window.innerWidth < 1024 ? '0.875rem 1rem' : '1rem 1.25rem',
@@ -2265,18 +2294,18 @@ export default function Home() {
                   />
                   <button
                     type="submit"
-                    disabled={!inputMessage.trim() || isLoading}
+                    disabled={!inputMessage.trim() || isLoading || characterStats.isDead}
                     style={{
                       padding: window.innerWidth < 1024 ? '0.875rem 1.25rem' : '1rem 1.5rem',
-                      background: (!inputMessage.trim() || isLoading) 
+                      background: (!inputMessage.trim() || isLoading || characterStats.isDead) 
                         ? 'rgba(55, 65, 81, 0.5)' 
                         : 'linear-gradient(135deg, #8b5cf6, #ec4899)',
                       border: 'none',
                       borderRadius: '12px',
                       color: 'white',
                       fontSize: window.innerWidth < 1024 ? '1.1rem' : '1.25rem',
-                      cursor: (!inputMessage.trim() || isLoading) ? 'not-allowed' : 'pointer',
-                      opacity: (!inputMessage.trim() || isLoading) ? 0.5 : 1,
+                      cursor: (!inputMessage.trim() || isLoading || characterStats.isDead) ? 'not-allowed' : 'pointer',
+                      opacity: (!inputMessage.trim() || isLoading || characterStats.isDead) ? 0.5 : 1,
                       transition: 'all 0.3s ease',
                       display: 'flex',
                       alignItems: 'center',
