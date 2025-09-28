@@ -69,8 +69,14 @@ export default function HomePage({ onStartGame, onLogin, onContinueGame, hasActi
 
   const handleStartGame = () => {
     console.log('Start game button clicked!');
-    setAuthMode('register');
-    setShowAuthModal(true);
+    if (user) {
+      // User is logged in, call parent's onStartGame function
+      onStartGame();
+    } else {
+      // User is not logged in, show auth modal
+      setAuthMode('register');
+      setShowAuthModal(true);
+    }
   };
 
   const handleLogin = () => {

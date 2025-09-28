@@ -346,8 +346,19 @@ export default function Home() {
   };
 
   const handleStartGame = () => {
-    // This will be handled by the HomePage component's modal
-    console.log('Start game clicked - handled by HomePage modal');
+    console.log('Start game clicked');
+    if (user) {
+      // User is logged in, go directly to game mode selector
+      setShowHomePage(false);
+      setShowGameModeSelector(true);
+      setShowCharacterSelector(false);
+      setShowCharacterCreation(false);
+      setShowMultiplayerLobby(false);
+      setShowMultiplayerGameRoom(false);
+    } else {
+      // User is not logged in, this will be handled by the HomePage component's modal
+      console.log('User not logged in - handled by HomePage modal');
+    }
   };
 
   const handleHomeLogin = () => {
