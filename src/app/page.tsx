@@ -922,13 +922,17 @@ export default function Home() {
         console.log('No stat changes received from AI');
       }
 
+      console.log('Creating AI message with content:', data.response || data.message);
+      console.log('Available data fields:', Object.keys(data));
+      
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.message,
+        content: data.response || data.message,
         timestamp: new Date()
       };
 
+      console.log('AI message created:', aiMessage);
       setMessages(prev => [...prev, aiMessage]);
 
     } catch (error: any) {
