@@ -150,6 +150,7 @@ export default function Home() {
           const sessionData = {
             messages,
             characterStats,
+            inventory,
             lastSaved: new Date().toISOString()
           };
           
@@ -164,7 +165,7 @@ export default function Home() {
       const timeoutId = setTimeout(saveSession, 2000);
       return () => clearTimeout(timeoutId);
     }
-  }, [messages, characterStats, user, selectedCharacter]);
+  }, [messages, characterStats, inventory, user, selectedCharacter]);
 
   // Scroll to bottom when loading state changes
   useEffect(() => {
@@ -286,6 +287,10 @@ export default function Home() {
         }
         if (session.session_data.characterStats) {
           setCharacterStats(prev => ({ ...prev, ...session.session_data.characterStats }));
+        }
+        if (session.session_data.inventory) {
+          console.log('Loading saved inventory:', session.session_data.inventory);
+          setInventory(session.session_data.inventory);
         }
       }
     } catch (error) {
