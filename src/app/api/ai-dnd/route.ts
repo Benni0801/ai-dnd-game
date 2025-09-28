@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
     console.log('AI API: Request received');
     const body = await request.json();
     console.log('AI API: Body parsed:', { messages: body.messages?.length, characterStats: !!body.characterStats });
-    const { messages, characterStats } = body || {};
+    const { messages, characterStats, onDiceRoll } = body || {};
 
     // Check for API key - if not available, use fallback responses
     const apiKey = process.env.GOOGLE_API_KEY;
@@ -14,9 +14,35 @@ export async function POST(request: NextRequest) {
     if (!apiKey || apiKey === 'placeholder-key') {
       console.log('ERROR: No API key found or using placeholder');
       
+      // Check for dice roll triggers in the last message
+      const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
+      let diceRoll = null;
+      let response = 'Hello! I am your AI Dungeon Master. I see you\'re in a multiplayer session! What adventure shall we embark on today?';
+      
+      // Trigger dice rolls based on player actions
+      if (lastMessage.includes('climb') || lastMessage.includes('jump') || lastMessage.includes('stealth')) {
+        diceRoll = '1d20';
+        response = 'You attempt to perform that action. Let me roll for your check...';
+      } else if (lastMessage.includes('persuade') || lastMessage.includes('convince') || lastMessage.includes('charm')) {
+        diceRoll = '1d20';
+        response = 'You try to persuade them. Let me roll for your Persuasion check...';
+      } else if (lastMessage.includes('intimidate') || lastMessage.includes('threaten')) {
+        diceRoll = '1d20';
+        response = 'You attempt to intimidate your target. Let me roll for your Intimidation check...';
+      } else if (lastMessage.includes('investigate') || lastMessage.includes('search') || lastMessage.includes('examine')) {
+        diceRoll = '1d20';
+        response = 'You carefully investigate the area. Let me roll for your Investigation check...';
+      } else if (lastMessage.includes('perception') || lastMessage.includes('notice') || lastMessage.includes('spot')) {
+        diceRoll = '1d20';
+        response = 'You try to notice details around you. Let me roll for your Perception check...';
+      } else if (lastMessage.includes('attack') || lastMessage.includes('fight') || lastMessage.includes('strike')) {
+        diceRoll = '1d20';
+        response = 'You attack! Let me roll for your attack...';
+      }
+      
       return NextResponse.json({
-        response: 'Hello! I am your AI Dungeon Master. I see you\'re in a multiplayer session! What adventure shall we embark on today?',
-        debug: 'Using fallback response - API key not configured'
+        response,
+        ...(diceRoll && { diceRoll })
       });
     }
 

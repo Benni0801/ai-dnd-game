@@ -52,7 +52,7 @@ export default function Home() {
     inventory: 'Basic equipment'
   });
 
-  const [activeTab, setActiveTab] = useState<'chat' | 'character' | 'inventory' | 'combat' | 'dice'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'character' | 'inventory' | 'combat'>('chat');
   const [inventory, setInventory] = useState<any[]>([
     {
       id: '1',
@@ -386,7 +386,46 @@ export default function Home() {
     const diceMessage: Message = {
       id: Date.now().toString(),
       role: 'assistant',
-      content: `🎲 You rolled: [${rollText}] = ${total}`,
+      content: `🎲 The Dungeon Master rolls: [${rollText}] = ${total}`,
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, diceMessage]);
+  };
+
+  // AI-triggered dice rolling function
+  const handleAIDiceRoll = (diceString: string) => {
+    // Parse dice string like "1d20" or "2d6+3"
+    const match = diceString.match(/(\d+)d(\d+)([+-]\d+)?/);
+    if (!match) return;
+
+    const numDice = parseInt(match[1]);
+    const dieSize = parseInt(match[2]);
+    const modifier = match[3] ? parseInt(match[3]) : 0;
+
+    const results: any[] = [];
+    for (let i = 0; i < numDice; i++) {
+      const value = Math.floor(Math.random() * dieSize) + 1;
+      const isCritical = value === dieSize;
+      const isFumble = value === 1;
+      
+      results.push({
+        id: `${Date.now()}-${i}`,
+        type: `d${dieSize}`,
+        value,
+        maxValue: dieSize,
+        isCritical,
+        isFumble
+      });
+    }
+
+    const rollText = results.map(r => `${r.value}${r.isCritical ? ' (Critical!)' : r.isFumble ? ' (Fumble!)' : ''}`).join(', ');
+    const total = results.reduce((sum, r) => sum + r.value, 0) + modifier;
+    
+    const diceMessage: Message = {
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: `🎲 The Dungeon Master rolls ${diceString}: [${rollText}]${modifier !== 0 ? ` + ${modifier}` : ''} = ${total}`,
       timestamp: new Date()
     };
     
@@ -460,7 +499,8 @@ export default function Home() {
         },
         body: JSON.stringify({
           messages: [...messages, userMessage],
-          characterStats
+          characterStats,
+          onDiceRoll: 'handleAIDiceRoll' // Signal to AI that dice rolling is available
         }),
       });
 
@@ -478,6 +518,11 @@ export default function Home() {
       console.log('AI response data:', data);
       console.log('Items from AI:', data.items);
       console.log('Stat changes from AI:', data.statChanges);
+      
+      // Check if AI wants to roll dice
+      if (data.diceRoll) {
+        handleAIDiceRoll(data.diceRoll);
+      }
       
       if (data.items && data.items.length > 0) {
         console.log('Processing items:', data.items);
@@ -504,6 +549,12 @@ export default function Home() {
         addItemsToInventory();
       } else {
         console.log('No items received from AI');
+      }
+
+      // Handle dice rolling from AI response
+      if (data.diceRoll) {
+        console.log('AI wants to roll dice:', data.diceRoll);
+        handleAIDiceRoll(data.diceRoll);
       }
 
       // Handle stat changes from AI response
@@ -1329,6 +1380,20 @@ export default function Home() {
               </button>
             </div>
 
+            {/* Character Stats - Always Visible */}
+            <div style={{
+              background: 'rgba(26, 26, 46, 0.8)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+              borderRadius: '16px',
+              padding: '1.5rem'
+            }}>
+              <CharacterProgression
+                characterStats={characterStats}
+                onStatsUpdate={(stats) => setCharacterStats(prev => ({ ...prev, ...stats }))}
+              />
+            </div>
+
             {/* Tab Navigation */}
             <div style={{
               background: 'rgba(26, 26, 46, 0.8)',
@@ -1342,8 +1407,7 @@ export default function Home() {
                   { id: 'chat', label: '💬 Chat', icon: '💬' },
                   { id: 'character', label: '📈 Stats', icon: '📈' },
                   { id: 'inventory', label: '🎒 Items', icon: '🎒' },
-                  { id: 'combat', label: '⚔️ Combat', icon: '⚔️' },
-                  { id: 'dice', label: '🎲 Dice', icon: '🎲' }
+                  { id: 'combat', label: '⚔️ Combat', icon: '⚔️' }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -1397,11 +1461,6 @@ export default function Home() {
                 <CombatSystem
                   characterStats={characterStats}
                   onCombatEnd={handleCombatEnd}
-                />
-              )}
-              {activeTab === 'dice' && (
-                <AdvancedDiceRoller
-                  onRollComplete={handleDiceRoll}
                 />
               )}
             </div>
@@ -1511,11 +1570,6 @@ export default function Home() {
                 <CombatSystem
                   characterStats={characterStats}
                   onCombatEnd={handleCombatEnd}
-                />
-              )}
-              {activeTab === 'dice' && (
-                <AdvancedDiceRoller
-                  onRollComplete={handleDiceRoll}
                 />
               )}
             </div>

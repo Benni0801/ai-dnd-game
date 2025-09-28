@@ -90,3 +90,4 @@ UNION ALL
 SELECT 'room_players' as table_name, count(*) as row_count FROM room_players
 UNION ALL
 SELECT 'room_messages' as table_name, count(*) as row_count FROM room_messages;
+

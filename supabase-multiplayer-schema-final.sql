@@ -184,3 +184,4 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trigger_game_rooms_updated_at
     BEFORE UPDATE ON game_rooms
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+

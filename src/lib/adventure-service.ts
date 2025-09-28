@@ -132,3 +132,4 @@ export const adventureService = {
     if (error) throw error;
   }
 };
+

@@ -1,7 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { GameNote } from '../types';
+
+interface GameNote {
+  id: string;
+  content: string;
+  category: 'general' | 'quest' | 'npc' | 'location' | 'loot';
+  createdAt: Date;
+}
 
 interface SimpleGameNotesProps {
   className?: string;
@@ -39,7 +45,6 @@ const SimpleGameNotes: React.FC<SimpleGameNotesProps> = ({ className = '' }) => 
 
     const note: GameNote = {
       id: Date.now().toString(),
-      sessionId: 'local-session', // Simple local session for browser-only notes
       content: newNote.trim(),
       category: selectedCategory,
       createdAt: new Date()

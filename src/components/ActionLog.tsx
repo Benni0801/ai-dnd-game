@@ -98,3 +98,4 @@ const ActionLog: React.FC<ActionLogProps> = ({ entries, onClear }) => {
 };
 
 export default ActionLog;
+

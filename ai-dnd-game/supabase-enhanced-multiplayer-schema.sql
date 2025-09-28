@@ -85,3 +85,4 @@ UNION ALL
 SELECT 'adventure_queue' as table_name, count(*) as row_count FROM adventure_queue
 UNION ALL
 SELECT 'team_chat_messages' as table_name, count(*) as row_count FROM team_chat_messages;
+
