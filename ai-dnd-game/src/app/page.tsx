@@ -1,4 +1,27 @@
+'use client'
+
+import { useState } from 'react'
+import AICharacterCreation from '../components/AICharacterCreation'
+
 export default function Home() {
+  const [showAICharacterCreation, setShowAICharacterCreation] = useState(false)
+
+  const handleCharacterComplete = (characterData: any) => {
+    console.log('Character created:', characterData)
+    // Here you would typically save the character and navigate to the game
+    alert(`Character created successfully! ${characterData.name} is ready for adventure!`)
+    setShowAICharacterCreation(false)
+  }
+
+  if (showAICharacterCreation) {
+    return (
+      <AICharacterCreation
+        onComplete={handleCharacterComplete}
+        onCancel={() => setShowAICharacterCreation(false)}
+      />
+    )
+  }
+
   return (
     <div style={{ 
       minHeight: '100vh', 
@@ -20,13 +43,39 @@ export default function Home() {
           padding: '2rem', 
           background: 'rgba(139, 92, 246, 0.1)', 
           borderRadius: '12px',
-          border: '1px solid rgba(139, 92, 246, 0.3)'
+          border: '1px solid rgba(139, 92, 246, 0.3)',
+          marginBottom: '2rem'
         }}>
-          <p>🚧 Application is being restored...</p>
+          <p>🎮 Ready to create your character?</p>
           <p style={{ marginTop: '1rem', fontSize: '0.9rem', opacity: 0.7 }}>
-            The game files are being rebuilt. Please wait a moment.
+            Let our AI Dungeon Master help you build the perfect hero!
           </p>
         </div>
+        <button
+          onClick={() => setShowAICharacterCreation(true)}
+          style={{
+            padding: '1rem 2rem',
+            background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+            border: '1px solid rgba(139, 92, 246, 0.3)',
+            borderRadius: '12px',
+            color: 'white',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)'
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(139, 92, 246, 0.4)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)'
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.3)'
+          }}
+        >
+          🤖 Create Character with AI
+        </button>
       </div>
     </div>
   )
