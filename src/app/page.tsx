@@ -443,6 +443,7 @@ export default function Home() {
       // Handle items from AI response
       console.log('AI response data:', data);
       console.log('Items from AI:', data.items);
+      console.log('Stat changes from AI:', data.statChanges);
       
       if (data.items && data.items.length > 0) {
         console.log('Processing items:', data.items);
@@ -476,6 +477,79 @@ export default function Home() {
         addItemsToInventory();
       } else {
         console.log('No items received from AI');
+      }
+
+      // Handle stat changes from AI response
+      if (data.statChanges && Object.keys(data.statChanges).length > 0) {
+        console.log('Processing stat changes:', data.statChanges);
+        
+        setCharacterStats(prev => {
+          const updatedStats = { ...prev };
+          
+          // Apply each stat change
+          for (const [stat, value] of Object.entries(data.statChanges)) {
+            if (typeof value === 'number') {
+              if (stat === 'xp' && value > 0) {
+                // For XP, add to current value
+                updatedStats.xp = (updatedStats.xp || 0) + value;
+              } else if (stat === 'hp' && value < 0) {
+                // For negative HP, subtract from current
+                updatedStats.hp = Math.max(0, (updatedStats.hp || 0) + value);
+              } else if (stat === 'hp') {
+                updatedStats.hp = value;
+              } else if (stat === 'maxHp') {
+                updatedStats.maxHp = value;
+              } else if (stat === 'level') {
+                updatedStats.level = value;
+              } else if (stat === 'str') {
+                updatedStats.str = value;
+              } else if (stat === 'dex') {
+                updatedStats.dex = value;
+              } else if (stat === 'con') {
+                updatedStats.con = value;
+              } else if (stat === 'int') {
+                updatedStats.int = value;
+              } else if (stat === 'wis') {
+                updatedStats.wis = value;
+              } else if (stat === 'cha') {
+                updatedStats.cha = value;
+              }
+            }
+          }
+          
+          console.log('Updated character stats:', updatedStats);
+          return updatedStats;
+        });
+        
+        // Add a notification message about stat changes
+        const statMessages = [];
+        for (const [stat, value] of Object.entries(data.statChanges)) {
+          if (typeof value === 'number') {
+            if (stat === 'hp' && value < 0) {
+              statMessages.push(`💔 Lost ${Math.abs(value)} HP`);
+            } else if (stat === 'hp' && value > 0) {
+              statMessages.push(`❤️ Gained ${value} HP`);
+            } else if (stat === 'xp' && value > 0) {
+              statMessages.push(`⭐ Gained ${value} XP`);
+            } else if (stat === 'level' && value > 0) {
+              statMessages.push(`🎉 Leveled up to ${value}!`);
+            } else if (stat === 'maxHp' && value > 0) {
+              statMessages.push(`💪 Max HP increased to ${value}`);
+            }
+          }
+        }
+        
+        if (statMessages.length > 0) {
+          const statMessage: Message = {
+            id: (Date.now() + 0.3).toString(),
+            content: statMessages.join(', '),
+            role: 'assistant',
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, statMessage]);
+        }
+      } else {
+        console.log('No stat changes received from AI');
       }
 
       const aiMessage: Message = {

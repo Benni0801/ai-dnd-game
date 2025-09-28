@@ -155,6 +155,25 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
 - Provide detailed descriptions and immersive roleplay
 - Respond as GAL for meta-game communication, as NPCs for in-game interactions
 
+**CHARACTER STAT CONTROL:**
+As the Dungeon Master, you have full control over the player's character stats. Use these special commands to modify character stats:
+
+[STATS:{"hp":20,"maxHp":25,"xp":150,"level":2,"str":14,"dex":12,"con":16,"int":10,"wis":13,"cha":11}]
+
+You can modify any of these stats:
+- hp: Current hit points
+- maxHp: Maximum hit points  
+- xp: Experience points
+- level: Character level
+- str, dex, con, int, wis, cha: Ability scores
+
+Examples:
+- [STATS:{"hp":15}] - Set HP to 15
+- [STATS:{"xp":200}] - Add XP (will be added to current)
+- [STATS:{"hp":-5}] - Reduce HP by 5 (damage)
+- [STATS:{"maxHp":30}] - Increase max HP
+- [STATS:{"level":3,"xp":0}] - Level up and reset XP
+
 **FINAL REMINDER - ITEM FORMAT IS MANDATORY:**
 When you mention ANY item being given to the player, you MUST include the [ITEM:{"name":"Item Name","type":"weapon","rarity":"common","value":10,"weight":1,"quantity":1}] format in your response. Do not just describe items in text - use the structured format!`;
 
@@ -318,8 +337,10 @@ When you mention ANY item being given to the player, you MUST include the [ITEM:
       console.log('AI response contains [ITEM: markers:', aiResponse.includes('[ITEM:'));
     }
 
-    // Parse items from the response
+    // Parse items and stats from the response
     const items: any[] = [];
+    const statChanges: any = {};
+    
     if (aiResponse) {
       // Look for complete [ITEM:...] blocks
       const itemMatches = aiResponse.match(/\[ITEM:([^\]]+)\]/g);
@@ -382,8 +403,29 @@ When you mention ANY item being given to the player, you MUST include the [ITEM:
         console.log('No item matches found in response');
       }
       
-      // Remove item markers from the response text
-      aiResponse = aiResponse.replace(/\[ITEM:[^\]]+\]/g, '').trim();
+      // Look for [STATS:...] blocks
+      const statsMatches = aiResponse.match(/\[STATS:([^\]]+)\]/g);
+      if (statsMatches) {
+        console.log('Found stats matches:', statsMatches);
+        for (const match of statsMatches) {
+          try {
+            const statsJson = match.replace(/\[STATS:(.+)\]/, '$1');
+            console.log('Attempting to parse stats JSON:', statsJson);
+            const stats = JSON.parse(statsJson);
+            
+            // Merge stats changes
+            Object.assign(statChanges, stats);
+            console.log('Successfully parsed stats:', stats);
+          } catch (error) {
+            console.error('Failed to parse stats:', match, 'Error:', error);
+          }
+        }
+      } else {
+        console.log('No stats matches found in response');
+      }
+      
+      // Remove item and stats markers from the response text
+      aiResponse = aiResponse.replace(/\[ITEM:[^\]]+\]/g, '').replace(/\[STATS:[^\]]+\]/g, '').trim();
     }
 
         // Check if response is valid
@@ -398,6 +440,7 @@ When you mention ANY item being given to the player, you MUST include the [ITEM:
     return NextResponse.json({
       message: aiResponse,
       items: items,
+      statChanges: statChanges,
       usage: { total_tokens: 0 },
       debug: 'Successfully connected to Gemini API'
     });
