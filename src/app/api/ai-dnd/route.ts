@@ -222,6 +222,13 @@ When giving players ANY items (loot, purchases, rewards, starting equipment), yo
 - [ITEM:{"name":"Iron Sword","type":"weapon","rarity":"common","value":10,"weight":3,"quantity":1}]
 - [ITEM:{"name":"Gold Coins","type":"misc","rarity":"common","value":1,"weight":0.02,"quantity":50}]
 
+**CRITICAL: ONLY use [ITEM:] tags when the PLAYER actually finds, receives, or purchases items!**
+**DO NOT use [ITEM:] tags when:**
+- Describing what NPCs have or what was stolen from others
+- Mentioning items in the environment that aren't given to the player
+- Talking about items that exist in the world but aren't looted
+- Using words like "stolen", "taken", "had", "possessed" in narrative context
+
 **NEVER mention items in text without using [ITEM:] format!**
 **If you say "You receive a sword" - you MUST include [ITEM:{"name":"Sword",...}] in the same message!**
 
@@ -375,6 +382,12 @@ When running combat, you MUST:
 2. When you modify ANY character stat (HP, XP, level, abilities), you MUST include the [STATS:{"hp":-5}] format in your response.
 3. Do not just describe items or stat changes in text - use the structured formats!
 
+**NARRATIVE CONTEXT RULE:**
+- ONLY use [ITEM:] tags when the PLAYER directly receives, finds, or purchases items
+- DO NOT use [ITEM:] tags when describing what NPCs have, what was stolen from others, or environmental items
+- If you say "They stole livestock" or "The goblins took our sheep", do NOT add [ITEM:] tags
+- [ITEM:] tags are ONLY for items the PLAYER character receives, not narrative descriptions
+
 **CRITICAL:** If you deal damage, heal, award XP, or change any stat, you MUST use [STATS:] commands!
 
 **AUTOMATIC DAMAGE REMINDER:** Every time you mention the player taking damage from ANY source (enemies, traps, falls, spells, environmental hazards, etc.), you MUST include a [STATS:{"hp":-X}] command in the same response!
@@ -446,7 +459,7 @@ When running combat, you MUST:
         }],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 1000,
+          maxOutputTokens: 2048,
           topP: 0.8,
           topK: 40
         }
