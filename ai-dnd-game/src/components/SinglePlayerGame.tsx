@@ -22,19 +22,32 @@ interface CharacterData {
 }
 
 interface SinglePlayerGameProps {
-  character: CharacterData
+  character?: CharacterData
   onBack: () => void
 }
 
 export default function SinglePlayerGame({ character, onBack }: SinglePlayerGameProps) {
-  const [messages, setMessages] = useState<Message[]>([
+  const [showCharacterCreation, setShowCharacterCreation] = useState(!character)
+  const [characterData, setCharacterData] = useState<CharacterData>(character || {
+    name: '',
+    race: '',
+    class: '',
+    background: '',
+    alignment: '',
+    personality: '',
+    backstory: '',
+    appearance: '',
+    goals: ''
+  })
+
+  const [messages, setMessages] = useState<Message[]>(character ? [
     {
       id: '1',
       type: 'ai',
       content: `Welcome, ${character.name || 'adventurer'}! You are a ${character.race || 'mysterious'} ${character.class || 'adventurer'} ready to begin your epic journey. The world awaits your story to unfold. What would you like to do first?`,
       timestamp: new Date()
     }
-  ])
+  ] : [])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -69,7 +82,7 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
         },
         body: JSON.stringify({
           messages: [...messages, userMessage],
-          character: character
+          character: characterData
         })
       })
 
@@ -109,6 +122,280 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
     }
   }
 
+  const handleCharacterSubmit = () => {
+    if (characterData.name && characterData.race && characterData.class) {
+      setShowCharacterCreation(false)
+      setMessages([{
+        id: '1',
+        type: 'ai',
+        content: `Welcome, ${characterData.name}! You are a ${characterData.race} ${characterData.class} ready to begin your epic journey. The world awaits your story to unfold. What would you like to do first?`,
+        timestamp: new Date()
+      }])
+    }
+  }
+
+  if (showCharacterCreation) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #1a1a2e, #16213e)',
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '2rem'
+      }}>
+        <div style={{
+          background: 'rgba(26, 26, 46, 0.8)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(139, 92, 246, 0.3)',
+          borderRadius: '24px',
+          maxWidth: '600px',
+          width: '100%',
+          padding: '3rem',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <h1 style={{
+              fontSize: '2.5rem',
+              fontWeight: 'bold',
+              marginBottom: '1rem',
+              background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              ⚔️ Create Your Character
+            </h1>
+            <p style={{ color: '#94a3b8', fontSize: '1.125rem' }}>
+              Choose your race and class to begin your epic adventure
+            </p>
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {/* Character Name */}
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                marginBottom: '0.75rem',
+                color: '#94a3b8'
+              }}>
+                Character Name
+              </label>
+              <input
+                type="text"
+                value={characterData.name}
+                onChange={(e) => setCharacterData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter your character's name"
+                maxLength={20}
+                style={{
+                  width: '100%',
+                  padding: '1rem 1.25rem',
+                  background: 'rgba(15, 15, 35, 0.6)',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  borderRadius: '12px',
+                  color: '#e2e8f0',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  transition: 'all 0.3s ease'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = 'rgba(139, 92, 246, 0.5)'
+                  e.target.style.background = 'rgba(15, 15, 35, 0.8)'
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)'
+                  e.target.style.background = 'rgba(15, 15, 35, 0.6)'
+                }}
+              />
+            </div>
+            
+            {/* Race and Class Selection */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  marginBottom: '0.75rem',
+                  color: '#94a3b8'
+                }}>
+                  Race
+                </label>
+                <select
+                  value={characterData.race}
+                  onChange={(e) => setCharacterData(prev => ({ ...prev, race: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '1rem 1.25rem',
+                    background: 'rgba(15, 15, 35, 0.6)',
+                    border: '1px solid rgba(139, 92, 246, 0.3)',
+                    borderRadius: '12px',
+                    color: '#e2e8f0',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'rgba(139, 92, 246, 0.5)'
+                    e.target.style.background = 'rgba(15, 15, 35, 0.8)'
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)'
+                    e.target.style.background = 'rgba(15, 15, 35, 0.6)'
+                  }}
+                >
+                  <option value="">Select a race</option>
+                  <option value="Human">Human</option>
+                  <option value="Elf">Elf</option>
+                  <option value="Dwarf">Dwarf</option>
+                  <option value="Halfling">Halfling</option>
+                  <option value="Dragonborn">Dragonborn</option>
+                  <option value="Tiefling">Tiefling</option>
+                </select>
+              </div>
+              
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  marginBottom: '0.75rem',
+                  color: '#94a3b8'
+                }}>
+                  Class
+                </label>
+                <select
+                  value={characterData.class}
+                  onChange={(e) => setCharacterData(prev => ({ ...prev, class: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '1rem 1.25rem',
+                    background: 'rgba(15, 15, 35, 0.6)',
+                    border: '1px solid rgba(139, 92, 246, 0.3)',
+                    borderRadius: '12px',
+                    color: '#e2e8f0',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'rgba(139, 92, 246, 0.5)'
+                    e.target.style.background = 'rgba(15, 15, 35, 0.8)'
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'rgba(139, 92, 246, 0.3)'
+                    e.target.style.background = 'rgba(15, 15, 35, 0.6)'
+                  }}
+                >
+                  <option value="">Select a class</option>
+                  <option value="Fighter">Fighter</option>
+                  <option value="Wizard">Wizard</option>
+                  <option value="Rogue">Rogue</option>
+                  <option value="Cleric">Cleric</option>
+                  <option value="Ranger">Ranger</option>
+                  <option value="Paladin">Paladin</option>
+                  <option value="Barbarian">Barbarian</option>
+                  <option value="Bard">Bard</option>
+                </select>
+              </div>
+            </div>
+            
+            {/* Character Preview */}
+            {(characterData.name || characterData.race || characterData.class) && (
+              <div style={{
+                background: 'rgba(15, 15, 35, 0.6)',
+                border: '1px solid rgba(139, 92, 246, 0.2)',
+                borderRadius: '16px',
+                padding: '1.5rem',
+                marginTop: '1rem'
+              }}>
+                <h3 style={{
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  marginBottom: '1rem',
+                  color: '#94a3b8'
+                }}>
+                  Character Preview
+                </h3>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    fontSize: '1.5rem',
+                    fontWeight: 'bold',
+                    color: '#e2e8f0',
+                    marginBottom: '0.5rem'
+                  }}>
+                    {characterData.name || 'Unnamed Hero'}
+                  </div>
+                  <div style={{ color: '#94a3b8', fontSize: '1rem' }}>
+                    {characterData.race || 'Unknown'} {characterData.class || 'Adventurer'}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+              <button
+                onClick={handleCharacterSubmit}
+                disabled={!characterData.name || !characterData.race || !characterData.class}
+                style={{
+                  width: '100%',
+                  padding: '1.25rem 2rem',
+                  background: (!characterData.name || !characterData.race || !characterData.class)
+                    ? 'rgba(55, 65, 81, 0.5)'
+                    : 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  color: 'white',
+                  fontSize: '1.125rem',
+                  fontWeight: '600',
+                  cursor: (!characterData.name || !characterData.race || !characterData.class) ? 'not-allowed' : 'pointer',
+                  opacity: (!characterData.name || !characterData.race || !characterData.class) ? 0.5 : 1,
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <span>🎭</span>
+                Create Character & Start Adventure
+              </button>
+              
+              <button
+                onClick={onBack}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1.5rem',
+                  background: 'rgba(139, 92, 246, 0.1)',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  borderRadius: '8px',
+                  color: '#a78bfa',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'
+                  e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.5)'
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'
+                  e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)'
+                }}
+              >
+                ← Back to Homepage
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -139,7 +426,7 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
             WebkitTextFillColor: 'transparent',
             margin: 0
           }}>
-            ⚔️ {character.name || 'Adventurer'}'s Journey
+            ⚔️ {characterData.name || 'Adventurer'}'s Journey
           </h1>
           <button
             onClick={onBack}
@@ -173,7 +460,7 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', opacity: 0.8 }}>Character:</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {Object.entries(character).map(([key, value]) => (
+            {Object.entries(characterData).map(([key, value]) => (
               <span
                 key={key}
                 style={{

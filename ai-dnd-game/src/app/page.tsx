@@ -1,40 +1,28 @@
 'use client'
 
 import { useState } from 'react'
-import AICharacterCreation from '../components/AICharacterCreation'
 import SinglePlayerGame from '../components/SinglePlayerGame'
 
 export default function Home() {
-  const [showAICharacterCreation, setShowAICharacterCreation] = useState(false)
   const [showSinglePlayerGame, setShowSinglePlayerGame] = useState(false)
   const [createdCharacter, setCreatedCharacter] = useState<any>(null)
 
   const handleCharacterComplete = (characterData: any) => {
     console.log('Character created:', characterData)
     setCreatedCharacter(characterData)
-    setShowAICharacterCreation(false)
     setShowSinglePlayerGame(true)
   }
 
   const handleBackToCharacterCreation = () => {
     setShowSinglePlayerGame(false)
-    setShowAICharacterCreation(true)
+    setCreatedCharacter(null)
   }
 
-  if (showSinglePlayerGame && createdCharacter) {
+  if (showSinglePlayerGame) {
     return (
       <SinglePlayerGame
         character={createdCharacter}
         onBack={handleBackToCharacterCreation}
-      />
-    )
-  }
-
-  if (showAICharacterCreation) {
-    return (
-      <AICharacterCreation
-        onComplete={handleCharacterComplete}
-        onCancel={() => setShowAICharacterCreation(false)}
       />
     )
   }
@@ -69,7 +57,7 @@ export default function Home() {
           </p>
         </div>
         <button
-          onClick={() => setShowAICharacterCreation(true)}
+          onClick={() => setShowSinglePlayerGame(true)}
           style={{
             padding: '1rem 2rem',
             background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
@@ -91,7 +79,7 @@ export default function Home() {
             e.currentTarget.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.3)'
           }}
         >
-          🤖 Create Character with AI
+          ⚔️ Start Adventure
         </button>
       </div>
     </div>
