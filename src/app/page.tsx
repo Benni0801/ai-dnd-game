@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { CharacterStats, Message } from '../types';
+import { CharacterStats, Message } from '../types/index';
 
 interface ActionLogEntry {
   id: string;
@@ -18,6 +18,7 @@ import CharacterProgression from '../components/CharacterProgression';
 import SupabaseAuthModal from '../components/SupabaseAuthModal';
 import SupabaseCharacterSelector from '../components/SupabaseCharacterSelector';
 import HomePage from '../components/HomePage';
+import AICharacterCreation from '../components/AICharacterCreation';
 import { authService, characterService } from '../lib/supabase-auth';
 import { adventureService } from '../lib/adventure-service';
 import MultiplayerLobby from '../components/MultiplayerLobby';
@@ -29,6 +30,7 @@ export default function Home() {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showCharacterCreation, setShowCharacterCreation] = useState(false);
+  const [showAICharacterCreation, setShowAICharacterCreation] = useState(false);
   const [characterStats, setCharacterStats] = useState<CharacterStats>({
     name: '',
     race: '',
@@ -633,6 +635,62 @@ export default function Home() {
     setUserHasChosenMode(false); // Reset choice when going back
   };
 
+  const handleAICreateCharacter = () => {
+    setShowGameModeSelector(false);
+    setShowAICharacterCreation(true);
+    setUserHasChosenMode(true); // Mark that user has chosen a mode
+  };
+
+  const handleAICharacterComplete = async (characterData: any) => {
+    try {
+      // Convert AI character data to our character stats format
+      const newCharacterStats: CharacterStats = {
+        name: characterData.name || 'Unknown',
+        race: characterData.race || 'Human',
+        class: characterData.class || 'Adventurer',
+        level: 1,
+        hp: 10,
+        maxHp: 10,
+        xp: 0,
+        str: 10,
+        dex: 10,
+        con: 10,
+        int: 10,
+        wis: 10,
+        cha: 10,
+        background: characterData.background || 'Adventurer',
+        alignment: characterData.alignment || 'Neutral',
+        personality: characterData.personality || '',
+        backstory: characterData.backstory || '',
+        appearance: characterData.appearance || '',
+        goals: characterData.goals || '',
+        fears: characterData.fears || '',
+        imageUrl: characterData.imageUrl || null,
+        inventory: '[]' // Initialize with empty inventory
+      };
+
+      // Save character to database
+      if (user) {
+        const savedCharacter = await characterService.createCharacter(user.id, newCharacterStats);
+        setSelectedCharacter(savedCharacter);
+      } else {
+        setCharacterStats(newCharacterStats);
+      }
+
+      // Navigate to game
+      setShowAICharacterCreation(false);
+      setShowCharacterCreation(false);
+      setShowGameModeSelector(false);
+      setShowHomePage(false);
+      setShowCharacterSelector(false);
+      setShowMultiplayerLobby(false);
+      setShowMultiplayerGameRoom(false);
+
+    } catch (error) {
+      console.error('Error completing AI character creation:', error);
+    }
+  };
+
   // Show homepage
   if (showHomePage) {
     return (
@@ -663,6 +721,7 @@ export default function Home() {
       <GameModeSelector
         onSinglePlayer={handleSinglePlayer}
         onMultiplayer={handleMultiplayer}
+        onAICreateCharacter={handleAICreateCharacter}
         onBack={handleBackFromGameMode}
         username={user.user_metadata?.username || user.email}
       />
@@ -705,6 +764,16 @@ export default function Home() {
         onCharacterSelect={handleCharacterSelect}
         onNewCharacter={handleNewCharacter}
         onLogout={handleLogout}
+      />
+    );
+  }
+
+  // Show AI Character Creation
+  if (showAICharacterCreation) {
+    return (
+      <AICharacterCreation
+        onComplete={handleAICharacterComplete}
+        onCancel={() => setShowAICharacterCreation(false)}
       />
     );
   }

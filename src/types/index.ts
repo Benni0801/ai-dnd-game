@@ -33,6 +33,12 @@ export interface CharacterStats {
     wis: number;
     cha: number;
   };
+  alignment?: string;
+  personality?: string;
+  appearance?: string;
+  goals?: string;
+  fears?: string;
+  imageUrl?: string;
 }
 
 export interface Message {
