@@ -268,6 +268,29 @@ export default function Home() {
     };
   }, [user, selectedCharacter, messages, characterStats, inventory]);
 
+  // Function to clean up Action Log entries that don't match inventory
+  const cleanupActionLog = () => {
+    setActionLog(prev => {
+      const inventoryItemNames = inventory.map(item => item.name.toLowerCase());
+      return prev.filter(entry => {
+        if (entry.type === 'item' && entry.message.startsWith('Found ')) {
+          const itemName = entry.message.replace('Found ', '').toLowerCase();
+          const hasItem = inventoryItemNames.some(invName => invName.includes(itemName) || itemName.includes(invName));
+          if (!hasItem) {
+            console.log('Removing Action Log entry for item not in inventory:', entry.message);
+            return false;
+          }
+        }
+        return true;
+      });
+    });
+  };
+
+  // Clean up Action Log when inventory changes
+  useEffect(() => {
+    cleanupActionLog();
+  }, [inventory]);
+
   // Manual save function
   const saveAdventure = async () => {
     if (user && selectedCharacter && messages.length > 0) {
@@ -751,8 +774,12 @@ export default function Home() {
         // Filter out items that have already been processed
         const newItems = data.items.filter((item: any) => {
           const itemKey = `${item.name}-${item.type}-${item.rarity}`;
-          return !processedItems.has(itemKey);
+          const isNew = !processedItems.has(itemKey);
+          console.log(`Item ${item.name}: ${isNew ? 'NEW' : 'ALREADY PROCESSED'} (key: ${itemKey})`);
+          return isNew;
         });
+        
+        console.log(`Total items from AI: ${data.items.length}, New items to process: ${newItems.length}`);
         
         if (newItems.length > 0) {
           console.log('New items to process:', newItems);
@@ -772,8 +799,15 @@ export default function Home() {
                 } else {
                   // Add item to inventory
                   console.log('Adding item to inventory:', item);
-                  inventoryRef.current.addItem(item);
-                  addActionLogEntry('item', `Found ${item.name}`, '🎒');
+                  try {
+                    inventoryRef.current.addItem(item);
+                    // Only add to action log if item was successfully added
+                    addActionLogEntry('item', `Found ${item.name}`, '🎒');
+                    console.log('✅ Item successfully added to inventory and logged:', item.name);
+                  } catch (error) {
+                    console.error('❌ Failed to add item to inventory:', item.name, error);
+                    // Don't add to action log if item addition failed
+                  }
                 }
                 
                 // Mark item as processed

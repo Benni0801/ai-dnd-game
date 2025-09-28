@@ -562,51 +562,9 @@ When running combat, you MUST:
             }
           }
         }
-      } else {
-        console.log('No item matches found in current response');
-        
-        // Fallback: Try to detect items mentioned in the current response text only
-        const itemKeywords = [
-          'ring', 'sword', 'dagger', 'potion', 'coin', 'gold', 'silver', 'gem', 'scroll', 'pouch', 'bag',
-          'armor', 'shield', 'helmet', 'boots', 'gloves', 'amulet', 'necklace', 'bracelet', 'crown',
-          'key', 'lockpick', 'rope', 'torch', 'lantern', 'food', 'water', 'bread', 'meat', 'cheese',
-          'book', 'map', 'compass', 'spyglass', 'telescope', 'magnifying glass', 'ink', 'quill', 'paper'
-        ];
-        
-        const foundItems: any[] = [];
-        const lowerResponse = aiResponse.toLowerCase();
-        
-        for (const keyword of itemKeywords) {
-          if (lowerResponse.includes(keyword)) {
-            // Check if it's mentioned as something the player found/received in the current response
-            const patterns = [
-              new RegExp(`you (?:find|discover|receive|get|obtain|pick up|take) (?:a |an |the )?${keyword}`, 'i'),
-              new RegExp(`(?:a |an |the )?${keyword} (?:is|was) (?:found|discovered|given|received)`, 'i'),
-              new RegExp(`inside (?:the )?(?:pouch|bag|container) (?:you find|there is|there are) (?:a |an |the )?${keyword}`, 'i')
-            ];
-            
-            for (const pattern of patterns) {
-              if (pattern.test(aiResponse)) {
-                const item = {
-                  name: keyword.charAt(0).toUpperCase() + keyword.slice(1),
-                  type: getItemType(keyword),
-                  rarity: 'common',
-                  value: getItemValue(keyword),
-                  weight: getItemWeight(keyword),
-                  quantity: 1,
-                  description: `A ${keyword} found during your adventure.`
-                };
-                foundItems.push(item);
-                console.log('Detected item from current response text:', item);
-                break;
-              }
-            }
+          } else {
+            console.log('No item matches found in current response - no fallback detection to prevent false positives');
           }
-        }
-        
-        // Add detected items to the items array
-        items.push(...foundItems);
-      }
       
       // Look for [STATS:...] blocks
       const statsMatches = aiResponse.match(/\[STATS:([^\]]+)\]/g);
