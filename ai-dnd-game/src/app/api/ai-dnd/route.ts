@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
-    const { messages, character } = await request.json()
+    const { messages, character, onDiceRoll } = await request.json()
     
     console.log('AI D&D Game API called')
     console.log('Messages:', messages)
     console.log('Character:', character)
+    console.log('Dice rolling available:', !!onDiceRoll)
     
     // Check if Google API key is available
     const apiKey = process.env.GOOGLE_API_KEY
@@ -20,6 +21,8 @@ export async function POST(request: Request) {
       let aiResponse = ''
       
       // Simple game responses based on user input
+      let diceRoll = null
+      
       if (userInput.toLowerCase().includes('look') || userInput.toLowerCase().includes('examine')) {
         aiResponse = `You look around and see a mysterious forest path ahead. Ancient trees tower above you, their branches creating a canopy that filters the sunlight. You notice a small wooden sign that reads "Adventure Awaits" pointing deeper into the woods.`
       } else if (userInput.toLowerCase().includes('walk') || userInput.toLowerCase().includes('go') || userInput.toLowerCase().includes('move')) {
@@ -34,14 +37,39 @@ export async function POST(request: Request) {
         aiResponse = `The old woman's smile fades slightly. "I understand. Not everyone is ready for such a dangerous quest. Perhaps you'd like to explore the area first and gain some experience? There are always smaller tasks that need doing."`
       } else if (userInput.toLowerCase().includes('fight') || userInput.toLowerCase().includes('attack') || userInput.toLowerCase().includes('battle')) {
         aiResponse = `You prepare for combat! As a ${character.class || 'warrior'}, you draw your weapon and assume a fighting stance. The old woman looks concerned. "Please, there's no need for violence here. I mean you no harm!"`
+      } else if (userInput.toLowerCase().includes('climb') || userInput.toLowerCase().includes('jump') || userInput.toLowerCase().includes('stealth')) {
+        // Trigger ability checks with dice rolls
+        if (userInput.toLowerCase().includes('climb')) {
+          diceRoll = '1d20'
+          aiResponse = `You attempt to climb the rocky surface. Let me roll for your Athletics check...`
+        } else if (userInput.toLowerCase().includes('jump')) {
+          diceRoll = '1d20'
+          aiResponse = `You prepare to make a daring leap. Let me roll for your Athletics check...`
+        } else if (userInput.toLowerCase().includes('stealth')) {
+          diceRoll = '1d20'
+          aiResponse = `You try to move quietly and avoid detection. Let me roll for your Stealth check...`
+        }
+      } else if (userInput.toLowerCase().includes('persuade') || userInput.toLowerCase().includes('convince') || userInput.toLowerCase().includes('charm')) {
+        diceRoll = '1d20'
+        aiResponse = `You attempt to persuade the person. Let me roll for your Persuasion check...`
+      } else if (userInput.toLowerCase().includes('intimidate') || userInput.toLowerCase().includes('threaten')) {
+        diceRoll = '1d20'
+        aiResponse = `You try to intimidate your target. Let me roll for your Intimidation check...`
+      } else if (userInput.toLowerCase().includes('investigate') || userInput.toLowerCase().includes('search') || userInput.toLowerCase().includes('examine')) {
+        diceRoll = '1d20'
+        aiResponse = `You carefully investigate the area. Let me roll for your Investigation check...`
+      } else if (userInput.toLowerCase().includes('perception') || userInput.toLowerCase().includes('notice') || userInput.toLowerCase().includes('spot')) {
+        diceRoll = '1d20'
+        aiResponse = `You try to notice details around you. Let me roll for your Perception check...`
       } else if (userInput.toLowerCase().includes('help') || userInput.toLowerCase().includes('what')) {
-        aiResponse = `You can try various actions like: look around, walk/go/move, talk/speak, ask about quests, accept or decline quests, fight/attack, or explore. What would you like to do next?`
+        aiResponse = `You can try various actions like: look around, walk/go/move, talk/speak, ask about quests, accept or decline quests, fight/attack, climb/jump/stealth (triggers ability checks), persuade/intimidate (social checks), investigate/search (investigation), or explore. What would you like to do next?`
       } else {
         aiResponse = `You consider your options. The forest around you seems peaceful but mysterious. You could explore further, talk to the old woman, or perhaps look for other paths. What would you like to do?`
       }
       
       return NextResponse.json({
-        message: aiResponse
+        message: aiResponse,
+        ...(diceRoll && { diceRoll })
       })
     }
 

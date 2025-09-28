@@ -146,7 +146,6 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
   ] : [])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [showCharacterSheet, setShowCharacterSheet] = useState(false)
   const [diceRolling, setDiceRolling] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -177,8 +176,8 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
     return { dice: diceString, result, rolls }
   }
 
-  // Handle dice rolling
-  const handleDiceRoll = (diceString: string) => {
+  // Handle DM dice rolling (triggered by AI)
+  const handleDMDiceRoll = (diceString: string) => {
     setDiceRolling(true)
     
     setTimeout(() => {
@@ -186,7 +185,7 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
       const diceMessage: Message = {
         id: Date.now().toString(),
         type: 'dice',
-        content: `🎲 Rolled ${diceString}: ${rollResult.result} ${rollResult.rolls.length > 1 ? `(${rollResult.rolls.join(', ')})` : ''}`,
+        content: `🎲 The Dungeon Master rolls ${diceString}: ${rollResult.result} ${rollResult.rolls.length > 1 ? `(${rollResult.rolls.join(', ')})` : ''}`,
         timestamp: new Date(),
         diceResult: rollResult
       }
@@ -198,14 +197,6 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
 
   const sendMessage = async () => {
     if (!inputValue.trim() || isLoading) return
-
-    // Check for dice roll commands
-    if (inputValue.trim().startsWith('/roll ')) {
-      const diceString = inputValue.trim().substring(6)
-      handleDiceRoll(diceString)
-      setInputValue('')
-      return
-    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -226,7 +217,8 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
         },
         body: JSON.stringify({
           messages: [...messages, userMessage],
-          character: characterData
+          character: characterData,
+          onDiceRoll: 'handleDMDiceRoll' // Signal to AI that dice rolling is available
         })
       })
 
@@ -234,6 +226,11 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
 
       if (data.error) {
         throw new Error(data.message || data.error)
+      }
+
+      // Check if AI wants to roll dice
+      if (data.diceRoll) {
+        handleDMDiceRoll(data.diceRoll)
       }
 
       const aiMessage: Message = {
@@ -574,388 +571,271 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
           }}>
             ⚔️ {characterData.name || 'Adventurer'}'s Journey
           </h1>
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <button
-              onClick={() => setShowCharacterSheet(!showCharacterSheet)}
-              style={{
-                padding: '0.5rem 1rem',
-                background: 'rgba(139, 92, 246, 0.1)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                borderRadius: '8px',
-                color: '#a78bfa',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'
-              }}
-            >
-              📋 Character Sheet
-            </button>
-            <button
-              onClick={onBack}
-              style={{
-                padding: '0.5rem 1rem',
-                background: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                borderRadius: '8px',
-                color: '#fca5a5',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'
-              }}
-            >
-              Back to Character Creation
-            </button>
-          </div>
+          <button
+            onClick={onBack}
+            style={{
+              padding: '0.5rem 1rem',
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '8px',
+              color: '#fca5a5',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'
+            }}
+          >
+            Back to Character Creation
+          </button>
         </div>
       </div>
 
-      {/* Character Sheet Modal */}
-      {showCharacterSheet && characterData.stats && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.8)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '2rem'
-        }}>
+
+      {/* Main Game Layout */}
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+        {/* Character Sheet Sidebar */}
+        {characterData.stats && (
           <div style={{
-            background: 'rgba(26, 26, 46, 0.95)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(139, 92, 246, 0.3)',
-            borderRadius: '24px',
-            maxWidth: '800px',
-            width: '100%',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            padding: '2rem',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)'
+            width: '300px',
+            background: 'rgba(15, 15, 35, 0.9)',
+            borderRight: '1px solid rgba(139, 92, 246, 0.3)',
+            padding: '1rem',
+            overflowY: 'auto'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-              <h2 style={{
-                fontSize: '2rem',
-                fontWeight: 'bold',
-                background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                margin: 0
-              }}>
-                📋 Character Sheet
-              </h2>
-              <button
-                onClick={() => setShowCharacterSheet(false)}
+            <h3 style={{
+              color: '#8b5cf6',
+              marginBottom: '1rem',
+              fontSize: '1.2rem',
+              textAlign: 'center'
+            }}>
+              📋 Character Sheet
+            </h3>
+            
+            {/* Basic Info */}
+            <div style={{
+              background: 'rgba(139, 92, 246, 0.1)',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+              borderRadius: '12px',
+              padding: '1rem',
+              marginBottom: '1rem'
+            }}>
+              <h4 style={{ color: '#a78bfa', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Basic Info</h4>
+              <div style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>
+                <div><strong>Name:</strong> {characterData.name}</div>
+                <div><strong>Race:</strong> {characterData.race}</div>
+                <div><strong>Class:</strong> {characterData.class}</div>
+                <div><strong>Level:</strong> {characterData.stats.level}</div>
+                <div><strong>XP:</strong> {characterData.stats.experience}</div>
+              </div>
+            </div>
+
+            {/* Combat Stats */}
+            <div style={{
+              background: 'rgba(139, 92, 246, 0.1)',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+              borderRadius: '12px',
+              padding: '1rem',
+              marginBottom: '1rem'
+            }}>
+              <h4 style={{ color: '#a78bfa', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Combat</h4>
+              <div style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>
+                <div><strong>HP:</strong> {characterData.stats.hitPoints}/{characterData.stats.maxHitPoints}</div>
+                <div><strong>AC:</strong> {characterData.stats.armorClass}</div>
+                <div><strong>Speed:</strong> {characterData.stats.speed} ft</div>
+                <div><strong>Prof:</strong> +{characterData.stats.proficiencyBonus}</div>
+                <div><strong>Gold:</strong> {characterData.stats.gold} gp</div>
+              </div>
+            </div>
+
+            {/* Ability Scores */}
+            <div style={{
+              background: 'rgba(139, 92, 246, 0.1)',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+              borderRadius: '12px',
+              padding: '1rem'
+            }}>
+              <h4 style={{ color: '#a78bfa', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Abilities</h4>
+              <div style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>
+                {Object.entries(characterData.stats).filter(([key]) => 
+                  ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'].includes(key)
+                ).map(([key, value]) => (
+                  <div key={key} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ textTransform: 'capitalize' }}>{key.substring(0, 3)}:</span>
+                    <span>{value} ({getModifier(value) >= 0 ? '+' : ''}{getModifier(value)})</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Chat Area */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {/* Messages */}
+          <div style={{
+            flex: 1,
+            padding: '1rem',
+            overflowY: 'auto',
+            maxWidth: '1200px',
+            margin: '0 auto',
+            width: '100%'
+          }}>
+            {messages.map((message) => (
+              <div
+                key={message.id}
                 style={{
-                  padding: '0.5rem',
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                  borderRadius: '8px',
-                  color: '#fca5a5',
-                  cursor: 'pointer',
-                  fontSize: '1.5rem'
+                  marginBottom: '1rem',
+                  display: 'flex',
+                  justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start'
                 }}
               >
-                ×
+                <div
+                  style={{
+                    maxWidth: '70%',
+                    padding: '1rem',
+                    borderRadius: '12px',
+                    background: message.type === 'user' 
+                      ? 'linear-gradient(135deg, #8b5cf6, #7c3aed)'
+                      : message.type === 'dice'
+                      ? 'linear-gradient(135deg, #f59e0b, #d97706)'
+                      : 'rgba(55, 65, 81, 0.8)',
+                    border: message.type === 'user' 
+                      ? '1px solid rgba(139, 92, 246, 0.3)'
+                      : message.type === 'dice'
+                      ? '1px solid rgba(245, 158, 11, 0.3)'
+                      : '1px solid rgba(75, 85, 99, 0.3)',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                >
+                  <div style={{ marginBottom: '0.5rem', fontSize: '0.8rem', opacity: 0.7 }}>
+                    {message.type === 'user' ? 'You' : message.type === 'dice' ? '🎲 Dice Roll' : 'Dungeon Master'}
+                  </div>
+                  <div style={{ whiteSpace: 'pre-wrap' }}>{message.content}</div>
+                </div>
+              </div>
+            ))}
+            
+            {isLoading && (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'flex-start',
+                marginBottom: '1rem'
+              }}>
+                <div
+                  style={{
+                    padding: '1rem',
+                    borderRadius: '12px',
+                    background: 'rgba(55, 65, 81, 0.8)',
+                    border: '1px solid rgba(75, 85, 99, 0.3)',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{
+                      width: '20px',
+                      height: '20px',
+                      border: '2px solid rgba(139, 92, 246, 0.3)',
+                      borderTop: '2px solid #8b5cf6',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }} />
+                    <span>Dungeon Master is thinking...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {diceRolling && (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                marginBottom: '1rem'
+              }}>
+                <div
+                  style={{
+                    padding: '1rem',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                    backdropFilter: 'blur(10px)',
+                    animation: 'diceRoll 1.5s ease-in-out'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{
+                      fontSize: '1.5rem',
+                      animation: 'diceSpin 0.5s linear infinite'
+                    }}>
+                      🎲
+                    </div>
+                    <span>Rolling dice...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input */}
+          <div style={{
+            padding: '1rem',
+            borderTop: '1px solid rgba(139, 92, 246, 0.3)',
+            background: 'rgba(15, 15, 35, 0.9)',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <div style={{
+              maxWidth: '1200px',
+              margin: '0 auto',
+              display: 'flex',
+              gap: '1rem',
+              alignItems: 'flex-end'
+            }}>
+              <textarea
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="What do you want to do?"
+                disabled={isLoading}
+                style={{
+                  flex: 1,
+                  minHeight: '60px',
+                  maxHeight: '120px',
+                  padding: '1rem',
+                  background: 'rgba(55, 65, 81, 0.8)',
+                  border: '1px solid rgba(75, 85, 99, 0.3)',
+                  borderRadius: '12px',
+                  color: 'white',
+                  fontSize: '1rem',
+                  resize: 'vertical',
+                  fontFamily: 'inherit'
+                }}
+              />
+              <button
+                onClick={sendMessage}
+                disabled={!inputValue.trim() || isLoading}
+                style={{
+                  padding: '1rem 1.5rem',
+                  background: inputValue.trim() && !isLoading 
+                    ? 'linear-gradient(135deg, #8b5cf6, #7c3aed)'
+                    : 'rgba(75, 85, 99, 0.5)',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  borderRadius: '12px',
+                  color: 'white',
+                  cursor: inputValue.trim() && !isLoading ? 'pointer' : 'not-allowed',
+                  transition: 'all 0.3s ease',
+                  fontSize: '1rem',
+                  fontWeight: 'bold'
+                }}
+              >
+                Send
               </button>
             </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-              {/* Basic Info */}
-              <div style={{
-                background: 'rgba(15, 15, 35, 0.6)',
-                border: '1px solid rgba(139, 92, 246, 0.2)',
-                borderRadius: '16px',
-                padding: '1.5rem'
-              }}>
-                <h3 style={{ color: '#8b5cf6', marginBottom: '1rem' }}>Basic Information</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <div><strong>Name:</strong> {characterData.name}</div>
-                  <div><strong>Race:</strong> {characterData.race}</div>
-                  <div><strong>Class:</strong> {characterData.class}</div>
-                  <div><strong>Level:</strong> {characterData.stats.level}</div>
-                  <div><strong>Experience:</strong> {characterData.stats.experience} XP</div>
-                </div>
-              </div>
-
-              {/* Combat Stats */}
-              <div style={{
-                background: 'rgba(15, 15, 35, 0.6)',
-                border: '1px solid rgba(139, 92, 246, 0.2)',
-                borderRadius: '16px',
-                padding: '1.5rem'
-              }}>
-                <h3 style={{ color: '#8b5cf6', marginBottom: '1rem' }}>Combat Stats</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <div><strong>Hit Points:</strong> {characterData.stats.hitPoints}/{characterData.stats.maxHitPoints}</div>
-                  <div><strong>Armor Class:</strong> {characterData.stats.armorClass}</div>
-                  <div><strong>Speed:</strong> {characterData.stats.speed} ft</div>
-                  <div><strong>Proficiency Bonus:</strong> +{characterData.stats.proficiencyBonus}</div>
-                  <div><strong>Gold:</strong> {characterData.stats.gold} gp</div>
-                </div>
-              </div>
-
-              {/* Ability Scores */}
-              <div style={{
-                background: 'rgba(15, 15, 35, 0.6)',
-                border: '1px solid rgba(139, 92, 246, 0.2)',
-                borderRadius: '16px',
-                padding: '1.5rem'
-              }}>
-                <h3 style={{ color: '#8b5cf6', marginBottom: '1rem' }}>Ability Scores</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
-                  {Object.entries(characterData.stats).filter(([key]) => 
-                    ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'].includes(key)
-                  ).map(([key, value]) => (
-                    <div key={key} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ textTransform: 'capitalize' }}>{key}:</span>
-                      <span>{value} ({getModifier(value) >= 0 ? '+' : ''}{getModifier(value)})</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
-        </div>
-      )}
-
-      {/* Character Info Bar */}
-      <div style={{
-        padding: '1rem',
-        background: 'rgba(139, 92, 246, 0.1)',
-        borderBottom: '1px solid rgba(139, 92, 246, 0.3)'
-      }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-            <div><strong>{characterData.name}</strong> - {characterData.race} {characterData.class}</div>
-            {characterData.stats && (
-              <>
-                <div>Level {characterData.stats.level}</div>
-                <div>HP: {characterData.stats.hitPoints}/{characterData.stats.maxHitPoints}</div>
-                <div>AC: {characterData.stats.armorClass}</div>
-                <div>Gold: {characterData.stats.gold} gp</div>
-              </>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button
-              onClick={() => handleDiceRoll('1d20')}
-              style={{
-                padding: '0.25rem 0.5rem',
-                background: 'rgba(139, 92, 246, 0.2)',
-                border: '1px solid rgba(139, 92, 246, 0.4)',
-                borderRadius: '4px',
-                color: '#a78bfa',
-                cursor: 'pointer',
-                fontSize: '0.8rem'
-              }}
-            >
-              🎲 d20
-            </button>
-            <button
-              onClick={() => handleDiceRoll('1d12')}
-              style={{
-                padding: '0.25rem 0.5rem',
-                background: 'rgba(139, 92, 246, 0.2)',
-                border: '1px solid rgba(139, 92, 246, 0.4)',
-                borderRadius: '4px',
-                color: '#a78bfa',
-                cursor: 'pointer',
-                fontSize: '0.8rem'
-              }}
-            >
-              🎲 d12
-            </button>
-            <button
-              onClick={() => handleDiceRoll('1d6')}
-              style={{
-                padding: '0.25rem 0.5rem',
-                background: 'rgba(139, 92, 246, 0.2)',
-                border: '1px solid rgba(139, 92, 246, 0.4)',
-                borderRadius: '4px',
-                color: '#a78bfa',
-                cursor: 'pointer',
-                fontSize: '0.8rem'
-              }}
-            >
-              🎲 d6
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Messages */}
-      <div style={{
-        flex: 1,
-        padding: '1rem',
-        overflowY: 'auto',
-        maxWidth: '1200px',
-        margin: '0 auto',
-        width: '100%'
-      }}>
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            style={{
-              marginBottom: '1rem',
-              display: 'flex',
-              justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start'
-            }}
-          >
-            <div
-              style={{
-                maxWidth: '70%',
-                padding: '1rem',
-                borderRadius: '12px',
-                background: message.type === 'user' 
-                  ? 'linear-gradient(135deg, #8b5cf6, #7c3aed)'
-                  : message.type === 'dice'
-                  ? 'linear-gradient(135deg, #f59e0b, #d97706)'
-                  : 'rgba(55, 65, 81, 0.8)',
-                border: message.type === 'user' 
-                  ? '1px solid rgba(139, 92, 246, 0.3)'
-                  : message.type === 'dice'
-                  ? '1px solid rgba(245, 158, 11, 0.3)'
-                  : '1px solid rgba(75, 85, 99, 0.3)',
-                backdropFilter: 'blur(10px)'
-              }}
-            >
-              <div style={{ marginBottom: '0.5rem', fontSize: '0.8rem', opacity: 0.7 }}>
-                {message.type === 'user' ? 'You' : message.type === 'dice' ? '🎲 Dice Roll' : 'Dungeon Master'}
-              </div>
-              <div style={{ whiteSpace: 'pre-wrap' }}>{message.content}</div>
-            </div>
-          </div>
-        ))}
-        
-        {isLoading && (
-          <div style={{
-            display: 'flex',
-            justifyContent: 'flex-start',
-            marginBottom: '1rem'
-          }}>
-            <div
-              style={{
-                padding: '1rem',
-                borderRadius: '12px',
-                background: 'rgba(55, 65, 81, 0.8)',
-                border: '1px solid rgba(75, 85, 99, 0.3)',
-                backdropFilter: 'blur(10px)'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div style={{
-                  width: '20px',
-                  height: '20px',
-                  border: '2px solid rgba(139, 92, 246, 0.3)',
-                  borderTop: '2px solid #8b5cf6',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite'
-                }} />
-                <span>Dungeon Master is thinking...</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {diceRolling && (
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            marginBottom: '1rem'
-          }}>
-            <div
-              style={{
-                padding: '1rem',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                border: '1px solid rgba(245, 158, 11, 0.3)',
-                backdropFilter: 'blur(10px)',
-                animation: 'diceRoll 1.5s ease-in-out'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div style={{
-                  fontSize: '1.5rem',
-                  animation: 'diceSpin 0.5s linear infinite'
-                }}>
-                  🎲
-                </div>
-                <span>Rolling dice...</span>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input */}
-      <div style={{
-        padding: '1rem',
-        borderTop: '1px solid rgba(139, 92, 246, 0.3)',
-        background: 'rgba(15, 15, 35, 0.9)',
-        backdropFilter: 'blur(10px)'
-      }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          display: 'flex',
-          gap: '1rem',
-          alignItems: 'flex-end'
-        }}>
-          <textarea
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="What do you want to do? (Use /roll 1d20 for dice rolls)"
-            disabled={isLoading}
-            style={{
-              flex: 1,
-              minHeight: '60px',
-              maxHeight: '120px',
-              padding: '1rem',
-              background: 'rgba(55, 65, 81, 0.8)',
-              border: '1px solid rgba(75, 85, 99, 0.3)',
-              borderRadius: '12px',
-              color: 'white',
-              fontSize: '1rem',
-              resize: 'vertical',
-              fontFamily: 'inherit'
-            }}
-          />
-          <button
-            onClick={sendMessage}
-            disabled={!inputValue.trim() || isLoading}
-            style={{
-              padding: '1rem 1.5rem',
-              background: inputValue.trim() && !isLoading 
-                ? 'linear-gradient(135deg, #8b5cf6, #7c3aed)'
-                : 'rgba(75, 85, 99, 0.5)',
-              border: '1px solid rgba(139, 92, 246, 0.3)',
-              borderRadius: '12px',
-              color: 'white',
-              cursor: inputValue.trim() && !isLoading ? 'pointer' : 'not-allowed',
-              transition: 'all 0.3s ease',
-              fontSize: '1rem',
-              fontWeight: 'bold'
-            }}
-          >
-            Send
-          </button>
         </div>
       </div>
 
