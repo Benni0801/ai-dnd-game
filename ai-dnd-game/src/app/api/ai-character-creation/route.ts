@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
 
     // Create conversation context
-    const conversationHistory = messages.map(msg => 
+    const conversationHistory = messages.map((msg: any) => 
       `${msg.type === 'user' ? 'User' : 'AI'}: ${msg.content}`
     ).join('\n')
 
