@@ -1,5 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Helper functions for item detection
+function getItemType(keyword: string): string {
+  const weaponKeywords = ['sword', 'dagger', 'bow', 'arrow', 'spear', 'axe', 'mace', 'staff', 'wand'];
+  const armorKeywords = ['armor', 'shield', 'helmet', 'boots', 'gloves', 'gauntlets'];
+  const consumableKeywords = ['potion', 'food', 'water', 'bread', 'meat', 'cheese', 'scroll'];
+  const miscKeywords = ['coin', 'gold', 'silver', 'gem', 'key', 'lockpick', 'rope', 'torch', 'lantern'];
+  
+  if (weaponKeywords.some(w => keyword.includes(w))) return 'weapon';
+  if (armorKeywords.some(a => keyword.includes(a))) return 'armor';
+  if (consumableKeywords.some(c => keyword.includes(c))) return 'consumable';
+  return 'misc';
+}
+
+function getItemValue(keyword: string): number {
+  const valuableKeywords = ['gold', 'gem', 'crown', 'necklace', 'bracelet'];
+  const moderateKeywords = ['sword', 'armor', 'potion', 'scroll'];
+  const cheapKeywords = ['coin', 'food', 'rope', 'torch'];
+  
+  if (valuableKeywords.some(v => keyword.includes(v))) return 50;
+  if (moderateKeywords.some(m => keyword.includes(m))) return 25;
+  if (cheapKeywords.some(c => keyword.includes(c))) return 5;
+  return 10;
+}
+
+function getItemWeight(keyword: string): number {
+  const heavyKeywords = ['armor', 'sword', 'shield', 'helmet'];
+  const lightKeywords = ['coin', 'potion', 'scroll', 'key', 'gem'];
+  
+  if (heavyKeywords.some(h => keyword.includes(h))) return 5;
+  if (lightKeywords.some(l => keyword.includes(l))) return 0.5;
+  return 1;
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log('AI API: Request received');
@@ -42,6 +75,10 @@ export async function POST(request: NextRequest) {
         response = 'Combat begins! What would you like to do? You can attack, defend, cast a spell, or try something else.';
       } else if (lastMessage.includes('initiative') || lastMessage.includes('turn')) {
         response = 'It\'s your turn! What action would you like to take?';
+      } else if (lastMessage.includes('examine') || lastMessage.includes('search') || lastMessage.includes('loot')) {
+        response = 'You carefully examine the area and find some interesting items. You discover a mysterious ring with ancient symbols and a small leather pouch containing 5 gold coins and a gnawed bone fragment.';
+      } else if (lastMessage.includes('ring') || lastMessage.includes('pouch') || lastMessage.includes('loot')) {
+        response = 'You pick up the ring and examine it closely. The metal is worn and dull, but you can make out faint symbols etched into the surface. They seem ancient and unfamiliar. The ring feels strangely cold to the touch. You also find a small leather pouch containing 5 gold coins and a gnawed bone fragment.';
       }
       
       return NextResponse.json({
@@ -142,6 +179,13 @@ When giving players ANY items (loot, purchases, rewards, starting equipment), yo
 
 **NEVER mention items in text without using [ITEM:] format!**
 **If you say "You receive a sword" - you MUST include [ITEM:{"name":"Sword",...}] in the same message!**
+
+**CRITICAL NARRATIVE COMPLETION RULE:**
+- ALWAYS complete your sentences and descriptions fully
+- NEVER leave incomplete text like "you find a few and a small, gnawed"
+- ALWAYS specify exactly what items are found: "you find a few gold coins and a small, gnawed bone"
+- If you mention a container (pouch, bag, chest), ALWAYS describe what's inside completely
+- Example: "Inside the pouch, you find 5 gold coins and a small, gnawed bone fragment"
 
 **CORE GAME MECHANICS:**
 - Use d20 + modifiers for all checks (GM rolls internally)
@@ -313,7 +357,7 @@ When running combat, you MUST:
         }],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 500,
+          maxOutputTokens: 1000,
           topP: 0.8,
           topK: 40
         }
@@ -370,7 +414,7 @@ When running combat, you MUST:
           }],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 500,
+            maxOutputTokens: 1000,
             topP: 0.8,
             topK: 40
           }
@@ -485,6 +529,48 @@ When running combat, you MUST:
         }
       } else {
         console.log('No item matches found in response');
+        
+        // Fallback: Try to detect items mentioned in the text
+        const itemKeywords = [
+          'ring', 'sword', 'dagger', 'potion', 'coin', 'gold', 'silver', 'gem', 'scroll', 'pouch', 'bag',
+          'armor', 'shield', 'helmet', 'boots', 'gloves', 'amulet', 'necklace', 'bracelet', 'crown',
+          'key', 'lockpick', 'rope', 'torch', 'lantern', 'food', 'water', 'bread', 'meat', 'cheese',
+          'book', 'map', 'compass', 'spyglass', 'telescope', 'magnifying glass', 'ink', 'quill', 'paper'
+        ];
+        
+        const foundItems: any[] = [];
+        const lowerResponse = aiResponse.toLowerCase();
+        
+        for (const keyword of itemKeywords) {
+          if (lowerResponse.includes(keyword)) {
+            // Check if it's mentioned as something the player found/received
+            const patterns = [
+              new RegExp(`you (?:find|discover|receive|get|obtain|pick up|take) (?:a |an |the )?${keyword}`, 'i'),
+              new RegExp(`(?:a |an |the )?${keyword} (?:is|was) (?:found|discovered|given|received)`, 'i'),
+              new RegExp(`inside (?:the )?(?:pouch|bag|container) (?:you find|there is|there are) (?:a |an |the )?${keyword}`, 'i')
+            ];
+            
+            for (const pattern of patterns) {
+              if (pattern.test(aiResponse)) {
+                const item = {
+                  name: keyword.charAt(0).toUpperCase() + keyword.slice(1),
+                  type: getItemType(keyword),
+                  rarity: 'common',
+                  value: getItemValue(keyword),
+                  weight: getItemWeight(keyword),
+                  quantity: 1,
+                  description: `A ${keyword} found during your adventure.`
+                };
+                foundItems.push(item);
+                console.log('Detected item from text:', item);
+                break;
+              }
+            }
+          }
+        }
+        
+        // Add detected items to the items array
+        items.push(...foundItems);
       }
       
       // Look for [STATS:...] blocks

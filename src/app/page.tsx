@@ -1431,17 +1431,6 @@ export default function Home() {
                   onStatsUpdate={(stats) => setCharacterStats(prev => ({ ...prev, ...stats }))}
                 />
               )}
-              {activeTab === 'inventory' && (
-                <InventorySystem
-                  ref={inventoryRef}
-                  characterStats={characterStats}
-                  onInventoryChange={(newInventory) => {
-                    console.log('Parent inventory changed, new count:', newInventory.length, 'items:', newInventory.map(i => i.name));
-                    setInventory(newInventory);
-                  }}
-                  initialInventory={inventory}
-                />
-              )}
               {activeTab === 'combat' && (
                 <CombatSystem
                   characterStats={characterStats}
@@ -1505,27 +1494,42 @@ export default function Home() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
                     style={{
-                      padding: '0.75rem 1.5rem',
-                      borderRadius: '8px',
-                      fontWeight: '500',
-                      fontSize: '0.875rem',
+                      padding: '0.875rem 1.75rem',
+                      borderRadius: '12px',
+                      fontWeight: '600',
+                      fontSize: '0.9rem',
                       cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      background: activeTab === tab.id ? 'linear-gradient(135deg, #8b5cf6, #ec4899)' : 'rgba(55, 65, 81, 0.6)',
-                      color: activeTab === tab.id ? 'white' : '#94a3b8',
-                      border: activeTab === tab.id ? 'none' : '1px solid rgba(139, 92, 246, 0.2)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      background: activeTab === tab.id 
+                        ? 'linear-gradient(135deg, #8b5cf6, #ec4899)' 
+                        : 'linear-gradient(135deg, rgba(55, 65, 81, 0.8), rgba(75, 85, 99, 0.6))',
+                      color: activeTab === tab.id ? 'white' : '#e2e8f0',
+                      border: activeTab === tab.id 
+                        ? 'none' 
+                        : '1px solid rgba(139, 92, 246, 0.3)',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '0.5rem'
+                      gap: '0.75rem',
+                      boxShadow: activeTab === tab.id 
+                        ? '0 8px 25px rgba(139, 92, 246, 0.4), 0 4px 12px rgba(236, 72, 153, 0.3)' 
+                        : '0 4px 15px rgba(0, 0, 0, 0.2)',
+                      transform: activeTab === tab.id ? 'translateY(-2px)' : 'translateY(0)',
+                      backdropFilter: 'blur(10px)',
+                      position: 'relative',
+                      overflow: 'hidden'
                     }}
                     onMouseEnter={(e) => {
                       if (activeTab !== tab.id) {
-                        e.currentTarget.style.background = 'rgba(75, 85, 99, 0.8)'
+                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(75, 85, 99, 0.9), rgba(95, 105, 119, 0.7))';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.3)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (activeTab !== tab.id) {
-                        e.currentTarget.style.background = 'rgba(55, 65, 81, 0.6)'
+                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(55, 65, 81, 0.8), rgba(75, 85, 99, 0.6))';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.2)';
                       }
                     }}
                   >
@@ -1557,16 +1561,25 @@ export default function Home() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
                     style={{
-                      padding: '0.5rem 1rem',
-                      borderRadius: '8px',
-                      fontWeight: '500',
-                      fontSize: '0.875rem',
+                      padding: '0.75rem 1.25rem',
+                      borderRadius: '10px',
+                      fontWeight: '600',
+                      fontSize: '0.85rem',
                       cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      background: activeTab === tab.id ? 'linear-gradient(135deg, #8b5cf6, #ec4899)' : 'transparent',
-                      color: activeTab === tab.id ? 'white' : '#94a3b8',
-                      border: activeTab === tab.id ? 'none' : '1px solid rgba(139, 92, 246, 0.2)',
-                      whiteSpace: 'nowrap'
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      background: activeTab === tab.id 
+                        ? 'linear-gradient(135deg, #8b5cf6, #ec4899)' 
+                        : 'linear-gradient(135deg, rgba(55, 65, 81, 0.6), rgba(75, 85, 99, 0.4))',
+                      color: activeTab === tab.id ? 'white' : '#e2e8f0',
+                      border: activeTab === tab.id 
+                        ? 'none' 
+                        : '1px solid rgba(139, 92, 246, 0.3)',
+                      whiteSpace: 'nowrap',
+                      boxShadow: activeTab === tab.id 
+                        ? '0 6px 20px rgba(139, 92, 246, 0.4), 0 3px 10px rgba(236, 72, 153, 0.3)' 
+                        : '0 2px 8px rgba(0, 0, 0, 0.2)',
+                      transform: activeTab === tab.id ? 'translateY(-1px)' : 'translateY(0)',
+                      backdropFilter: 'blur(8px)'
                     }}
                   >
                     {tab.label}
@@ -1591,17 +1604,6 @@ export default function Home() {
                   onStatsUpdate={(stats) => setCharacterStats(prev => ({ ...prev, ...stats }))}
                 />
               )}
-              {activeTab === 'inventory' && (
-                <InventorySystem
-                  ref={inventoryRef}
-                  characterStats={characterStats}
-                  onInventoryChange={(newInventory) => {
-                    console.log('Parent inventory changed (mobile), new count:', newInventory.length, 'items:', newInventory.map(i => i.name));
-                    setInventory(newInventory);
-                  }}
-                  initialInventory={inventory}
-                />
-              )}
               {activeTab === 'combat' && (
                 <CombatSystem
                   characterStats={characterStats}
@@ -1621,7 +1623,64 @@ export default function Home() {
               }}
               onScroll={handleScroll}
             >
-              {messages.map((message) => (
+              {/* Show inventory content when inventory tab is selected */}
+              {activeTab === 'inventory' && (
+                <div style={{
+                  background: 'rgba(26, 26, 46, 0.8)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(139, 92, 246, 0.2)',
+                  borderRadius: '16px',
+                  padding: '1.5rem',
+                  marginBottom: '1rem'
+                }}>
+                  <InventorySystem
+                    ref={inventoryRef}
+                    characterStats={characterStats}
+                    onInventoryChange={(newInventory) => {
+                      console.log('Parent inventory changed (main area), new count:', newInventory.length, 'items:', newInventory.map(i => i.name));
+                      setInventory(newInventory);
+                    }}
+                    initialInventory={inventory}
+                  />
+                </div>
+              )}
+              
+              {/* Show character stats when character tab is selected */}
+              {activeTab === 'character' && (
+                <div style={{
+                  background: 'rgba(26, 26, 46, 0.8)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(139, 92, 246, 0.2)',
+                  borderRadius: '16px',
+                  padding: '1.5rem',
+                  marginBottom: '1rem'
+                }}>
+                  <CharacterProgression
+                    characterStats={characterStats}
+                    onStatsUpdate={(stats) => setCharacterStats(prev => ({ ...prev, ...stats }))}
+                  />
+                </div>
+              )}
+              
+              {/* Show combat system when combat tab is selected */}
+              {activeTab === 'combat' && (
+                <div style={{
+                  background: 'rgba(26, 26, 46, 0.8)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(139, 92, 246, 0.2)',
+                  borderRadius: '16px',
+                  padding: '1.5rem',
+                  marginBottom: '1rem'
+                }}>
+                  <CombatSystem
+                    characterStats={characterStats}
+                    onCombatEnd={handleCombatEnd}
+                  />
+                </div>
+              )}
+              
+              {/* Show chat messages when chat tab is selected */}
+              {activeTab === 'chat' && messages.map((message) => (
                 <div
                   key={message.id}
                   style={{
