@@ -76,9 +76,13 @@ export async function POST(request: NextRequest) {
       } else if (lastMessage.includes('initiative') || lastMessage.includes('turn')) {
         response = 'It\'s your turn! What action would you like to take?';
       } else if (lastMessage.includes('examine') || lastMessage.includes('search') || lastMessage.includes('loot')) {
-        response = 'You carefully examine the area and find some interesting items. You discover a mysterious ring with ancient symbols and a small leather pouch containing 5 gold coins and a gnawed bone fragment.';
+        response = 'You carefully examine the area and find some interesting items. You discover a mysterious ring with ancient symbols and a small leather pouch containing 5 gold coins and a gnawed bone fragment. What do you do with these items?';
       } else if (lastMessage.includes('ring') || lastMessage.includes('pouch') || lastMessage.includes('loot')) {
-        response = 'You pick up the ring and examine it closely. The metal is worn and dull, but you can make out faint symbols etched into the surface. They seem ancient and unfamiliar. The ring feels strangely cold to the touch. You also find a small leather pouch containing 5 gold coins and a gnawed bone fragment.';
+        response = 'You pick up the ring and examine it closely. The metal is worn and dull, but you can make out faint symbols etched into the surface. They seem ancient and unfamiliar. The ring feels strangely cold to the touch. You also find a small leather pouch containing 5 gold coins and a gnawed bone fragment. What would you like to do next?';
+      } else if (lastMessage.includes('deeper') || lastMessage.includes('unknown') || lastMessage.includes('explore')) {
+        response = 'You head towards the unexplored passage. The air grows noticeably colder as you move away from the entrance, and the shadows seem to deepen. The passage is narrow and winding, forcing you to proceed with caution. After a few minutes of walking, the passage opens into a larger chamber with several other passages leading off into darkness. In the center, you see a small pool of water with glowing mushrooms nearby. You hear a faint rustling sound from one of the passages. What do you do?';
+      } else if (lastMessage.includes('pool') || lastMessage.includes('water')) {
+        response = 'You approach the pool of water cautiously. The water is dark and still, reflecting the torchlight like a mirror. You notice strange, glowing mushrooms growing near the edge. The water seems to have an otherworldly quality to it. What do you want to do with the pool?';
       }
       
       return NextResponse.json({
@@ -151,6 +155,13 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
 - Never repeat player statements - respond directly to their input
 - Drive narrative forward through player choices
 
+**CRITICAL PLAYER AGENCY RULE:**
+- NEVER decide what the player does or make choices for them
+- ALWAYS ask the player what they want to do
+- NEVER say "You choose to..." or "You decide to..." - let the PLAYER choose
+- ALWAYS end responses with a question asking what the player wants to do
+- Example: Instead of "You choose to go deeper" say "Which way do you go?"
+
 **CHARACTER CREATION REQUIREMENTS:**
 - Must start with character creation if not completed
 - Guide through: Genre Selection → Character Naming → Race → Class → Attributes → Backstory → Starting Spells/Skills
@@ -215,6 +226,13 @@ When giving players ANY items (loot, purchases, rewards, starting equipment), yo
 - Track all character progression and world state
 - Show updated sheets when requested
 - Maintain consistency with established rules
+
+**MANDATORY RESPONSE STRUCTURE:**
+- ALWAYS end every response with a question asking what the player wants to do
+- NEVER make decisions for the player
+- NEVER say "You choose to..." or "You decide to..."
+- ALWAYS present options and ask "What do you do?" or "What would you like to do?"
+- Example: "You see three paths ahead. What do you do?"
 
 **CURRENT GAME STATE:**
 Character: ${gameState.character.name || 'Unnamed'} (${gameState.character.race || 'Unknown'} ${gameState.character.class || 'Adventurer'})
@@ -301,7 +319,9 @@ When running combat, you MUST:
 
 **AUTOMATIC DAMAGE REMINDER:** Every time you mention the player taking damage from ANY source (enemies, traps, falls, spells, environmental hazards, etc.), you MUST include a [STATS:{"hp":-X}] command in the same response!
 
-**FINAL NARRATIVE RULE:** Keep your narrative pure and immersive. Describe what happens without mentioning specific numbers, HP values, or stat changes. Let the [STATS:] commands handle all the mechanical aspects silently in the background!`;
+**FINAL NARRATIVE RULE:** Keep your narrative pure and immersive. Describe what happens without mentioning specific numbers, HP values, or stat changes. Let the [STATS:] commands handle all the mechanical aspects silently in the background!
+
+**CRITICAL FINAL REMINDER:** NEVER make decisions for the player! ALWAYS ask "What do you do?" at the end of every response. The player must always have agency over their character's actions!`;
 
     // Prepare the prompt for Gemini
     const fullPrompt = `${systemPrompt}\n\n${characterContext}\n\nConversation:\n${conversationHistory.map((msg: any) => `${msg.role}: ${msg.content}`).join('\n')}\n\nPlease respond as the Dungeon Master:`;
