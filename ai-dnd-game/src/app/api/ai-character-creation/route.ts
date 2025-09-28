@@ -28,16 +28,49 @@ export async function POST(request: Request) {
         characterUpdate.name = nameMatch[1]
       }
       
-      // Extract race
+      // Extract race with fuzzy matching for misspellings
       const races = ['human', 'elf', 'dwarf', 'halfling', 'dragonborn', 'gnome', 'half-elf', 'half-orc', 'tiefling']
-      const raceMatch = races.find(race => userInput.toLowerCase().includes(race))
+      const raceMatch = races.find(race => {
+        const lowerInput = userInput.toLowerCase()
+        // Exact match
+        if (lowerInput.includes(race)) return true
+        // Fuzzy matching for common misspellings
+        if (race === 'human' && (lowerInput.includes('hunam') || lowerInput.includes('humam') || lowerInput.includes('humn'))) return true
+        if (race === 'elf' && (lowerInput.includes('elv') || lowerInput.includes('elfe'))) return true
+        if (race === 'dwarf' && (lowerInput.includes('dwarv') || lowerInput.includes('dwar'))) return true
+        if (race === 'halfling' && (lowerInput.includes('halfing') || lowerInput.includes('halflng'))) return true
+        if (race === 'dragonborn' && (lowerInput.includes('dragon') && lowerInput.includes('born'))) return true
+        if (race === 'gnome' && (lowerInput.includes('gnom') || lowerInput.includes('gnom'))) return true
+        if (race === 'half-elf' && (lowerInput.includes('half elf') || lowerInput.includes('halfelf'))) return true
+        if (race === 'half-orc' && (lowerInput.includes('half orc') || lowerInput.includes('halforc'))) return true
+        if (race === 'tiefling' && (lowerInput.includes('tieflng') || lowerInput.includes('tiefl'))) return true
+        return false
+      })
       if (raceMatch) {
         characterUpdate.race = raceMatch
       }
       
-      // Extract class
+      // Extract class with fuzzy matching for misspellings
       const classes = ['fighter', 'wizard', 'rogue', 'cleric', 'ranger', 'paladin', 'barbarian', 'bard', 'sorcerer', 'warlock', 'monk', 'druid']
-      const classMatch = classes.find(cls => userInput.toLowerCase().includes(cls))
+      const classMatch = classes.find(cls => {
+        const lowerInput = userInput.toLowerCase()
+        // Exact match
+        if (lowerInput.includes(cls)) return true
+        // Fuzzy matching for common misspellings
+        if (cls === 'fighter' && (lowerInput.includes('fightr') || lowerInput.includes('fight'))) return true
+        if (cls === 'wizard' && (lowerInput.includes('wizrd') || lowerInput.includes('wiz'))) return true
+        if (cls === 'rogue' && (lowerInput.includes('rouge') || lowerInput.includes('rog'))) return true
+        if (cls === 'cleric' && (lowerInput.includes('cleric') || lowerInput.includes('cler'))) return true
+        if (cls === 'ranger' && (lowerInput.includes('rangr') || lowerInput.includes('rang'))) return true
+        if (cls === 'paladin' && (lowerInput.includes('paladn') || lowerInput.includes('pala'))) return true
+        if (cls === 'barbarian' && (lowerInput.includes('barbar') || lowerInput.includes('barb'))) return true
+        if (cls === 'bard' && (lowerInput.includes('brd') || lowerInput.includes('bard'))) return true
+        if (cls === 'sorcerer' && (lowerInput.includes('sorcer') || lowerInput.includes('sorc'))) return true
+        if (cls === 'warlock' && (lowerInput.includes('warlc') || lowerInput.includes('warl'))) return true
+        if (cls === 'monk' && (lowerInput.includes('mnk') || lowerInput.includes('mon'))) return true
+        if (cls === 'druid' && (lowerInput.includes('dru') || lowerInput.includes('dru'))) return true
+        return false
+      })
       if (classMatch) {
         characterUpdate.class = classMatch
       }

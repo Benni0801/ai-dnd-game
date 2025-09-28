@@ -2,15 +2,32 @@
 
 import { useState } from 'react'
 import AICharacterCreation from '../components/AICharacterCreation'
+import SinglePlayerGame from '../components/SinglePlayerGame'
 
 export default function Home() {
   const [showAICharacterCreation, setShowAICharacterCreation] = useState(false)
+  const [showSinglePlayerGame, setShowSinglePlayerGame] = useState(false)
+  const [createdCharacter, setCreatedCharacter] = useState<any>(null)
 
   const handleCharacterComplete = (characterData: any) => {
     console.log('Character created:', characterData)
-    // Here you would typically save the character and navigate to the game
-    alert(`Character created successfully! ${characterData.name} is ready for adventure!`)
+    setCreatedCharacter(characterData)
     setShowAICharacterCreation(false)
+    setShowSinglePlayerGame(true)
+  }
+
+  const handleBackToCharacterCreation = () => {
+    setShowSinglePlayerGame(false)
+    setShowAICharacterCreation(true)
+  }
+
+  if (showSinglePlayerGame && createdCharacter) {
+    return (
+      <SinglePlayerGame
+        character={createdCharacter}
+        onBack={handleBackToCharacterCreation}
+      />
+    )
   }
 
   if (showAICharacterCreation) {
