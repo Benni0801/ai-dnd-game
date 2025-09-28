@@ -27,6 +27,61 @@ import GameModeSelector from '../components/GameModeSelector';
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
+
+  // Add global styles to prevent overflow
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      * {
+        box-sizing: border-box;
+      }
+      html, body {
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+        margin: 0;
+        padding: 0;
+      }
+      #__next {
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      if (document.head.contains(style)) {
+        document.head.removeChild(style);
+      }
+    };
+  }, []);
+
+  // Debug: Check for overflow
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (window.innerWidth < 1024) {
+        const body = document.body;
+        const html = document.documentElement;
+        console.log('Debug - Body width:', body.scrollWidth, 'vs viewport:', window.innerWidth);
+        console.log('Debug - HTML width:', html.scrollWidth, 'vs viewport:', window.innerWidth);
+        
+        if (body.scrollWidth > window.innerWidth || html.scrollWidth > window.innerWidth) {
+          console.log('OVERFLOW DETECTED!');
+          // Find elements causing overflow
+          const allElements = document.querySelectorAll('*');
+          allElements.forEach((el: any) => {
+            if (el.scrollWidth > window.innerWidth) {
+              console.log('Overflow element:', el, 'Width:', el.scrollWidth);
+            }
+          });
+        }
+      }
+    };
+    
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);
+    return () => window.removeEventListener('resize', checkOverflow);
+  }, [messages]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showCharacterCreation, setShowCharacterCreation] = useState(false);
@@ -1599,7 +1654,13 @@ export default function Home() {
         </div>
 
         {/* Add top padding to account for fixed header */}
-        <div style={{ paddingTop: '80px' }}>
+        <div style={{ 
+          paddingTop: '80px',
+          width: '100%',
+          maxWidth: '100vw',
+          boxSizing: 'border-box',
+          overflow: 'hidden'
+        }}>
         {/* Mobile Header */}
         <div style={{
           display: window.innerWidth < 1024 ? 'block' : 'none',
@@ -1696,7 +1757,11 @@ export default function Home() {
           gridTemplateRows: window.innerWidth < 1024 ? 'auto auto auto 1fr auto' : 'none',
           flexDirection: window.innerWidth >= 1024 ? 'row' : 'column', 
           minHeight: '100vh',
-          gap: window.innerWidth < 1024 ? '0.5rem' : '1rem'
+          gap: window.innerWidth < 1024 ? '0.5rem' : '1rem',
+          width: '100%',
+          maxWidth: '100vw',
+          boxSizing: 'border-box',
+          overflow: 'hidden'
         }}>
           {/* Desktop Sidebar */}
           <div style={{
@@ -1798,11 +1863,36 @@ export default function Home() {
           </div>
 
           {/* Main Chat Area */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ 
+            flex: 1, 
+            display: 'flex', 
+            flexDirection: 'column',
+            width: '100%',
+            maxWidth: '100%',
+            boxSizing: 'border-box',
+            overflow: 'hidden'
+          }}>
             {/* Chat and Action Log Container */}
-            <div style={{ flex: 1, display: 'flex', gap: '1rem', margin: '1rem' }}>
+            <div style={{ 
+              flex: 1, 
+              display: 'flex', 
+              gap: window.innerWidth < 1024 ? '0.5rem' : '1rem', 
+              margin: window.innerWidth < 1024 ? '0.5rem' : '1rem',
+              width: '100%',
+              maxWidth: '100%',
+              boxSizing: 'border-box',
+              overflow: 'hidden'
+            }}>
               {/* Chat Area */}
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ 
+                flex: 1, 
+                display: 'flex', 
+                flexDirection: 'column',
+                width: '100%',
+                maxWidth: '100%',
+                boxSizing: 'border-box',
+                overflow: 'hidden'
+              }}>
             {/* Desktop Header */}
             <div style={{
               display: window.innerWidth >= 1024 ? 'block' : 'none',
@@ -2178,7 +2268,11 @@ export default function Home() {
                     maxWidth: '100%',
                     wordWrap: 'break-word',
                     overflowWrap: 'break-word',
-                    whiteSpace: 'pre-wrap'
+                    wordBreak: 'break-word',
+                    whiteSpace: 'pre-wrap',
+                    hyphens: 'auto',
+                    WebkitHyphens: 'auto',
+                    msHyphens: 'auto'
                   }}>
                     {message.content}
                   </div>
