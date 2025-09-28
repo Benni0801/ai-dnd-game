@@ -205,11 +205,82 @@ export default function Home() {
         }
       };
 
-      // Debounce auto-save to avoid too many saves
-      const timeoutId = setTimeout(saveSession, 2000);
+      // Debounce auto-save to avoid too many saves (reduced to 1 second for better reliability)
+      const timeoutId = setTimeout(saveSession, 1000);
       return () => clearTimeout(timeoutId);
     }
   }, [messages, characterStats, inventory, user, selectedCharacter]);
+
+  // Save on page unload to prevent data loss
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (user && selectedCharacter && messages.length > 0) {
+        // Use sendBeacon for reliable saving on page unload
+        const sessionData = {
+          messages,
+          characterStats,
+          inventory,
+          lastSaved: new Date().toISOString()
+        };
+        
+        const data = JSON.stringify({
+          userId: user.id,
+          characterId: selectedCharacter.id,
+          sessionData
+        });
+        
+        // Try to save using sendBeacon (more reliable for page unload)
+        if (navigator.sendBeacon) {
+          const blob = new Blob([data], { type: 'application/json' });
+          navigator.sendBeacon('/api/save-adventure', blob);
+          console.log('Adventure session saved on page unload via sendBeacon');
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [user, selectedCharacter, messages, characterStats, inventory]);
+
+  // Manual save function
+  const saveAdventure = async () => {
+    if (user && selectedCharacter && messages.length > 0) {
+      try {
+        const sessionData = {
+          messages,
+          characterStats,
+          inventory,
+          lastSaved: new Date().toISOString()
+        };
+        
+        await adventureService.saveAdventureSession(user.id, selectedCharacter.id, sessionData);
+        console.log('Adventure session manually saved');
+        
+        // Show success message
+        const successMessage: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: '💾 Adventure saved successfully!',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, successMessage]);
+      } catch (error) {
+        console.error('Error manually saving adventure session:', error);
+        
+        // Show error message
+        const errorMessage: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: '❌ Failed to save adventure. Please try again.',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
+    }
+  };
 
   // Scroll to bottom when loading state changes
   useEffect(() => {
@@ -1502,9 +1573,41 @@ export default function Home() {
                   ⚔️ AI D&D Adventure
                 </h1>
               </div>
-              <p style={{ color: '#94a3b8', margin: 0, textAlign: 'center' }}>
+              <p style={{ color: '#94a3b8', margin: 0, textAlign: 'center', marginBottom: '1rem' }}>
                 Playing as {characterStats.name} the {characterStats.race} {characterStats.class}
               </p>
+              
+              {/* Save Button */}
+              <div style={{ textAlign: 'center' }}>
+                <button
+                  onClick={saveAdventure}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    borderRadius: '8px',
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    color: 'white',
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    margin: '0 auto'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'linear-gradient(135deg, #059669, #047857)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  💾 Save Adventure
+                </button>
+              </div>
             </div>
 
             {/* Desktop Tab Navigation */}
