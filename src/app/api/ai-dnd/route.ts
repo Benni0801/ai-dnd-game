@@ -69,7 +69,8 @@ export async function POST(request: NextRequest) {
     // Check for API key - if not available, use fallback responses
     const apiKey = process.env.GOOGLE_API_KEY;
     console.log('API Key check:', apiKey ? `Found (${apiKey.substring(0, 10)}...)` : 'Not found');
-    console.log('Full API key for debugging:', apiKey);
+    console.log('API Key length:', apiKey ? apiKey.length : 0);
+    console.log('API Key starts with:', apiKey ? apiKey.substring(0, 20) : 'None');
     
     if (!apiKey || apiKey === 'placeholder-key') {
       console.log('ERROR: No API key found or using placeholder');
@@ -520,6 +521,9 @@ When running combat, you MUST:
       }
     } else {
       console.log('Using alternative API endpoint');
+      console.log('Making Gemini API call with prompt length:', fullPrompt.length);
+      console.log('API Key length:', apiKey.length);
+      
       response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`, {
         method: 'POST',
         headers: {
@@ -541,6 +545,9 @@ When running combat, you MUST:
         }),
         signal: AbortSignal.timeout(30000)
       });
+      
+      console.log('Gemini API response status:', response.status);
+      console.log('Gemini API response ok:', response.ok);
     }
     
         if (!response || !response.ok) {
@@ -569,20 +576,36 @@ When running combat, you MUST:
     
     // Extract the generated text
     let aiResponse = '';
+    console.log('Response data structure check:', {
+      hasCandidates: !!data.candidates,
+      candidatesLength: data.candidates?.length || 0,
+      firstCandidate: data.candidates?.[0] ? 'exists' : 'missing',
+      hasContent: !!data.candidates?.[0]?.content,
+      hasParts: !!data.candidates?.[0]?.content?.parts,
+      partsLength: data.candidates?.[0]?.content?.parts?.length || 0,
+      firstPartText: data.candidates?.[0]?.content?.parts?.[0]?.text || 'no text'
+    });
+    
     if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
       aiResponse = data.candidates[0].content.parts[0].text || '';
       console.log('Extracted AI response:', aiResponse);
+      console.log('AI response type:', typeof aiResponse);
+      console.log('AI response length:', aiResponse?.length || 0);
     } else {
       console.log('No valid response structure found in data:', data);
     }
 
     // Clean up the response
     if (aiResponse) {
+      console.log('Raw AI response before cleaning:', aiResponse);
       aiResponse = aiResponse.replace(/Please respond as the Dungeon Master:/g, '').trim();
       console.log('Cleaned AI response:', aiResponse);
+      console.log('AI response length:', aiResponse.length);
       console.log('AI response contains [ITEM: markers:', aiResponse.includes('[ITEM:'));
       console.log('AI response contains [STATS: markers:', aiResponse.includes('[STATS:'));
       console.log('Full AI response for debugging:', aiResponse);
+    } else {
+      console.log('AI response is null or undefined!');
     }
 
     // Parse items and stats from the response
