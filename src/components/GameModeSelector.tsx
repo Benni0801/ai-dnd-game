@@ -5,7 +5,6 @@ import React from 'react';
 interface GameModeSelectorProps {
   onSinglePlayer: () => void;
   onMultiplayer: () => void;
-  onAICreateCharacter: () => void;
   onBack: () => void;
   username?: string;
 }
@@ -13,7 +12,6 @@ interface GameModeSelectorProps {
 const GameModeSelector: React.FC<GameModeSelectorProps> = ({
   onSinglePlayer,
   onMultiplayer,
-  onAICreateCharacter,
   onBack,
   username
 }) => {
@@ -193,55 +191,6 @@ const GameModeSelector: React.FC<GameModeSelectorProps> = ({
               </div>
             </div>
 
-            {/* AI Character Creation Option */}
-            <div
-              style={{
-                background: 'rgba(15, 15, 35, 0.6)',
-                border: '1px solid rgba(168, 85, 247, 0.2)',
-                borderRadius: '20px',
-                padding: '2rem',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                textAlign: 'center'
-              }}
-              onClick={onAICreateCharacter}
-              onMouseOver={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.5)';
-                e.currentTarget.style.background = 'rgba(15, 15, 35, 0.8)';
-                e.currentTarget.style.transform = 'translateY(-5px)';
-                e.currentTarget.style.boxShadow = '0 16px 48px rgba(168, 85, 247, 0.2)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.2)';
-                e.currentTarget.style.background = 'rgba(15, 15, 35, 0.6)';
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-            >
-              <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🤖</div>
-              <h3 style={{
-                fontSize: '1.5rem',
-                fontWeight: 'bold',
-                color: '#e2e8f0',
-                marginBottom: '1rem'
-              }}>
-                AI Character Creator
-              </h3>
-              <p style={{ color: '#94a3b8', lineHeight: '1.6', marginBottom: '1.5rem' }}>
-                Let our AI help you create the perfect character through an interactive conversation. Get personalized questions and a custom character image!
-              </p>
-              <div style={{
-                padding: '1rem 2rem',
-                background: 'linear-gradient(135deg, #a855f7, #8b5cf6)',
-                borderRadius: '12px',
-                color: 'white',
-                fontSize: '1rem',
-                fontWeight: '600',
-                display: 'inline-block'
-              }}>
-                Create with AI
-              </div>
-            </div>
           </div>
 
           {/* Back Button */}

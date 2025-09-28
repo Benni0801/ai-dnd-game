@@ -635,11 +635,6 @@ export default function Home() {
     setUserHasChosenMode(false); // Reset choice when going back
   };
 
-  const handleAICreateCharacter = () => {
-    setShowGameModeSelector(false);
-    setShowAICharacterCreation(true);
-    setUserHasChosenMode(true); // Mark that user has chosen a mode
-  };
 
   const handleAICharacterComplete = async (characterData: any) => {
     try {
@@ -721,7 +716,6 @@ export default function Home() {
       <GameModeSelector
         onSinglePlayer={handleSinglePlayer}
         onMultiplayer={handleMultiplayer}
-        onAICreateCharacter={handleAICreateCharacter}
         onBack={handleBackFromGameMode}
         username={user.user_metadata?.username || user.email}
       />
@@ -763,6 +757,7 @@ export default function Home() {
         userId={user.id}
         onCharacterSelect={handleCharacterSelect}
         onNewCharacter={handleNewCharacter}
+        onAICreateCharacter={() => setShowAICharacterCreation(true)}
         onLogout={handleLogout}
       />
     );

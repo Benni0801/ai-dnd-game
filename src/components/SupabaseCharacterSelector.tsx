@@ -20,6 +20,7 @@ interface SupabaseCharacterSelectorProps {
   userId: string;
   onCharacterSelect: (character: Character) => void;
   onNewCharacter: () => void;
+  onAICreateCharacter: () => void;
   onLogout: () => void;
 }
 
@@ -27,6 +28,7 @@ export default function SupabaseCharacterSelector({
   userId, 
   onCharacterSelect, 
   onNewCharacter, 
+  onAICreateCharacter,
   onLogout 
 }: SupabaseCharacterSelectorProps) {
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -428,9 +430,9 @@ export default function SupabaseCharacterSelector({
                 ))}
               </div>
 
-              {/* Create New Character Button */}
+              {/* Create New Character Buttons */}
               {characters.length < 4 && (
-                <div style={{ textAlign: 'center' }}>
+                <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <button
                     onClick={onNewCharacter}
                     style={{
@@ -460,6 +462,37 @@ export default function SupabaseCharacterSelector({
                   >
                     <span style={{ fontSize: '1.5rem' }}>✨</span>
                     Create New Character
+                  </button>
+                  
+                  <button
+                    onClick={onAICreateCharacter}
+                    style={{
+                      padding: '1.25rem 3rem',
+                      background: 'linear-gradient(135deg, #a855f7, #8b5cf6)',
+                      border: 'none',
+                      borderRadius: '16px',
+                      color: 'white',
+                      fontSize: '1.25rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 8px 25px rgba(168, 85, 247, 0.4)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      margin: '0 auto'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 12px 30px rgba(168, 85, 247, 0.5)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(168, 85, 247, 0.4)';
+                    }}
+                  >
+                    <span style={{ fontSize: '1.5rem' }}>🤖</span>
+                    Create with AI
                   </button>
                 </div>
               )}

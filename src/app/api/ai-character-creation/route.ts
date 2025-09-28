@@ -62,36 +62,43 @@ ${JSON.stringify(characterData, null, 2)}
 - When you have enough information, set isComplete to true
 - Always respond in a friendly, enthusiastic tone
 - Use the character data to avoid repeating questions
+- Accept ANY name the user provides, even if it seems unusual
 
 **RESPONSE FORMAT:**
-Respond with a JSON object containing:
+You MUST respond with ONLY a valid JSON object in this exact format:
 {
   "message": "Your conversational response to the user",
   "characterData": {
-    "key": "value" // Only include new/updated character data
+    "key": "value"
   },
-  "isComplete": false // Set to true when character creation is finished
+  "isComplete": false
 }
+
+**CRITICAL:** 
+- Respond with ONLY the JSON object, no other text
+- The message should be conversational and engaging
+- The characterData should only contain new information to add to the character
+- Accept any name the user provides
 
 **EXAMPLE RESPONSES:**
 
-If asking for name:
+If asking for name and user says "goob":
 {
-  "message": "Excellent! Now, what would you like your character to be called? This name will be remembered throughout your adventures!",
-  "characterData": {},
+  "message": "Goob! What a unique and memorable name! I love it. Now, what race would you like Goob to be? We have Humans, Elves, Dwarves, Halflings, Dragonborn, Gnomes, Half-Elves, Half-Orcs, and Tieflings to choose from.",
+  "characterData": {
+    "name": "Goob"
+  },
   "isComplete": false
 }
 
 If character is complete:
 {
-  "message": "Fantastic! I've gathered all the information I need to create your character. Your ${characterData.race} ${characterData.class} named ${characterData.name} is ready for adventure! Let's create your character and begin your epic journey!",
+  "message": "Fantastic! I've gathered all the information I need to create your character. Your character is ready for adventure! Let's create your character and begin your epic journey!",
   "characterData": {
     "finalized": true
   },
   "isComplete": true
-}
-
-**IMPORTANT:** Always respond with valid JSON. The message should be conversational and engaging, while the characterData should only contain new information to add to the character.`;
+}`;
 
     // Add system prompt to conversation
     const fullConversation = [
@@ -133,21 +140,53 @@ If character is complete:
     // Try to parse the JSON response
     let parsedResponse;
     try {
-      // Extract JSON from the response (in case there's extra text)
-      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+      // Clean the response and try to parse JSON
+      let cleanResponse = aiResponse.trim();
+      
+      // Remove any markdown code blocks
+      cleanResponse = cleanResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+      
+      // Try to find JSON object
+      const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         parsedResponse = JSON.parse(jsonMatch[0]);
       } else {
-        throw new Error('No JSON found in response');
+        // If no JSON found, try parsing the whole response
+        parsedResponse = JSON.parse(cleanResponse);
       }
+      
+      // Validate required fields
+      if (!parsedResponse.message) {
+        parsedResponse.message = aiResponse;
+      }
+      if (!parsedResponse.characterData) {
+        parsedResponse.characterData = {};
+      }
+      if (typeof parsedResponse.isComplete !== 'boolean') {
+        parsedResponse.isComplete = false;
+      }
+      
     } catch (error) {
       console.error('Failed to parse AI response as JSON:', aiResponse);
-      // Fallback response
-      parsedResponse = {
-        message: aiResponse,
-        characterData: {},
-        isComplete: false
-      };
+      console.error('Parse error:', error);
+      
+      // Fallback response - try to extract name if it's a simple name response
+      const nameMatch = aiResponse.match(/(?:name|call|be)\s+(?:is\s+)?([a-zA-Z0-9\s]+)/i);
+      if (nameMatch && !characterData.name) {
+        parsedResponse = {
+          message: `Great! ${nameMatch[1].trim()} is a wonderful name! Now, what race would you like ${nameMatch[1].trim()} to be?`,
+          characterData: {
+            name: nameMatch[1].trim()
+          },
+          isComplete: false
+        };
+      } else {
+        parsedResponse = {
+          message: aiResponse,
+          characterData: {},
+          isComplete: false
+        };
+      }
     }
 
     return NextResponse.json({
