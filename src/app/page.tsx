@@ -624,7 +624,26 @@ export default function Home() {
 
   // Show homepage
   if (showHomePage) {
-    return <HomePage onStartGame={handleStartGame} onLogin={handleHomeLogin} />;
+    return (
+      <HomePage 
+        onStartGame={handleStartGame} 
+        onLogin={handleHomeLogin}
+        onContinueGame={() => {
+          // Return to the current game state
+          if (selectedCharacter) {
+            setShowHomePage(false);
+            setShowGameModeSelector(false);
+            setShowCharacterSelector(false);
+            setShowCharacterCreation(false);
+            setShowMultiplayerLobby(false);
+            setShowMultiplayerGameRoom(false);
+            // The game will automatically show based on the current state
+          }
+        }}
+        hasActiveGame={!!selectedCharacter}
+        currentCharacter={selectedCharacter}
+      />
+    );
   }
 
   // Show game mode selector
