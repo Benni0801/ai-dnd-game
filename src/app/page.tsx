@@ -53,6 +53,7 @@ export default function Home() {
   });
 
   const [activeTab, setActiveTab] = useState<'chat' | 'character' | 'inventory' | 'combat'>('chat');
+  const [diceRolling, setDiceRolling] = useState(false);
   const [inventory, setInventory] = useState<any[]>([
     {
       id: '1',
@@ -395,41 +396,50 @@ export default function Home() {
 
   // AI-triggered dice rolling function
   const handleAIDiceRoll = (diceString: string) => {
+    setDiceRolling(true);
+    
     // Parse dice string like "1d20" or "2d6+3"
     const match = diceString.match(/(\d+)d(\d+)([+-]\d+)?/);
-    if (!match) return;
+    if (!match) {
+      setDiceRolling(false);
+      return;
+    }
 
     const numDice = parseInt(match[1]);
     const dieSize = parseInt(match[2]);
     const modifier = match[3] ? parseInt(match[3]) : 0;
 
-    const results: any[] = [];
-    for (let i = 0; i < numDice; i++) {
-      const value = Math.floor(Math.random() * dieSize) + 1;
-      const isCritical = value === dieSize;
-      const isFumble = value === 1;
-      
-      results.push({
-        id: `${Date.now()}-${i}`,
-        type: `d${dieSize}`,
-        value,
-        maxValue: dieSize,
-        isCritical,
-        isFumble
-      });
-    }
+    // Wait for animation to complete
+    setTimeout(() => {
+      const results: any[] = [];
+      for (let i = 0; i < numDice; i++) {
+        const value = Math.floor(Math.random() * dieSize) + 1;
+        const isCritical = value === dieSize;
+        const isFumble = value === 1;
+        
+        results.push({
+          id: `${Date.now()}-${i}`,
+          type: `d${dieSize}`,
+          value,
+          maxValue: dieSize,
+          isCritical,
+          isFumble
+        });
+      }
 
-    const rollText = results.map(r => `${r.value}${r.isCritical ? ' (Critical!)' : r.isFumble ? ' (Fumble!)' : ''}`).join(', ');
-    const total = results.reduce((sum, r) => sum + r.value, 0) + modifier;
-    
-    const diceMessage: Message = {
-      id: Date.now().toString(),
-      role: 'assistant',
-      content: `🎲 The Dungeon Master rolls ${diceString}: [${rollText}]${modifier !== 0 ? ` + ${modifier}` : ''} = ${total}`,
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, diceMessage]);
+      const rollText = results.map(r => `${r.value}${r.isCritical ? ' (Critical!)' : r.isFumble ? ' (Fumble!)' : ''}`).join(', ');
+      const total = results.reduce((sum, r) => sum + r.value, 0) + modifier;
+      
+      const diceMessage: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `🎲 The Dungeon Master rolls ${diceString}: [${rollText}]${modifier !== 0 ? ` + ${modifier}` : ''} = ${total}`,
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, diceMessage]);
+      setDiceRolling(false);
+    }, 1500);
   };
 
   const handleCombatEnd = (victory: boolean) => {
@@ -1171,6 +1181,15 @@ export default function Home() {
           50% { transform: translate(30px, -20px) scale(1.1); }
           100% { transform: translate(0, 0) scale(1); }
         }
+        @keyframes diceRoll {
+          0% { transform: scale(0.8) rotate(0deg); opacity: 0; }
+          50% { transform: scale(1.1) rotate(180deg); opacity: 1; }
+          100% { transform: scale(1) rotate(360deg); opacity: 1; }
+        }
+        @keyframes diceSpin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
@@ -1631,6 +1650,38 @@ export default function Home() {
                   </div>
                 </div>
               ))}
+
+              {diceRolling && (
+                <div
+                  style={{
+                    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                    borderRadius: '16px',
+                    padding: '1.5rem',
+                    marginBottom: '1rem',
+                    animation: 'diceRoll 1.5s ease-in-out',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '1rem'
+                  }}
+                >
+                  <div style={{
+                    fontSize: '2rem',
+                    animation: 'diceSpin 0.5s linear infinite'
+                  }}>
+                    🎲
+                  </div>
+                  <div style={{ 
+                    color: 'white', 
+                    fontSize: '1.2rem',
+                    fontWeight: 'bold'
+                  }}>
+                    The Dungeon Master is rolling dice...
+                  </div>
+                </div>
+              )}
 
               {isLoading && (
                 <div style={{

@@ -164,41 +164,74 @@ export default function CharacterProgression({ characterStats, onStatsUpdate }: 
   };
 
   return (
-    <div className="character-progression bg-gray-800 p-4 rounded-lg border border-gray-600">
-      <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-        📈 Character Progression
+    <div style={{
+      background: 'rgba(15, 15, 35, 0.9)',
+      backdropFilter: 'blur(20px)',
+      border: '1px solid rgba(139, 92, 246, 0.3)',
+      borderRadius: '16px',
+      padding: '1.5rem'
+    }}>
+      <h3 style={{
+        fontSize: '1.25rem',
+        fontWeight: 'bold',
+        background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        marginBottom: '1.5rem',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem'
+      }}>
+        📈 Character Stats
       </h3>
 
       {/* Level and XP */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="bg-gray-700 p-3 rounded">
-          <div className="text-sm text-gray-300">Level</div>
-          <div className="text-2xl font-bold text-white">{characterStats.level || 1}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div style={{
+          background: 'rgba(139, 92, 246, 0.1)',
+          border: '1px solid rgba(139, 92, 246, 0.2)',
+          borderRadius: '12px',
+          padding: '1rem',
+          textAlign: 'center'
+        }}>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.5rem' }}>Level</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#e2e8f0' }}>{characterStats.level || 1}</div>
         </div>
-        <div className="bg-gray-700 p-3 rounded">
-          <div className="text-sm text-gray-300">Experience</div>
-          <div className="text-lg font-bold text-white">{(characterStats.xp || 0).toLocaleString()} XP</div>
+        <div style={{
+          background: 'rgba(139, 92, 246, 0.1)',
+          border: '1px solid rgba(139, 92, 246, 0.2)',
+          borderRadius: '12px',
+          padding: '1rem',
+          textAlign: 'center'
+        }}>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.5rem' }}>Experience</div>
+          <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#e2e8f0' }}>{(characterStats.xp || 0).toLocaleString()} XP</div>
         </div>
       </div>
 
       {/* XP Progress Bar */}
-      <div className="mb-4">
-        <div className="flex justify-between text-sm text-gray-300 mb-1">
+      <div style={{ marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.5rem' }}>
           <span>Progress to Level {(characterStats.level || 1) + 1}</span>
           <span>{getXpToNextLevel(characterStats.xp || 0).toLocaleString()} XP needed</span>
         </div>
-        <div className="w-full bg-gray-600 rounded-full h-3">
+        <div style={{ width: '100%', background: 'rgba(55, 65, 81, 0.6)', borderRadius: '8px', height: '8px' }}>
           <div
-            className="bg-blue-500 h-3 rounded-full transition-all duration-500"
-            style={{ width: `${getXpProgress()}%` }}
+            style={{ 
+              background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+              height: '8px',
+              borderRadius: '8px',
+              transition: 'all 0.5s ease',
+              width: `${getXpProgress()}%`
+            }}
           ></div>
         </div>
       </div>
 
       {/* Ability Scores */}
-      <div className="mb-4">
-        <h4 className="text-lg font-bold text-white mb-2">Ability Scores</h4>
-        <div className="grid grid-cols-3 gap-2">
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h4 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#a78bfa', marginBottom: '1rem' }}>Ability Scores</h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
           {[
             { name: 'STR', value: characterStats.str, short: 'Strength' },
             { name: 'DEX', value: characterStats.dex, short: 'Dexterity' },
@@ -209,10 +242,20 @@ export default function CharacterProgression({ characterStats, onStatsUpdate }: 
           ].map(ability => {
             const modifier = getAbilityModifier(ability.value);
             return (
-              <div key={ability.name} className="bg-gray-700 p-2 rounded text-center">
-                <div className="text-xs text-gray-300">{ability.short}</div>
-                <div className="text-lg font-bold text-white">{ability.value}</div>
-                <div className={`text-sm ${modifier >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              <div key={ability.name} style={{
+                background: 'rgba(139, 92, 246, 0.1)',
+                border: '1px solid rgba(139, 92, 246, 0.2)',
+                borderRadius: '8px',
+                padding: '0.75rem',
+                textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '0.6rem', color: '#94a3b8', marginBottom: '0.25rem' }}>{ability.short}</div>
+                <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#e2e8f0', marginBottom: '0.25rem' }}>{ability.value}</div>
+                <div style={{ 
+                  fontSize: '0.7rem', 
+                  color: modifier >= 0 ? '#10b981' : '#ef4444',
+                  fontWeight: 'bold'
+                }}>
                   {modifier >= 0 ? '+' : ''}{modifier}
                 </div>
               </div>
@@ -222,9 +265,9 @@ export default function CharacterProgression({ characterStats, onStatsUpdate }: 
       </div>
 
       {/* Skills */}
-      <div className="mb-4">
-        <h4 className="text-lg font-bold text-white mb-2">Skills</h4>
-        <div className="grid grid-cols-2 gap-2 text-sm">
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h4 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#a78bfa', marginBottom: '1rem' }}>Skills</h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', fontSize: '0.8rem' }}>
           {[
             { name: 'Acrobatics', ability: 'dex' },
             { name: 'Animal Handling', ability: 'wis' },
@@ -248,9 +291,21 @@ export default function CharacterProgression({ characterStats, onStatsUpdate }: 
             const abilityScore = characterStats[skill.ability as keyof CharacterStats] as number;
             const bonus = getSkillBonus(abilityScore, characterStats.skills?.includes(skill.name) || false);
             return (
-              <div key={skill.name} className="flex justify-between items-center bg-gray-700 p-2 rounded">
-                <span className="text-gray-300">{skill.name}</span>
-                <span className={`font-bold ${bonus >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              <div key={skill.name} style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: 'rgba(139, 92, 246, 0.05)',
+                border: '1px solid rgba(139, 92, 246, 0.1)',
+                borderRadius: '6px',
+                padding: '0.5rem'
+              }}>
+                <span style={{ color: '#94a3b8', fontSize: '0.7rem' }}>{skill.name}</span>
+                <span style={{ 
+                  fontWeight: 'bold',
+                  color: bonus >= 0 ? '#10b981' : '#ef4444',
+                  fontSize: '0.7rem'
+                }}>
                   {bonus >= 0 ? '+' : ''}{bonus}
                 </span>
               </div>
@@ -260,12 +315,19 @@ export default function CharacterProgression({ characterStats, onStatsUpdate }: 
       </div>
 
       {/* Abilities and Spells */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
         <div>
-          <h4 className="text-lg font-bold text-white mb-2">Class Abilities</h4>
-          <div className="space-y-1">
+          <h4 style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#a78bfa', marginBottom: '0.75rem' }}>Class Abilities</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {(characterStats.abilities || []).map(ability => (
-              <div key={ability} className="bg-gray-700 p-2 rounded text-sm text-gray-300">
+              <div key={ability} style={{
+                background: 'rgba(139, 92, 246, 0.1)',
+                border: '1px solid rgba(139, 92, 246, 0.2)',
+                borderRadius: '6px',
+                padding: '0.5rem',
+                fontSize: '0.7rem',
+                color: '#94a3b8'
+              }}>
                 {ability}
               </div>
             ))}
@@ -273,10 +335,17 @@ export default function CharacterProgression({ characterStats, onStatsUpdate }: 
         </div>
         
         <div>
-          <h4 className="text-lg font-bold text-white mb-2">Spells</h4>
-          <div className="space-y-1">
+          <h4 style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#a78bfa', marginBottom: '0.75rem' }}>Spells</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {(characterStats.spells || []).map(spell => (
-              <div key={typeof spell === 'string' ? spell : spell.name} className="bg-gray-700 p-2 rounded text-sm text-gray-300">
+              <div key={typeof spell === 'string' ? spell : spell.name} style={{
+                background: 'rgba(139, 92, 246, 0.1)',
+                border: '1px solid rgba(139, 92, 246, 0.2)',
+                borderRadius: '6px',
+                padding: '0.5rem',
+                fontSize: '0.7rem',
+                color: '#94a3b8'
+              }}>
                 {typeof spell === 'string' ? spell : spell.name}
               </div>
             ))}
@@ -287,7 +356,24 @@ export default function CharacterProgression({ characterStats, onStatsUpdate }: 
       {/* XP Gain Button (for testing) */}
       <button
         onClick={() => addXp(100)}
-        className="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded font-bold"
+        style={{
+          width: '100%',
+          padding: '0.75rem',
+          background: 'linear-gradient(135deg, #10b981, #059669)',
+          border: '1px solid rgba(16, 185, 129, 0.3)',
+          borderRadius: '8px',
+          color: 'white',
+          fontSize: '0.8rem',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          transition: 'all 0.3s ease'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'linear-gradient(135deg, #059669, #047857)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'linear-gradient(135deg, #10b981, #059669)'
+        }}
       >
         +100 XP (Test)
       </button>
