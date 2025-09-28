@@ -2,8 +2,17 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { CharacterStats, Message } from '../types';
+
+interface ActionLogEntry {
+  id: string;
+  type: 'damage' | 'heal' | 'xp' | 'level' | 'item' | 'stat';
+  message: string;
+  timestamp: Date;
+  icon: string;
+}
 import AdvancedDiceRoller from '../components/AdvancedDiceRoller';
 import InventorySystem, { InventorySystemRef } from '../components/InventorySystem';
+import ActionLog from '../components/ActionLog';
 import CombatSystem from '../components/CombatSystem';
 import CharacterProgression from '../components/CharacterProgression';
 import SupabaseAuthModal from '../components/SupabaseAuthModal';
@@ -99,6 +108,7 @@ export default function Home() {
       quantity: 5
     }
   ]);
+  const [actionLog, setActionLog] = useState<ActionLogEntry[]>([]);
   const [showScrollButton, setShowScrollButton] = useState(false);
   
   // Authentication state
@@ -122,6 +132,17 @@ export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inventoryRef = useRef<InventorySystemRef>(null);
+
+  const addActionLogEntry = (type: ActionLogEntry['type'], message: string, icon: string) => {
+    const entry: ActionLogEntry = {
+      id: Date.now().toString(),
+      type,
+      message,
+      timestamp: new Date(),
+      icon
+    };
+    setActionLog(prev => [entry, ...prev.slice(0, 49)]); // Keep last 50 entries
+  };
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -448,17 +469,7 @@ export default function Home() {
       if (data.items && data.items.length > 0) {
         console.log('Processing items:', data.items);
         
-        // Add a notification message about received items first
-        const itemNames = data.items.map((item: any) => item.name).join(', ');
-        const itemMessage: Message = {
-          id: (Date.now() + 0.5).toString(),
-          content: `🎒 You received: ${itemNames}`,
-          role: 'assistant',
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, itemMessage]);
-        
-        // Try to add items to inventory with retry logic
+        // Add items to inventory with retry logic
         const addItemsToInventory = () => {
           if (inventoryRef.current) {
             console.log('Inventory ref is available, adding items');
@@ -466,6 +477,9 @@ export default function Home() {
               console.log('Adding item to inventory:', item);
               inventoryRef.current.addItem(item);
               console.log('Successfully added item from AI:', item);
+              
+              // Add to action log
+              addActionLogEntry('item', `Found ${item.name}`, '🎒');
             }
           } else {
             console.log('Inventory ref not available yet, retrying in 100ms');
@@ -486,33 +500,44 @@ export default function Home() {
         setCharacterStats(prev => {
           const updatedStats = { ...prev };
           
-          // Apply each stat change
+          // Apply each stat change and add to action log
           for (const [stat, value] of Object.entries(data.statChanges)) {
             if (typeof value === 'number') {
               if (stat === 'xp' && value > 0) {
                 // For XP, add to current value
                 updatedStats.xp = (updatedStats.xp || 0) + value;
+                addActionLogEntry('xp', `Gained ${value} XP`, '⭐');
               } else if (stat === 'hp' && value < 0) {
                 // For negative HP, subtract from current
                 updatedStats.hp = Math.max(0, (updatedStats.hp || 0) + value);
-              } else if (stat === 'hp') {
+                addActionLogEntry('damage', `Lost ${Math.abs(value)} HP`, '💔');
+              } else if (stat === 'hp' && value > 0) {
                 updatedStats.hp = value;
+                addActionLogEntry('heal', `Gained ${value} HP`, '❤️');
               } else if (stat === 'maxHp') {
                 updatedStats.maxHp = value;
+                addActionLogEntry('stat', `Max HP increased to ${value}`, '💪');
               } else if (stat === 'level') {
                 updatedStats.level = value;
+                addActionLogEntry('level', `Leveled up to ${value}!`, '🎉');
               } else if (stat === 'str') {
                 updatedStats.str = value;
+                addActionLogEntry('stat', `Strength increased to ${value}`, '💪');
               } else if (stat === 'dex') {
                 updatedStats.dex = value;
+                addActionLogEntry('stat', `Dexterity increased to ${value}`, '🏃');
               } else if (stat === 'con') {
                 updatedStats.con = value;
+                addActionLogEntry('stat', `Constitution increased to ${value}`, '🛡️');
               } else if (stat === 'int') {
                 updatedStats.int = value;
+                addActionLogEntry('stat', `Intelligence increased to ${value}`, '🧠');
               } else if (stat === 'wis') {
                 updatedStats.wis = value;
+                addActionLogEntry('stat', `Wisdom increased to ${value}`, '👁️');
               } else if (stat === 'cha') {
                 updatedStats.cha = value;
+                addActionLogEntry('stat', `Charisma increased to ${value}`, '✨');
               }
             }
           }
@@ -520,8 +545,6 @@ export default function Home() {
           console.log('Updated character stats:', updatedStats);
           return updatedStats;
         });
-        
-        // Stat changes happen silently in the background - no chat notifications
       } else {
         console.log('No stat changes received from AI');
       }
@@ -1226,6 +1249,10 @@ export default function Home() {
 
           {/* Main Chat Area */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            {/* Chat and Action Log Container */}
+            <div style={{ flex: 1, display: 'flex', gap: '1rem', margin: '1rem' }}>
+              {/* Chat Area */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             {/* Desktop Header */}
             <div style={{
               display: window.innerWidth >= 1024 ? 'block' : 'none',
@@ -1544,6 +1571,16 @@ export default function Home() {
                   </button>
                 </div>
               </form>
+            </div>
+              </div>
+
+              {/* Action Log */}
+              <div style={{ width: '300px', display: window.innerWidth >= 1024 ? 'block' : 'none' }}>
+                <ActionLog 
+                  entries={actionLog} 
+                  onClear={() => setActionLog([])} 
+                />
+              </div>
             </div>
           </div>
         </div>
