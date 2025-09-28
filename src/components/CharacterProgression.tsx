@@ -16,6 +16,7 @@ interface CharacterStats {
   con: number;
   wis: number;
   cha: number;
+  gold?: number;
   proficiencyBonus?: number;
   skills?: string[];
   abilities?: string[];
@@ -185,29 +186,39 @@ export default function CharacterProgression({ characterStats, onStatsUpdate }: 
         📈 Character Stats
       </h3>
 
-      {/* Level and XP */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-        <div style={{
-          background: 'rgba(139, 92, 246, 0.1)',
-          border: '1px solid rgba(139, 92, 246, 0.2)',
-          borderRadius: '12px',
-          padding: '1rem',
-          textAlign: 'center'
-        }}>
-          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.5rem' }}>Level</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#e2e8f0' }}>{characterStats.level || 1}</div>
+        {/* Level, XP, and Gold */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div style={{
+            background: 'rgba(139, 92, 246, 0.1)',
+            border: '1px solid rgba(139, 92, 246, 0.2)',
+            borderRadius: '12px',
+            padding: '1rem',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.5rem' }}>Level</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#e2e8f0' }}>{characterStats.level || 1}</div>
+          </div>
+          <div style={{
+            background: 'rgba(139, 92, 246, 0.1)',
+            border: '1px solid rgba(139, 92, 246, 0.2)',
+            borderRadius: '12px',
+            padding: '1rem',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.5rem' }}>Experience</div>
+            <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#e2e8f0' }}>{(characterStats.xp || 0).toLocaleString()} XP</div>
+          </div>
+          <div style={{
+            background: 'rgba(245, 158, 11, 0.1)',
+            border: '1px solid rgba(245, 158, 11, 0.2)',
+            borderRadius: '12px',
+            padding: '1rem',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.5rem' }}>Gold</div>
+            <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#f59e0b' }}>{(characterStats.gold || 0).toLocaleString()} 🪙</div>
+          </div>
         </div>
-        <div style={{
-          background: 'rgba(139, 92, 246, 0.1)',
-          border: '1px solid rgba(139, 92, 246, 0.2)',
-          borderRadius: '12px',
-          padding: '1rem',
-          textAlign: 'center'
-        }}>
-          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.5rem' }}>Experience</div>
-          <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#e2e8f0' }}>{(characterStats.xp || 0).toLocaleString()} XP</div>
-        </div>
-      </div>
 
       {/* XP Progress Bar */}
       <div style={{ marginBottom: '1.5rem' }}>

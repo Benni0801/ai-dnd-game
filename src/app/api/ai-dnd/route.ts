@@ -37,8 +37,8 @@ export async function POST(request: NextRequest) {
   try {
     console.log('AI API: Request received');
     const body = await request.json();
-    console.log('AI API: Body parsed:', { messages: body.messages?.length, characterStats: !!body.characterStats });
-    const { messages, characterStats, onDiceRoll } = body || {};
+    console.log('AI API: Body parsed:', { messages: body.messages?.length, characterStats: !!body.characterStats, inventory: body.inventory?.length });
+    const { messages, characterStats, inventory, onDiceRoll } = body || {};
 
     // Check for API key - if not available, use fallback responses
     const apiKey = process.env.GOOGLE_API_KEY;
@@ -112,7 +112,9 @@ export async function POST(request: NextRequest) {
           intelligence: characterStats?.int || 10,
           wisdom: characterStats?.wis || 10,
           charisma: characterStats?.cha || 10
-        }
+        },
+        gold: characterStats?.gold || 0,
+        inventory: inventory || []
       }
     };
 
@@ -144,6 +146,8 @@ export async function POST(request: NextRequest) {
 Character: ${gameState.character.name || 'Unnamed'} (${gameState.character.race || 'Unknown'} ${gameState.character.class || 'Adventurer'})
 Level: ${gameState.character.level} | XP: ${gameState.character.experience.current}/${gameState.character.experience.needed}
 Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameState.character.abilityScores.dexterity}, CON ${gameState.character.abilityScores.constitution}, INT ${gameState.character.abilityScores.intelligence}, WIS ${gameState.character.abilityScores.wisdom}, CHA ${gameState.character.abilityScores.charisma}
+Gold: ${gameState.character.gold} coins
+Current Inventory: ${gameState.character.inventory.map((item: any) => `${item.name} (${item.quantity || 1})`).join(', ') || 'Empty'}
 `;
 
         // Comprehensive D&D System Prompt
@@ -238,6 +242,16 @@ When giving players ANY items (loot, purchases, rewards, starting equipment), yo
 Character: ${gameState.character.name || 'Unnamed'} (${gameState.character.race || 'Unknown'} ${gameState.character.class || 'Adventurer'})
 Level: ${gameState.character.level} | XP: ${gameState.character.experience.current}/${gameState.character.experience.needed}
 Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameState.character.abilityScores.dexterity}, CON ${gameState.character.abilityScores.constitution}, INT ${gameState.character.abilityScores.intelligence}, WIS ${gameState.character.abilityScores.wisdom}, CHA ${gameState.character.abilityScores.charisma}
+
+**CRITICAL INVENTORY & CURRENCY RULES:**
+- ALWAYS track the player's current inventory and currency
+- When player uses an item (healing potion, scroll, etc.), REMOVE it from inventory using [ITEM:{"name":"Item Name","quantity":-1}]
+- When player buys something, SUBTRACT the cost from their gold using [STATS:{"gold":-cost}]
+- When player sells something, ADD the value to their gold using [STATS:{"gold":+value}]
+- NEVER allow purchases if player doesn't have enough gold
+- ALWAYS check inventory before allowing item usage
+- If player tries to use an item they don't have, tell them they don't have it
+- If player tries to buy something they can't afford, tell them they don't have enough gold
 
 **IMPORTANT INSTRUCTIONS:**
 - If character creation is incomplete, guide through the full process

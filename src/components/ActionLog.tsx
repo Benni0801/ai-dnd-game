@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 
 interface ActionLogEntry {
   id: string;
-  type: 'damage' | 'heal' | 'xp' | 'level' | 'item' | 'stat';
+  type: 'damage' | 'heal' | 'xp' | 'level' | 'item' | 'stat' | 'gold';
   message: string;
   timestamp: Date;
   icon: string;

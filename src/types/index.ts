@@ -17,6 +17,7 @@ export interface CharacterStats {
   con: number;
   wis: number;
   cha: number;
+  gold?: number;
   proficiencyBonus?: number;
   inventory: string;
   equippedItems?: string;

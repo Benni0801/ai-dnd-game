@@ -2,24 +2,24 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { CharacterStats, Message } from '../types/index';
+import AdvancedDiceRoller from '../components/AdvancedDiceRoller';
+import InventorySystem, { InventorySystemRef } from '../components/InventorySystem';
+import ActionLog from '../components/ActionLog';
 
 interface ActionLogEntry {
   id: string;
-  type: 'damage' | 'heal' | 'xp' | 'level' | 'item' | 'stat';
+  type: 'damage' | 'heal' | 'xp' | 'level' | 'item' | 'stat' | 'gold';
   message: string;
   timestamp: Date;
   icon: string;
 }
-import AdvancedDiceRoller from '../components/AdvancedDiceRoller';
-import InventorySystem, { InventorySystemRef } from '../components/InventorySystem';
-import ActionLog from '../components/ActionLog';
 import CombatSystem from '../components/CombatSystem';
 import CharacterProgression from '../components/CharacterProgression';
 import SupabaseAuthModal from '../components/SupabaseAuthModal';
 import SupabaseCharacterSelector from '../components/SupabaseCharacterSelector';
 import HomePage from '../components/HomePage';
 import AICharacterCreation from '../components/AICharacterCreation';
-import { authService, characterService } from '../lib/supabase-auth';
+import { authService, characterService, getSupabase } from '../lib/supabase-auth';
 import { adventureService } from '../lib/adventure-service';
 import MultiplayerLobby from '../components/MultiplayerLobby';
 import MultiplayerGameWithAI from '../components/MultiplayerGameWithAI';
@@ -45,6 +45,7 @@ export default function Home() {
     con: 12,
     wis: 12,
     cha: 12,
+    gold: 50, // Starting gold
     proficiencyBonus: 2,
     skills: [],
     abilities: [],
@@ -188,6 +189,14 @@ export default function Home() {
 
   // Auto-save adventure session when messages or character stats change
   useEffect(() => {
+    console.log('Auto-save useEffect triggered:', {
+      hasUser: !!user,
+      hasSelectedCharacter: !!selectedCharacter,
+      messagesLength: messages.length,
+      characterStats: characterStats.name,
+      inventoryLength: inventory.length
+    });
+    
     if (user && selectedCharacter && messages.length > 0) {
       const saveSession = async () => {
         try {
@@ -198,16 +207,30 @@ export default function Home() {
             lastSaved: new Date().toISOString()
           };
           
+          console.log('Auto-saving session data:', {
+            userId: user.id,
+            characterId: selectedCharacter.id,
+            messagesCount: messages.length,
+            characterName: characterStats.name,
+            inventoryCount: inventory.length
+          });
+          
           await adventureService.saveAdventureSession(user.id, selectedCharacter.id, sessionData);
-          console.log('Adventure session auto-saved');
+          console.log('✅ Adventure session auto-saved successfully');
         } catch (error) {
-          console.error('Error auto-saving adventure session:', error);
+          console.error('❌ Error auto-saving adventure session:', error);
         }
       };
 
       // Debounce auto-save to avoid too many saves (reduced to 1 second for better reliability)
       const timeoutId = setTimeout(saveSession, 1000);
       return () => clearTimeout(timeoutId);
+    } else {
+      console.log('Auto-save skipped - missing requirements:', {
+        user: !!user,
+        selectedCharacter: !!selectedCharacter,
+        messagesLength: messages.length
+      });
     }
   }, [messages, characterStats, inventory, user, selectedCharacter]);
 
@@ -281,6 +304,68 @@ export default function Home() {
       }
     }
   };
+
+  // Load user session on app startup
+  useEffect(() => {
+    const loadUserSession = async () => {
+      if (user && !selectedCharacter) {
+        console.log('Loading user session on startup...');
+        try {
+          // Get user's characters
+          const { data: characters, error } = await getSupabase()
+            .from('characters')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('updated_at', { ascending: false })
+            .limit(1);
+
+          if (error) {
+            console.error('Error loading characters:', error);
+            return;
+          }
+
+          if (characters && characters.length > 0) {
+            const lastCharacter = characters[0];
+            console.log('Found last character:', lastCharacter);
+            
+            // Set the character
+            setSelectedCharacter(lastCharacter);
+            
+            // Load the adventure session
+            const session = await adventureService.loadAdventureSession(lastCharacter.id);
+            if (session && session.session_data) {
+              console.log('Loading existing adventure session on startup:', session.session_data);
+              
+              // Restore messages
+              if (session.session_data.messages) {
+                const messagesWithDates = session.session_data.messages.map((msg: any) => ({
+                  ...msg,
+                  timestamp: new Date(msg.timestamp)
+                }));
+                setMessages(messagesWithDates);
+              }
+              
+              // Restore character stats
+              if (session.session_data.characterStats) {
+                setCharacterStats(session.session_data.characterStats);
+              }
+              
+              // Restore inventory
+              if (session.session_data.inventory) {
+                setInventory(session.session_data.inventory);
+              }
+              
+              console.log('Session restored successfully on startup');
+            }
+          }
+        } catch (error) {
+          console.error('Error loading user session:', error);
+        }
+      }
+    };
+
+    loadUserSession();
+  }, [user]);
 
   // Keyboard shortcuts for better PC navigation
   useEffect(() => {
@@ -635,6 +720,7 @@ export default function Home() {
         body: JSON.stringify({
           messages: [...messages, userMessage],
           characterStats,
+          inventory,
           onDiceRoll: 'handleAIDiceRoll' // Signal to AI that dice rolling is available
         }),
       });
@@ -674,14 +760,21 @@ export default function Home() {
           // Add items to inventory with retry logic
           const addItemsToInventory = () => {
             if (inventoryRef.current) {
-              console.log('Inventory ref is available, adding items');
+              console.log('Inventory ref is available, processing items');
               for (const item of newItems) {
-                console.log('Adding item to inventory:', item);
-                inventoryRef.current.addItem(item);
-                console.log('Successfully added item from AI:', item);
+                console.log('Processing item:', item);
                 
-                // Add to action log
-                addActionLogEntry('item', `Found ${item.name}`, '🎒');
+                if (item.quantity < 0) {
+                  // Remove item from inventory
+                  console.log('Removing item from inventory:', item);
+                  inventoryRef.current.removeItem(item.name, Math.abs(item.quantity));
+                  addActionLogEntry('item', `Used ${Math.abs(item.quantity)} ${item.name}`, '⚡');
+                } else {
+                  // Add item to inventory
+                  console.log('Adding item to inventory:', item);
+                  inventoryRef.current.addItem(item);
+                  addActionLogEntry('item', `Found ${item.name}`, '🎒');
+                }
                 
                 // Mark item as processed
                 const itemKey = `${item.name}-${item.type}-${item.rarity}`;
@@ -753,6 +846,13 @@ export default function Home() {
               } else if (stat === 'cha') {
                 updatedStats.cha = value;
                 addActionLogEntry('stat', `Charisma increased to ${value}`, '✨');
+              } else if (stat === 'gold') {
+                updatedStats.gold = (updatedStats.gold || 0) + value;
+                if (value > 0) {
+                  addActionLogEntry('gold', `Gained ${value} gold`, '🪙');
+                } else {
+                  addActionLogEntry('gold', `Spent ${Math.abs(value)} gold`, '💸');
+                }
               }
             }
           }
@@ -894,7 +994,7 @@ export default function Home() {
       <HomePage 
         onStartGame={handleStartGame} 
         onLogin={handleHomeLogin}
-        onContinueGame={() => {
+        onContinueGame={async () => {
           // Return to the current game state
           if (selectedCharacter) {
             setShowHomePage(false);
@@ -903,7 +1003,37 @@ export default function Home() {
             setShowCharacterCreation(false);
             setShowMultiplayerLobby(false);
             setShowMultiplayerGameRoom(false);
-            // The game will automatically show based on the current state
+            
+            // Load the adventure session
+            try {
+              const session = await adventureService.loadAdventureSession(selectedCharacter.id);
+              if (session && session.session_data) {
+                console.log('Loading existing adventure session on continue:', session.session_data);
+                
+                // Restore messages
+                if (session.session_data.messages) {
+                  const messagesWithDates = session.session_data.messages.map((msg: any) => ({
+                    ...msg,
+                    timestamp: new Date(msg.timestamp)
+                  }));
+                  setMessages(messagesWithDates);
+                }
+                
+                // Restore character stats
+                if (session.session_data.characterStats) {
+                  setCharacterStats(session.session_data.characterStats);
+                }
+                
+                // Restore inventory
+                if (session.session_data.inventory) {
+                  setInventory(session.session_data.inventory);
+                }
+                
+                console.log('Session restored successfully on continue');
+              }
+            } catch (error) {
+              console.error('Error loading session on continue:', error);
+            }
           }
         }}
         hasActiveGame={!!selectedCharacter}

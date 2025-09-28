@@ -28,6 +28,7 @@ interface InventorySystemProps {
 
 export interface InventorySystemRef {
   addItem: (item: Item) => void;
+  removeItem: (itemName: string, quantity?: number) => void;
   getItems: () => Item[];
 }
 
@@ -190,6 +191,7 @@ const InventorySystem = forwardRef<InventorySystemRef, InventorySystemProps>(({ 
     console.log('InventorySystem ref exposed to parent, current items count:', items.length);
     return {
       addItem,
+      removeItem: removeItemByName,
       getItems: () => items
     };
   });
@@ -251,6 +253,22 @@ const InventorySystem = forwardRef<InventorySystemRef, InventorySystemProps>(({ 
 
   const removeItem = (itemId: string) => {
     const updatedItems = items.filter(item => item.id !== itemId);
+    setItems(updatedItems);
+    onInventoryChange(updatedItems);
+  };
+
+  const removeItemByName = (itemName: string, quantity: number = 1) => {
+    const updatedItems = items.map(item => {
+      if (item.name.toLowerCase() === itemName.toLowerCase()) {
+        const newQuantity = Math.max(0, item.quantity - quantity);
+        if (newQuantity === 0) {
+          return null; // Remove item completely
+        }
+        return { ...item, quantity: newQuantity };
+      }
+      return item;
+    }).filter(item => item !== null);
+    
     setItems(updatedItems);
     onInventoryChange(updatedItems);
   };
