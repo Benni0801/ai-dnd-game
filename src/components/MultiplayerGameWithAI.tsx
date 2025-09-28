@@ -253,33 +253,7 @@ export default function MultiplayerGameWithAI({ roomId, userId, onLeaveRoom }: M
           return updatedStats;
         });
         
-        // Add a notification message about stat changes
-        const statMessages = [];
-        for (const [stat, value] of Object.entries(data.statChanges)) {
-          if (typeof value === 'number') {
-            if (stat === 'hp' && value < 0) {
-              statMessages.push(`💔 Lost ${Math.abs(value)} HP`);
-            } else if (stat === 'hp' && value > 0) {
-              statMessages.push(`❤️ Gained ${value} HP`);
-            } else if (stat === 'xp' && value > 0) {
-              statMessages.push(`⭐ Gained ${value} XP`);
-            } else if (stat === 'level' && value > 0) {
-              statMessages.push(`🎉 Leveled up to ${value}!`);
-            } else if (stat === 'maxHp' && value > 0) {
-              statMessages.push(`💪 Max HP increased to ${value}`);
-            }
-          }
-        }
-        
-        if (statMessages.length > 0) {
-          const statMessage: Message = {
-            id: (Date.now() + 0.3).toString(),
-            content: statMessages.join(', '),
-            role: 'assistant',
-            timestamp: new Date()
-          };
-          setMessages(prev => [...prev, statMessage]);
-        }
+        // Stat changes happen silently in the background - no chat notifications
       }
       
       const aiMessage: Message = {
