@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
         });
         
         if (healthPotionUsage && hasHealthPotion) {
-          response = 'You drink the health potion and feel its healing energy flow through your body! [STATS:{"hp":10}] [ITEM:{"name":"Health Potion","quantity":-1}] The warmth spreads through your veins, mending your wounds. What do you do next?';
+          response = 'You drink the health potion and feel its healing energy flow through your body! [STATS:{"hp":+10}] [ITEM:{"name":"Health Potion","quantity":-1}] The warmth spreads through your veins, mending your wounds. What do you do next?';
           console.log('Health potion fallback triggered with response:', response);
         } else if (healthPotionUsage && !hasHealthPotion) {
           response = 'You reach for a health potion, but your pack is empty. You don\'t have any health potions to use. What would you like to do instead?';
@@ -136,6 +136,8 @@ export async function POST(request: NextRequest) {
             ? gameState.character.inventory.map((item: any) => `${item.name} (${item.quantity})`).join(', ')
             : 'nothing';
           response = `You have ${inventoryList} in your inventory. What would you like to do next?`;
+        } else if (lastMessage.includes('pouch') || lastMessage.includes('bag') || lastMessage.includes('chest')) {
+          response = 'You search through the container and find some interesting items. You discover 5 gold coins and a small red gem. [ITEM:{"name":"Gold Coins","type":"misc","rarity":"common","value":1,"weight":0.02,"quantity":5}] [ITEM:{"name":"Red Gem","type":"misc","rarity":"uncommon","value":25,"weight":0.1,"quantity":1}] What do you do with these items?';
         }
       
       return NextResponse.json({
@@ -249,6 +251,12 @@ When giving players ANY items (loot, purchases, rewards, starting equipment), yo
 - If you mention a container (pouch, bag, chest), ALWAYS describe what's inside completely
 - Example: "Inside the pouch, you find 5 gold coins and a small, gnawed bone fragment"
 
+**CRITICAL ITEM DESCRIPTION RULE:**
+- When giving items to the player, ALWAYS describe them in narrative text BEFORE using [ITEM:] tags
+- Format: "You find [description] and [description]. [ITEM:{"name":"Item Name"...}] [ITEM:{"name":"Item Name"...}]"
+- NEVER use [ITEM:] tags without describing what the items are in the narrative text
+- Example: "Inside the pouch, you find 5 gold coins and a small red gem. [ITEM:{"name":"Gold Coins","type":"misc","quantity":5}] [ITEM:{"name":"Red Gem","type":"misc","quantity":1}]"
+
 **CORE GAME MECHANICS:**
 - Use d20 + modifiers for all checks (GM rolls internally)
 - Set appropriate DCs for challenges
@@ -304,7 +312,7 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
 - When player says "drink health potion", "use health potion", or "heal", ALWAYS:
   1. Check if they have Health Potion in inventory
   2. If yes: Remove 1 Health Potion using [ITEM:{"name":"Health Potion","quantity":-1}]
-  3. Restore HP using [STATS:{"hp":10}] (or appropriate amount)
+  3. Restore HP using [STATS:{"hp":+10}] (ADD 10 HP, do NOT set HP to 10)
   4. Say "The healing potion restores your vitality!"
 - If no health potion available, say "You don't have any health potions"
 
@@ -352,7 +360,7 @@ You MUST automatically apply damage in these situations:
 
 **MANDATORY EXAMPLES:**
 - Enemy attack hits: "The goblin's sword strikes you deeply! [STATS:{"hp":-8}]"
-- Player drinks potion: "The healing potion restores your vitality! [STATS:{"hp":10}]"
+- Player drinks potion: "The healing potion restores your vitality! [STATS:{"hp":+10}]"
 - Player defeats enemy: "You feel more experienced after the victory! [STATS:{"xp":50}]"
 - Player levels up: "You feel stronger and more capable! [STATS:{"level":2,"maxHp":25,"hp":25}]"
 - Trap triggers: "The floor gives way! You fall hard! [STATS:{"hp":-6}]"
@@ -669,6 +677,12 @@ When running combat, you MUST:
       
       // Remove item and stats markers from the response text
       aiResponse = aiResponse.replace(/\[ITEM:[^\]]+\]/g, '').replace(/\[STATS:[^\]]+\]/g, '').trim();
+      
+      // Clean up incomplete sentences that might result from tag removal
+      aiResponse = aiResponse.replace(/,\s*and\s*\./g, '.'); // Fix "find and ."
+      aiResponse = aiResponse.replace(/,\s*and\s*$/g, '.'); // Fix "find and" at end
+      aiResponse = aiResponse.replace(/,\s*$/g, '.'); // Fix trailing commas
+      aiResponse = aiResponse.replace(/\s+/g, ' ').trim(); // Clean up extra spaces
     }
 
         // Check if response is valid

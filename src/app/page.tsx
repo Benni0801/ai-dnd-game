@@ -854,7 +854,8 @@ export default function Home() {
                 updatedStats.hp = Math.max(0, (updatedStats.hp || 0) + value);
                 addActionLogEntry('damage', `Lost ${Math.abs(value)} HP`, '💔');
               } else if (stat === 'hp' && value > 0) {
-                updatedStats.hp = value;
+                // Add HP but don't exceed maxHp
+                updatedStats.hp = Math.min((updatedStats.hp || 0) + value, updatedStats.maxHp || 20);
                 addActionLogEntry('heal', `Gained ${value} HP`, '❤️');
               } else if (stat === 'maxHp') {
                 updatedStats.maxHp = value;
