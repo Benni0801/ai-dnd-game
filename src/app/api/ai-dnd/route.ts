@@ -45,6 +45,27 @@ export async function POST(request: NextRequest) {
     });
     const { messages, characterStats, inventory, onDiceRoll } = body || {};
 
+    // Create simple game state without complex dependencies
+    const gameState = {
+      character: {
+        name: characterStats?.name || 'Adventurer',
+        race: characterStats?.race || 'Human',
+        class: characterStats?.class || 'Fighter',
+        level: characterStats?.level || 1,
+        experience: { current: characterStats?.xp || 0, needed: 1000 },
+        abilityScores: {
+          strength: characterStats?.str || 10,
+          dexterity: characterStats?.dex || 10,
+          constitution: characterStats?.con || 10,
+          intelligence: characterStats?.int || 10,
+          wisdom: characterStats?.wis || 10,
+          charisma: characterStats?.cha || 10
+        },
+        gold: characterStats?.gold || 0,
+        inventory: inventory || []
+      }
+    };
+
     // Check for API key - if not available, use fallback responses
     const apiKey = process.env.GOOGLE_API_KEY;
     console.log('API Key check:', apiKey ? `Found (${apiKey.substring(0, 10)}...)` : 'Not found');
@@ -86,9 +107,26 @@ export async function POST(request: NextRequest) {
         response = 'You pick up the ring and examine it closely. The metal is worn and dull, but you can make out faint symbols etched into the surface. They seem ancient and unfamiliar. The ring feels strangely cold to the touch. You also find a small leather pouch containing 5 gold coins and a gnawed bone fragment. What would you like to do next?';
       } else if (lastMessage.includes('deeper') || lastMessage.includes('unknown') || lastMessage.includes('explore')) {
         response = 'You head towards the unexplored passage. The air grows noticeably colder as you move away from the entrance, and the shadows seem to deepen. The passage is narrow and winding, forcing you to proceed with caution. After a few minutes of walking, the passage opens into a larger chamber with several other passages leading off into darkness. In the center, you see a small pool of water with glowing mushrooms nearby. You hear a faint rustling sound from one of the passages. What do you do?';
-      } else if (lastMessage.includes('pool') || lastMessage.includes('water')) {
-        response = 'You approach the pool of water cautiously. The water is dark and still, reflecting the torchlight like a mirror. You notice strange, glowing mushrooms growing near the edge. The water seems to have an otherworldly quality to it. What do you want to do with the pool?';
-      }
+        } else if (lastMessage.includes('pool') || lastMessage.includes('water')) {
+          response = 'You approach the pool of water cautiously. The water is dark and still, reflecting the torchlight like a mirror. You notice strange, glowing mushrooms growing near the edge. The water seems to have an otherworldly quality to it. What do you want to do with the pool?';
+        }
+        
+        // Check for health potion usage
+        const healthPotionUsage = lastMessage.includes('drink') || lastMessage.includes('use') || lastMessage.includes('heal');
+        const hasHealthPotion = gameState.character.inventory.some((item: any) => 
+          item.name.toLowerCase().includes('health') && item.name.toLowerCase().includes('potion')
+        );
+        
+        if (healthPotionUsage && hasHealthPotion) {
+          response = 'You drink the health potion and feel its healing energy flow through your body! [STATS:{"hp":10}] [ITEM:{"name":"Health Potion","quantity":-1}] The warmth spreads through your veins, mending your wounds. What do you do next?';
+        } else if (healthPotionUsage && !hasHealthPotion) {
+          response = 'You reach for a health potion, but your pack is empty. You don\'t have any health potions to use. What would you like to do instead?';
+        } else if (lastMessage.includes('loot') || lastMessage.includes('found') || lastMessage.includes('inventory')) {
+          const inventoryList = gameState.character.inventory.length > 0 
+            ? gameState.character.inventory.map((item: any) => `${item.name} (${item.quantity})`).join(', ')
+            : 'nothing';
+          response = `You have ${inventoryList} in your inventory. What would you like to do next?`;
+        }
       
       return NextResponse.json({
         response,
@@ -102,26 +140,6 @@ export async function POST(request: NextRequest) {
       content: msg.content
     }));
 
-    // Create simple game state without complex dependencies
-    const gameState = {
-      character: {
-        name: characterStats?.name || 'Adventurer',
-        race: characterStats?.race || 'Human',
-        class: characterStats?.class || 'Fighter',
-        level: characterStats?.level || 1,
-        experience: { current: characterStats?.xp || 0, needed: 1000 },
-        abilityScores: {
-          strength: characterStats?.str || 10,
-          dexterity: characterStats?.dex || 10,
-          constitution: characterStats?.con || 10,
-          intelligence: characterStats?.int || 10,
-          wisdom: characterStats?.wis || 10,
-          charisma: characterStats?.cha || 10
-        },
-        gold: characterStats?.gold || 0,
-        inventory: inventory || []
-      }
-    };
 
         // Check if player is requesting a game sheet
         const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
@@ -265,12 +283,21 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
 - If player tries to use an item they don't have, tell them they don't have it
 - If player tries to buy something they can't afford, tell them they don't have enough gold
 
+**HEALTH POTION USAGE RULES:**
+- When player says "drink health potion", "use health potion", or "heal", ALWAYS:
+  1. Check if they have Health Potion in inventory
+  2. If yes: Remove 1 Health Potion using [ITEM:{"name":"Health Potion","quantity":-1}]
+  3. Restore HP using [STATS:{"hp":10}] (or appropriate amount)
+  4. Say "The healing potion restores your vitality!"
+- If no health potion available, say "You don't have any health potions"
+
 **INVENTORY AWARENESS:**
-- ALWAYS reference the player's current inventory when describing their equipment
+- ONLY reference inventory items when the player specifically asks about them
+- When player asks "what did I loot?", "what's in my inventory?", or similar questions, list the relevant items
 - When mentioning what the player has equipped or in their pack, use the EXACT item names from the Current Inventory list
 - NEVER use placeholder text like "your,, and have in your pack,, and" - always use actual item names
-- If inventory is empty, say "You have no equipment" or "Your pack is empty"
-- When describing the player's current state, always mention their actual equipment by name
+- Don't constantly mention inventory unless specifically asked
+- Be selective about when to reference inventory - focus on the narrative flow
 
 **IMPORTANT INSTRUCTIONS:**
 - If character creation is incomplete, guide through the full process
@@ -354,7 +381,14 @@ When running combat, you MUST:
 
 **FINAL NARRATIVE RULE:** Keep your narrative pure and immersive. Describe what happens without mentioning specific numbers, HP values, or stat changes. Let the [STATS:] commands handle all the mechanical aspects silently in the background!
 
-**INVENTORY REFERENCE RULE:** When describing the player's current equipment or what they have in their pack, ALWAYS use the exact item names from the "Current Inventory" section above. NEVER use placeholder text or empty commas. If the inventory shows specific items, mention them by name. If it shows "Empty", say the player has no equipment.
+**INVENTORY REFERENCE RULE:** Only mention inventory items when the player specifically asks about them. When they do ask, use the exact item names from the "Current Inventory" section above. NEVER use placeholder text or empty commas. Focus on narrative flow rather than constantly mentioning inventory.
+
+**INVENTORY REFERENCE RULES:** Only mention inventory when specifically asked:
+- If player asks "what did I loot?" → List recently found items
+- If player asks "what's in my pack?" → List current inventory
+- If player asks "what equipment do I have?" → List equipped/important items
+- Don't mention inventory unless the player specifically asks about it
+- Focus on narrative flow rather than constant inventory updates
         
 **CRITICAL FINAL REMINDER:** NEVER make decisions for the player! ALWAYS ask "What do you do?" at the end of every response. The player must always have agency over their character's actions!`;
 
