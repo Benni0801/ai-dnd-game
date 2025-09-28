@@ -1048,6 +1048,27 @@ export default function Home() {
           padding: '1.5rem'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <button
+              onClick={() => setShowHomePage(true)}
+              style={{
+                padding: '0.5rem',
+                background: 'rgba(139, 92, 246, 0.1)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                borderRadius: '8px',
+                color: '#a78bfa',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '40px',
+                height: '40px'
+              }}
+              title="Return to Homepage"
+            >
+              🏠
+            </button>
             <h1 style={{
               fontSize: '1.5rem',
               fontWeight: 'bold',
@@ -1263,17 +1284,53 @@ export default function Home() {
               margin: '1rem',
               padding: '2rem'
             }}>
-              <h1 style={{
-                fontSize: '2rem',
-                fontWeight: 'bold',
-                background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                marginBottom: '0.5rem'
-              }}>
-                ⚔️ AI D&D Adventure
-              </h1>
-              <p style={{ color: '#94a3b8', margin: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <button
+                  onClick={() => setShowHomePage(true)}
+                  style={{
+                    padding: '0.75rem',
+                    background: 'rgba(139, 92, 246, 0.1)',
+                    border: '1px solid rgba(139, 92, 246, 0.3)',
+                    borderRadius: '12px',
+                    color: '#a78bfa',
+                    fontSize: '1.25rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minWidth: '48px',
+                    height: '48px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)';
+                    e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.5)';
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                  title="Return to Homepage"
+                >
+                  🏠
+                </button>
+                <div style={{ flex: 1, textAlign: 'center' }}>
+                  <h1 style={{
+                    fontSize: '2rem',
+                    fontWeight: 'bold',
+                    background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    margin: 0
+                  }}>
+                    ⚔️ AI D&D Adventure
+                  </h1>
+                </div>
+                <div style={{ width: '48px' }}></div> {/* Spacer for centering */}
+              </div>
+              <p style={{ color: '#94a3b8', margin: 0, textAlign: 'center' }}>
                 Playing as {characterStats.name} the {characterStats.race} {characterStats.class}
               </p>
             </div>
