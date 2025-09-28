@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
     // Check for API key - if not available, use fallback responses
     const apiKey = process.env.GOOGLE_API_KEY;
     console.log('API Key check:', apiKey ? `Found (${apiKey.substring(0, 10)}...)` : 'Not found');
+    console.log('Full API key for debugging:', apiKey);
     
     if (!apiKey || apiKey === 'placeholder-key') {
       console.log('ERROR: No API key found or using placeholder');
@@ -117,10 +118,19 @@ export async function POST(request: NextRequest) {
           item.name.toLowerCase().includes('health') && item.name.toLowerCase().includes('potion')
         );
         
+        console.log('Health potion check:', { 
+          healthPotionUsage, 
+          hasHealthPotion, 
+          lastMessage, 
+          inventory: gameState.character.inventory 
+        });
+        
         if (healthPotionUsage && hasHealthPotion) {
           response = 'You drink the health potion and feel its healing energy flow through your body! [STATS:{"hp":10}] [ITEM:{"name":"Health Potion","quantity":-1}] The warmth spreads through your veins, mending your wounds. What do you do next?';
+          console.log('Health potion fallback triggered with response:', response);
         } else if (healthPotionUsage && !hasHealthPotion) {
           response = 'You reach for a health potion, but your pack is empty. You don\'t have any health potions to use. What would you like to do instead?';
+          console.log('No health potion available, response:', response);
         } else if (lastMessage.includes('loot') || lastMessage.includes('found') || lastMessage.includes('inventory')) {
           const inventoryList = gameState.character.inventory.length > 0 
             ? gameState.character.inventory.map((item: any) => `${item.name} (${item.quantity})`).join(', ')
@@ -647,12 +657,14 @@ When running combat, you MUST:
             // Merge stats changes
             Object.assign(statChanges, stats);
             console.log('Successfully parsed stats:', stats);
+            console.log('Final statChanges object:', statChanges);
           } catch (error) {
             console.error('Failed to parse stats:', match, 'Error:', error);
           }
         }
       } else {
         console.log('No stats matches found in response');
+        console.log('AI response for stats debugging:', aiResponse);
       }
       
       // Remove item and stats markers from the response text
