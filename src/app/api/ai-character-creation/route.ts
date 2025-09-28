@@ -174,6 +174,7 @@ If character is complete:
 
   } catch (error) {
     console.error('Error in character creation API:', error);
-    return NextResponse.json({ error: 'Internal server error', details: error.message }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: 'Internal server error', details: errorMessage }, { status: 500 });
   }
 }
