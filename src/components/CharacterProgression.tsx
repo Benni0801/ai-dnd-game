@@ -165,7 +165,7 @@ export default function CharacterProgression({ characterStats, onStatsUpdate }: 
   };
 
   return (
-    <div style={{
+    <div className="character-stats" style={{
       background: 'rgba(15, 15, 35, 0.9)',
       backdropFilter: 'blur(20px)',
       border: '1px solid rgba(139, 92, 246, 0.3)',
@@ -187,48 +187,75 @@ export default function CharacterProgression({ characterStats, onStatsUpdate }: 
       </h3>
 
         {/* Level, XP, and Gold */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
           <div style={{
             background: 'rgba(139, 92, 246, 0.1)',
             border: '1px solid rgba(139, 92, 246, 0.2)',
             borderRadius: '16px',
-            padding: '1.25rem',
+            padding: '1rem',
             textAlign: 'center',
-            minHeight: '90px',
+            minHeight: '80px',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            minWidth: '0'
           }}>
-            <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.75rem', fontWeight: '500' }}>Level</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#e2e8f0' }}>{characterStats.level || 1}</div>
+            <div style={{ 
+              fontSize: '0.75rem', 
+              color: '#94a3b8', 
+              marginBottom: '0.5rem', 
+              fontWeight: '500',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>Level</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#e2e8f0' }}>{characterStats.level || 1}</div>
           </div>
           <div style={{
             background: 'rgba(139, 92, 246, 0.1)',
             border: '1px solid rgba(139, 92, 246, 0.2)',
             borderRadius: '16px',
-            padding: '1.25rem',
+            padding: '1rem',
             textAlign: 'center',
-            minHeight: '90px',
+            minHeight: '80px',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            minWidth: '0'
           }}>
-            <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.75rem', fontWeight: '500' }}>Experience</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#e2e8f0' }}>{(characterStats.xp || 0).toLocaleString()} XP</div>
+            <div style={{ 
+              fontSize: '0.75rem', 
+              color: '#94a3b8', 
+              marginBottom: '0.5rem', 
+              fontWeight: '500',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>XP</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#e2e8f0' }}>{(characterStats.xp || 0).toLocaleString()}</div>
           </div>
           <div style={{
             background: 'rgba(245, 158, 11, 0.1)',
             border: '1px solid rgba(245, 158, 11, 0.2)',
             borderRadius: '16px',
-            padding: '1.25rem',
+            padding: '1rem',
             textAlign: 'center',
-            minHeight: '90px',
+            minHeight: '80px',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            minWidth: '0'
           }}>
-            <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.75rem', fontWeight: '500' }}>Gold</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#f59e0b' }}>{(characterStats.gold || 0).toLocaleString()} 🪙</div>
+            <div style={{ 
+              fontSize: '0.75rem', 
+              color: '#94a3b8', 
+              marginBottom: '0.5rem', 
+              fontWeight: '500',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>Gold</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f59e0b' }}>{(characterStats.gold || 0).toLocaleString()}</div>
           </div>
         </div>
 
@@ -254,14 +281,14 @@ export default function CharacterProgression({ characterStats, onStatsUpdate }: 
       {/* Ability Scores */}
       <div style={{ marginBottom: '2rem' }}>
         <h4 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#a78bfa', marginBottom: '1.25rem' }}>Ability Scores</h4>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
           {[
-            { name: 'STR', value: characterStats.str, short: 'Strength' },
-            { name: 'DEX', value: characterStats.dex, short: 'Dexterity' },
-            { name: 'CON', value: characterStats.con, short: 'Constitution' },
-            { name: 'INT', value: characterStats.int, short: 'Intelligence' },
-            { name: 'WIS', value: characterStats.wis, short: 'Wisdom' },
-            { name: 'CHA', value: characterStats.cha, short: 'Charisma' }
+            { name: 'STR', value: characterStats.str, short: 'STR' },
+            { name: 'DEX', value: characterStats.dex, short: 'DEX' },
+            { name: 'CON', value: characterStats.con, short: 'CON' },
+            { name: 'INT', value: characterStats.int, short: 'INT' },
+            { name: 'WIS', value: characterStats.wis, short: 'WIS' },
+            { name: 'CHA', value: characterStats.cha, short: 'CHA' }
           ].map(ability => {
             const modifier = getAbilityModifier(ability.value);
             return (
@@ -269,15 +296,24 @@ export default function CharacterProgression({ characterStats, onStatsUpdate }: 
                 background: 'rgba(139, 92, 246, 0.1)',
                 border: '1px solid rgba(139, 92, 246, 0.2)',
                 borderRadius: '12px',
-                padding: '1rem',
+                padding: '0.75rem',
                 textAlign: 'center',
-                minHeight: '80px',
+                minHeight: '70px',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                minWidth: '0'
               }}>
-                <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginBottom: '0.5rem', fontWeight: '500' }}>{ability.short}</div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#e2e8f0', marginBottom: '0.5rem' }}>{ability.value}</div>
+                <div style={{ 
+                  fontSize: '0.7rem', 
+                  color: '#94a3b8', 
+                  marginBottom: '0.25rem', 
+                  fontWeight: '500',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}>{ability.short}</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#e2e8f0', marginBottom: '0.25rem' }}>{ability.value}</div>
                 <div style={{ 
                   fontSize: '0.7rem', 
                   color: modifier >= 0 ? '#10b981' : '#ef4444',

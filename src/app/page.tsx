@@ -57,10 +57,13 @@ export default function Home() {
       div, span, p, h1, h2, h3, h4, h5, h6 {
         word-wrap: break-word;
         overflow-wrap: break-word;
-        word-break: break-word;
         hyphens: auto;
         -webkit-hyphens: auto;
         -ms-hyphens: auto;
+      }
+      .character-stats * {
+        word-break: normal !important;
+        white-space: normal !important;
       }
       @keyframes rainbow {
         0% { filter: hue-rotate(0deg); }
