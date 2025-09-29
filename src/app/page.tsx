@@ -381,6 +381,7 @@ export default function Home() {
             messages,
             characterStats,
             inventory,
+            quests,
             lastSaved: new Date().toISOString()
           };
           
@@ -409,7 +410,7 @@ export default function Home() {
         messagesLength: messages.length
       });
     }
-  }, [messages, characterStats, inventory, user, selectedCharacter]);
+  }, [messages, characterStats, inventory, quests, user, selectedCharacter]);
 
   // Save on page unload to prevent data loss
   useEffect(() => {
@@ -420,6 +421,7 @@ export default function Home() {
           messages,
           characterStats,
           inventory,
+          quests,
           lastSaved: new Date().toISOString()
         };
         
@@ -443,7 +445,7 @@ export default function Home() {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [user, selectedCharacter, messages, characterStats, inventory]);
+  }, [user, selectedCharacter, messages, characterStats, inventory, quests]);
 
   // Function to clean up Action Log entries that don't match inventory
   const cleanupActionLog = () => {
@@ -476,6 +478,7 @@ export default function Home() {
           messages,
           characterStats,
           inventory,
+          quests,
           lastSaved: new Date().toISOString()
         };
         
@@ -553,6 +556,17 @@ export default function Home() {
               // Restore inventory
               if (session.session_data.inventory) {
                 setInventory(session.session_data.inventory);
+              }
+              
+              // Restore quests
+              if (session.session_data.quests) {
+                console.log('Loading saved quests on startup:', session.session_data.quests);
+                const questsWithDates = session.session_data.quests.map((quest: any) => ({
+                  ...quest,
+                  createdAt: new Date(quest.createdAt),
+                  completedAt: quest.completedAt ? new Date(quest.completedAt) : undefined
+                }));
+                setQuests(questsWithDates);
               }
               
               console.log('Session restored successfully on startup');
@@ -725,6 +739,15 @@ export default function Home() {
         if (session.session_data.inventory) {
           console.log('Loading saved inventory:', session.session_data.inventory);
           setInventory(session.session_data.inventory);
+        }
+        if (session.session_data.quests) {
+          console.log('Loading saved quests:', session.session_data.quests);
+          const questsWithDates = session.session_data.quests.map((quest: any) => ({
+            ...quest,
+            createdAt: new Date(quest.createdAt),
+            completedAt: quest.completedAt ? new Date(quest.completedAt) : undefined
+          }));
+          setQuests(questsWithDates);
         }
       }
     } catch (error) {
@@ -1193,6 +1216,18 @@ export default function Home() {
               return match ? parseInt(match[1]) : 0;
             };
             
+            const extractArray = (text: string, key: string): string[] => {
+              const regex = new RegExp(`"${key}"\\s*:\\s*\\[([^\\]]*)\\]`, 'i');
+              const match = text.match(regex);
+              if (match) {
+                // Extract individual objectives from the array
+                const objectivesText = match[1];
+                const objectives = objectivesText.match(/"([^"]*)"/g);
+                return objectives ? objectives.map(obj => obj.replace(/"/g, '')) : ['Complete the quest'];
+              }
+              return ['Complete the quest'];
+            };
+            
             const basicQuest: Quest = {
               id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
               title: extractValue(questJson, 'title') || 'Quest from AI',
@@ -1203,7 +1238,7 @@ export default function Home() {
               status: 'active',
               createdAt: new Date(),
               type: (extractValue(questJson, 'type') as 'main' | 'side' | 'daily') || 'side',
-              objectives: ['Complete the quest']
+              objectives: extractArray(questJson, 'objectives')
             };
             console.log('Creating fallback quest:', basicQuest);
             handleAcceptQuest(basicQuest);
@@ -1367,6 +1402,17 @@ export default function Home() {
                 // Restore inventory
                 if (session.session_data.inventory) {
                   setInventory(session.session_data.inventory);
+                }
+                
+                // Restore quests
+                if (session.session_data.quests) {
+                  console.log('Loading saved quests on continue:', session.session_data.quests);
+                  const questsWithDates = session.session_data.quests.map((quest: any) => ({
+                    ...quest,
+                    createdAt: new Date(quest.createdAt),
+                    completedAt: quest.completedAt ? new Date(quest.completedAt) : undefined
+                  }));
+                  setQuests(questsWithDates);
                 }
                 
                 console.log('Session restored successfully on continue');
@@ -3435,16 +3481,31 @@ export default function Home() {
                         }}>
                           {quest.title}
                         </h4>
-                        <div style={{
-                          background: 'rgba(16, 185, 129, 0.1)',
-                          border: '1px solid rgba(16, 185, 129, 0.3)',
-                          borderRadius: '8px',
-                          padding: '2px 6px',
-                          fontSize: '10px',
-                          color: '#10b981',
-                          fontWeight: '600'
-                        }}>
-                          {quest.xpReward} XP
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <div style={{
+                            background: 'rgba(16, 185, 129, 0.1)',
+                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                            borderRadius: '8px',
+                            padding: '2px 6px',
+                            fontSize: '10px',
+                            color: '#10b981',
+                            fontWeight: '600'
+                          }}>
+                            {quest.xpReward} XP
+                          </div>
+                          {quest.goldReward && quest.goldReward > 0 && (
+                            <div style={{
+                              background: 'rgba(245, 158, 11, 0.1)',
+                              border: '1px solid rgba(245, 158, 11, 0.3)',
+                              borderRadius: '8px',
+                              padding: '2px 6px',
+                              fontSize: '10px',
+                              color: '#f59e0b',
+                              fontWeight: '600'
+                            }}>
+                              {quest.goldReward} Gold
+                            </div>
+                          )}
                         </div>
                       </div>
                       <p style={{
