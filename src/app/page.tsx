@@ -1121,9 +1121,19 @@ export default function Home() {
       console.log('Quest matches found:', questMatches);
       if (questMatches) {
         questMatches.forEach((questMatch: string) => {
+          const questJson = questMatch.replace(/\[QUEST:|\]/g, '');
+          console.log('Raw quest JSON:', questJson);
+          
           try {
-            const questJson = questMatch.replace(/\[QUEST:|\]/g, '');
-            const questData = JSON.parse(questJson);
+            // Clean up common JSON issues
+            let cleanedJson = questJson
+              .replace(/,\s*}/g, '}')  // Remove trailing commas before }
+              .replace(/,\s*]/g, ']')  // Remove trailing commas before ]
+              .replace(/'/g, '"')      // Replace single quotes with double quotes
+              .replace(/(\w+):/g, '"$1":'); // Add quotes around unquoted keys
+            
+            console.log('Cleaned quest JSON:', cleanedJson);
+            const questData = JSON.parse(cleanedJson);
             const quest: Quest = {
               id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
               title: questData.title || 'Untitled Quest',
@@ -1152,6 +1162,24 @@ export default function Home() {
             }, 100);
           } catch (error) {
             console.error('Error parsing quest:', error);
+            console.error('Raw quest match:', questMatch);
+            console.error('Cleaned JSON:', questJson);
+            
+            // Try to create a basic quest from the raw text
+            const basicQuest: Quest = {
+              id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+              title: 'Quest from AI',
+              description: 'AI generated quest (parsing failed)',
+              questGiver: 'Unknown NPC',
+              xpReward: 100,
+              goldReward: 0,
+              status: 'active',
+              createdAt: new Date(),
+              type: 'side',
+              objectives: ['Complete the quest']
+            };
+            console.log('Creating fallback quest:', basicQuest);
+            handleAcceptQuest(basicQuest);
           }
         });
       }

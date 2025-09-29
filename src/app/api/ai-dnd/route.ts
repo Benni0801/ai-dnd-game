@@ -422,9 +422,15 @@ When running combat, you MUST:
 - Don't mention inventory unless the player specifically asks about it
 - Focus on narrative flow rather than constant inventory updates
         
-**QUEST SYSTEM - IMPORTANT:**
+**QUEST SYSTEM - CRITICAL JSON FORMAT:**
 - You can offer quests to players when they encounter NPCs or explore areas
 - ALWAYS use the EXACT format: [QUEST:{"title":"Quest Name","description":"Quest description","questGiver":"NPC Name","xpReward":100,"goldReward":50,"type":"side","objectives":["Objective 1","Objective 2"]}]
+- CRITICAL JSON RULES:
+  * Use ONLY double quotes (") never single quotes (')
+  * NO trailing commas after the last element in objects or arrays
+  * ALL keys must be in double quotes
+  * ALL string values must be in double quotes
+  * NO line breaks inside the JSON
 - Quest types: "main" (story quests), "side" (optional), "daily" (repeatable)
 - XP rewards: 50-200 for side quests, 100-500 for main quests
 - Gold rewards: 10-100 gold depending on quest difficulty
