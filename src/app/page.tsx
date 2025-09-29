@@ -1113,6 +1113,17 @@ export default function Home() {
             };
             console.log('Quest generated:', quest);
             showQuestOffer(quest);
+            
+            // Fallback: If popup doesn't show within 1 second, auto-add the quest
+            setTimeout(() => {
+              if (showQuestPopup && pendingQuest) {
+                console.log('Quest popup is showing, waiting for user action');
+              } else {
+                console.log('Quest popup not showing, auto-adding quest to state');
+                handleAcceptQuest(quest);
+              }
+            }, 1000);
+            
             // Trigger glow effect on quest tab
             setTimeout(() => {
               triggerGlowEffect('quest-tab');
@@ -2253,13 +2264,45 @@ export default function Home() {
                 />
               )}
               {activeTab === 'quests' && (
-                <QuestSystem
-                  quests={quests}
-                  onUpdateQuest={handleUpdateQuest}
-                  onCompleteQuest={handleCompleteQuest}
-                  onAcceptQuest={handleAcceptQuest}
-                  onDeclineQuest={handleDeclineQuest}
-                />
+                <div>
+                  <QuestSystem
+                    quests={quests}
+                    onUpdateQuest={handleUpdateQuest}
+                    onCompleteQuest={handleCompleteQuest}
+                    onAcceptQuest={handleAcceptQuest}
+                    onDeclineQuest={handleDeclineQuest}
+                  />
+                  {/* Test button to add a quest */}
+                  <button
+                    onClick={() => {
+                      const testQuest: Quest = {
+                        id: Date.now().toString(),
+                        title: 'Test Quest',
+                        description: 'This is a test quest to verify the quest system is working.',
+                        questGiver: 'Test NPC',
+                        xpReward: 100,
+                        goldReward: 50,
+                        status: 'active',
+                        createdAt: new Date(),
+                        type: 'side',
+                        objectives: ['Complete the test', 'Return to NPC']
+                      };
+                      handleAcceptQuest(testQuest);
+                    }}
+                    style={{
+                      marginTop: '1rem',
+                      padding: '0.5rem 1rem',
+                      background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '0.875rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Add Test Quest
+                  </button>
+                </div>
               )}
               {activeTab === 'inventory' && (
                 <InventorySystem
@@ -2701,13 +2744,45 @@ export default function Home() {
                 />
               )}
               {activeTab === 'quests' && (
-                <QuestSystem
-                  quests={quests}
-                  onUpdateQuest={handleUpdateQuest}
-                  onCompleteQuest={handleCompleteQuest}
-                  onAcceptQuest={handleAcceptQuest}
-                  onDeclineQuest={handleDeclineQuest}
-                />
+                <div>
+                  <QuestSystem
+                    quests={quests}
+                    onUpdateQuest={handleUpdateQuest}
+                    onCompleteQuest={handleCompleteQuest}
+                    onAcceptQuest={handleAcceptQuest}
+                    onDeclineQuest={handleDeclineQuest}
+                  />
+                  {/* Test button to add a quest */}
+                  <button
+                    onClick={() => {
+                      const testQuest: Quest = {
+                        id: Date.now().toString(),
+                        title: 'Test Quest',
+                        description: 'This is a test quest to verify the quest system is working.',
+                        questGiver: 'Test NPC',
+                        xpReward: 100,
+                        goldReward: 50,
+                        status: 'active',
+                        createdAt: new Date(),
+                        type: 'side',
+                        objectives: ['Complete the test', 'Return to NPC']
+                      };
+                      handleAcceptQuest(testQuest);
+                    }}
+                    style={{
+                      marginTop: '1rem',
+                      padding: '0.5rem 1rem',
+                      background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '0.875rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Add Test Quest
+                  </button>
+                </div>
               )}
               {activeTab === 'combat' && (
                 <CombatSystem
