@@ -48,11 +48,21 @@ export default function Home() {
         word-wrap: break-word;
         overflow-wrap: break-word;
         word-break: break-word;
+        position: relative;
       }
       #__next {
         width: 100%;
         max-width: 100vw;
         overflow-x: hidden;
+        position: relative;
+      }
+      @media (max-width: 1023px) {
+        * {
+          max-width: 100vw !important;
+        }
+        div, section, main, article {
+          overflow-x: hidden !important;
+        }
       }
       div, span, p, h1, h2, h3, h4, h5, h6 {
         word-wrap: break-word;
@@ -1880,115 +1890,62 @@ export default function Home() {
           </div>
           
           {/* Character Info Mobile */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(3, 1fr)', 
-            gap: '0.75rem',
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(236, 72, 153, 0.05) 100%)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(139, 92, 246, 0.15)',
+            borderRadius: '24px',
+            padding: '1.25rem',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)',
             position: 'relative',
-            zIndex: 1
+            overflow: 'hidden',
+            margin: '0.75rem',
+            width: '100%',
+            maxWidth: '100%',
+            boxSizing: 'border-box'
           }}>
-            <div style={{
-              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%)',
-              border: '1px solid rgba(139, 92, 246, 0.2)',
-              borderRadius: '16px',
-              padding: '1rem',
-              textAlign: 'center',
-              position: 'relative',
-              overflow: 'hidden',
-              backdropFilter: 'blur(10px)'
+            <h3 style={{
+              fontSize: '1.1rem',
+              fontWeight: 'bold',
+              background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              marginBottom: '0.75rem'
             }}>
-              <div style={{
-                position: 'absolute',
-                top: '-20%',
-                right: '-20%',
-                width: '60px',
-                height: '60px',
-                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%)',
-                borderRadius: '50%'
-              }}></div>
-              <div style={{ 
-                color: 'rgba(226, 232, 240, 0.8)', 
-                fontSize: '0.7rem', 
-                fontWeight: '600',
-                marginBottom: '0.25rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px'
-              }}>Level</div>
-              <div style={{ 
-                color: '#ffffff', 
-                fontWeight: '700', 
-                fontSize: '1.25rem',
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
-              }}>{characterStats.level || 1}</div>
+              📋 {characterStats.name}
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8rem' }}>
+              <div style={{ color: '#94a3b8' }}>
+                Level {characterStats.level || 1} {characterStats.race} {characterStats.class}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#94a3b8' }}>HP:</span>
+                <span style={{ color: '#e2e8f0' }}>{characterStats.hp}/{characterStats.maxHp || characterStats.hp}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#94a3b8' }}>XP:</span>
+                <span style={{ color: '#e2e8f0' }}>{characterStats.xp || 0}</span>
+              </div>
             </div>
-            <div style={{
-              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%)',
-              border: '1px solid rgba(239, 68, 68, 0.2)',
-              borderRadius: '16px',
-              padding: '1rem',
-              textAlign: 'center',
-              position: 'relative',
-              overflow: 'hidden',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <div style={{
-                position: 'absolute',
-                top: '-20%',
-                right: '-20%',
-                width: '60px',
-                height: '60px',
-                background: 'radial-gradient(circle, rgba(239, 68, 68, 0.1) 0%, transparent 70%)',
-                borderRadius: '50%'
-              }}></div>
-              <div style={{ 
-                color: 'rgba(226, 232, 240, 0.8)', 
-                fontSize: '0.7rem', 
-                fontWeight: '600',
-                marginBottom: '0.25rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px'
-              }}>Health</div>
-              <div style={{ 
-                color: '#ffffff', 
-                fontWeight: '700', 
-                fontSize: '1.1rem',
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
-              }}>{characterStats.hp}/{characterStats.maxHp || characterStats.hp}</div>
-            </div>
-            <div style={{
-              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%)',
-              border: '1px solid rgba(16, 185, 129, 0.2)',
-              borderRadius: '16px',
-              padding: '1rem',
-              textAlign: 'center',
-              position: 'relative',
-              overflow: 'hidden',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <div style={{
-                position: 'absolute',
-                top: '-20%',
-                right: '-20%',
-                width: '60px',
-                height: '60px',
-                background: 'radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%)',
-                borderRadius: '50%'
-              }}></div>
-              <div style={{ 
-                color: 'rgba(226, 232, 240, 0.8)', 
-                fontSize: '0.7rem', 
-                fontWeight: '600',
-                marginBottom: '0.25rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px'
-              }}>Experience</div>
-              <div style={{ 
-                color: '#ffffff', 
-                fontWeight: '700', 
-                fontSize: '1.1rem',
-                textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
-              }}>{characterStats.xp || 0}</div>
-            </div>
+            
+            <button
+              onClick={() => setShowCharacterCreation(true)}
+              style={{
+                width: '100%',
+                marginTop: '0.75rem',
+                padding: '0.5rem',
+                background: 'rgba(139, 92, 246, 0.1)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                borderRadius: '8px',
+                color: '#a78bfa',
+                fontSize: '0.8rem',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              ✏️ Edit Character
+            </button>
           </div>
         </div>
 
@@ -2000,7 +1957,8 @@ export default function Home() {
           maxWidth: '100vw',
           boxSizing: 'border-box',
           overflow: 'hidden',
-          background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
+          background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
+          position: 'relative'
         }}>
           {/* Desktop Sidebar */}
           <div style={{
