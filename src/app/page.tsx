@@ -26,6 +26,7 @@ import MultiplayerGameWithAI from '../components/MultiplayerGameWithAI';
 import GameModeSelector from '../components/GameModeSelector';
 
 export default function Home() {
+  // UI Update - Force refresh
   const [messages, setMessages] = useState<Message[]>([]);
 
   // Add global styles to prevent overflow
@@ -41,11 +42,17 @@ export default function Home() {
         overflow-x: hidden;
         margin: 0;
         padding: 0;
+        background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+        min-height: 100vh;
       }
       #__next {
         width: 100%;
         max-width: 100vw;
         overflow-x: hidden;
+      }
+      @keyframes rainbow {
+        0% { filter: hue-rotate(0deg); }
+        100% { filter: hue-rotate(360deg); }
       }
     `;
     document.head.appendChild(style);
@@ -2123,13 +2130,14 @@ export default function Home() {
                     <h1 style={{
                       fontSize: '2.5rem',
                       fontWeight: '700',
-                      background: 'linear-gradient(135deg, #ffffff, #e2e8f0)',
+                      background: 'linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                       margin: 0,
-                      lineHeight: 1.2
+                      lineHeight: 1.2,
+                      animation: 'rainbow 3s ease-in-out infinite'
                     }}>
-                      AI D&D Adventure
+                      ✨ AI D&D Adventure ✨
                     </h1>
                     <p style={{
                       fontSize: '0.9rem',
