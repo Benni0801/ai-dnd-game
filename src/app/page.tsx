@@ -241,6 +241,8 @@ export default function Home() {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [showQuestPopup, setShowQuestPopup] = useState(false);
   const [pendingQuest, setPendingQuest] = useState<Quest | null>(null);
+  const [showFloatingQuestWindow, setShowFloatingQuestWindow] = useState(true);
+  const [isQuestWindowMinimized, setIsQuestWindowMinimized] = useState(false);
   
   // Refs for auto-scrolling and inventory
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -1114,7 +1116,7 @@ export default function Home() {
             console.log('Quest generated:', quest);
             showQuestOffer(quest);
             
-            // Fallback: If popup doesn't show within 1 second, auto-add the quest
+            // Fallback: If popup doesn't show within 200ms, auto-add the quest
             setTimeout(() => {
               if (showQuestPopup && pendingQuest) {
                 console.log('Quest popup is showing, waiting for user action');
@@ -1122,7 +1124,7 @@ export default function Home() {
                 console.log('Quest popup not showing, auto-adding quest to state');
                 handleAcceptQuest(quest);
               }
-            }, 1000);
+            }, 200);
             
             // Trigger glow effect on quest tab
             setTimeout(() => {
@@ -1896,6 +1898,25 @@ export default function Home() {
             }}>
               <span style={{ position: 'relative', zIndex: 1 }}>⚔️</span>
             </div>
+            {!showFloatingQuestWindow && (
+              <button
+                onClick={() => setShowFloatingQuestWindow(true)}
+                style={{
+                  background: 'rgba(139, 92, 246, 0.1)',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  borderRadius: '8px',
+                  padding: '8px 12px',
+                  color: '#a78bfa',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                📜 Show Quests
+              </button>
+            )}
               <div>
                 <h1 style={{
                   fontSize: '1.25rem',
@@ -2436,6 +2457,26 @@ export default function Home() {
           }}>
             <span style={{ position: 'relative', zIndex: 1 }}>⚔️</span>
           </div>
+          {!showFloatingQuestWindow && (
+            <button
+              onClick={() => setShowFloatingQuestWindow(true)}
+              style={{
+                background: 'rgba(139, 92, 246, 0.1)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                borderRadius: '12px',
+                padding: '12px 16px',
+                color: '#a78bfa',
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontWeight: '500'
+              }}
+            >
+              📜 Show Quests
+            </button>
+          )}
                   <div>
                     <h1 style={{
                       fontSize: '2.5rem',
@@ -3238,6 +3279,187 @@ export default function Home() {
         </div>
         </div> {/* Close padding div for fixed header */}
       </div>
+
+      {/* Floating Quest Window */}
+      {showFloatingQuestWindow && (
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          width: isQuestWindowMinimized ? '200px' : '350px',
+          height: isQuestWindowMinimized ? '50px' : '400px',
+          background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(139, 92, 246, 0.3)',
+          borderRadius: '16px',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
+          zIndex: 1000,
+          transition: 'all 0.3s ease',
+          overflow: 'hidden'
+        }}>
+          {/* Window Header */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 16px',
+            background: 'rgba(139, 92, 246, 0.1)',
+            borderBottom: '1px solid rgba(139, 92, 246, 0.2)',
+            cursor: 'pointer'
+          }}
+          onClick={() => setIsQuestWindowMinimized(!isQuestWindowMinimized)}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>📜</span>
+              <span style={{ 
+                color: '#e2e8f0', 
+                fontWeight: '600',
+                fontSize: '14px'
+              }}>
+                Quests
+              </span>
+              <div style={{
+                background: 'rgba(16, 185, 129, 0.2)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                borderRadius: '12px',
+                padding: '2px 8px',
+                fontSize: '12px',
+                color: '#10b981',
+                fontWeight: '600'
+              }}>
+                {quests.filter(q => q.status === 'active').length} Active
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsQuestWindowMinimized(!isQuestWindowMinimized);
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '4px',
+                  fontSize: '12px'
+                }}
+              >
+                {isQuestWindowMinimized ? '⬆️' : '⬇️'}
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowFloatingQuestWindow(false);
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '4px',
+                  fontSize: '12px'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Window Content */}
+          {!isQuestWindowMinimized && (
+            <div style={{
+              height: 'calc(100% - 50px)',
+              overflowY: 'auto',
+              padding: '16px'
+            }}>
+              {quests.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  color: '#94a3b8',
+                  fontSize: '14px',
+                  padding: '20px'
+                }}>
+                  No active quests. Explore the world to find new adventures!
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {quests.filter(q => q.status === 'active').map(quest => (
+                    <div key={quest.id} style={{
+                      background: 'rgba(15, 15, 35, 0.6)',
+                      border: '1px solid rgba(139, 92, 246, 0.2)',
+                      borderRadius: '12px',
+                      padding: '12px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                        <h4 style={{
+                          color: '#e2e8f0',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          margin: 0
+                        }}>
+                          {quest.title}
+                        </h4>
+                        <div style={{
+                          background: 'rgba(16, 185, 129, 0.1)',
+                          border: '1px solid rgba(16, 185, 129, 0.3)',
+                          borderRadius: '8px',
+                          padding: '2px 6px',
+                          fontSize: '10px',
+                          color: '#10b981',
+                          fontWeight: '600'
+                        }}>
+                          {quest.xpReward} XP
+                        </div>
+                      </div>
+                      <p style={{
+                        color: '#94a3b8',
+                        fontSize: '12px',
+                        margin: '0 0 8px 0',
+                        lineHeight: '1.4'
+                      }}>
+                        {quest.description}
+                      </p>
+                      <div style={{
+                        color: '#a78bfa',
+                        fontSize: '11px',
+                        fontStyle: 'italic'
+                      }}>
+                        From: {quest.questGiver}
+                      </div>
+                      {quest.objectives && quest.objectives.length > 0 && (
+                        <div style={{ marginTop: '8px' }}>
+                          <div style={{
+                            color: '#e2e8f0',
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            marginBottom: '4px'
+                          }}>
+                            Objectives:
+                          </div>
+                          <ul style={{
+                            color: '#94a3b8',
+                            fontSize: '11px',
+                            margin: 0,
+                            paddingLeft: '16px'
+                          }}>
+                            {quest.objectives.map((objective, index) => (
+                              <li key={index} style={{ marginBottom: '2px' }}>
+                                {objective}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Quest Popup */}
       {showQuestPopup && pendingQuest && (
