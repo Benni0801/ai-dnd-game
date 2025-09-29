@@ -1989,17 +1989,118 @@ export default function Home() {
               }}>
                 📋 {characterStats.name}
               </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.875rem' }}>
-                <div style={{ color: '#94a3b8' }}>
-                  Level {characterStats.level || 1} {characterStats.race} {characterStats.class}
+              <div style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: '1rem' }}>
+                Level {characterStats.level || 1} {characterStats.race} {characterStats.class}
+              </div>
+              
+              {/* Individual Stat Cards */}
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(3, 1fr)', 
+                gap: '0.75rem',
+                marginBottom: '1rem'
+              }}>
+                <div style={{
+                  background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%)',
+                  border: '1px solid rgba(139, 92, 246, 0.2)',
+                  borderRadius: '16px',
+                  padding: '1rem',
+                  textAlign: 'center',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  backdropFilter: 'blur(10px)'
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    top: '-20%',
+                    right: '-20%',
+                    width: '60px',
+                    height: '60px',
+                    background: 'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%)',
+                    borderRadius: '50%'
+                  }}></div>
+                  <div style={{ 
+                    color: 'rgba(226, 232, 240, 0.8)', 
+                    fontSize: '0.7rem', 
+                    fontWeight: '600',
+                    marginBottom: '0.25rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>Level</div>
+                  <div style={{ 
+                    color: '#ffffff', 
+                    fontWeight: '700', 
+                    fontSize: '1.25rem',
+                    textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+                  }}>{characterStats.level || 1}</div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#94a3b8' }}>HP:</span>
-                  <span style={{ color: '#e2e8f0' }}>{characterStats.hp}/{characterStats.maxHp || characterStats.hp}</span>
+                <div style={{
+                  background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%)',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  borderRadius: '16px',
+                  padding: '1rem',
+                  textAlign: 'center',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  backdropFilter: 'blur(10px)'
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    top: '-20%',
+                    right: '-20%',
+                    width: '60px',
+                    height: '60px',
+                    background: 'radial-gradient(circle, rgba(239, 68, 68, 0.1) 0%, transparent 70%)',
+                    borderRadius: '50%'
+                  }}></div>
+                  <div style={{ 
+                    color: 'rgba(226, 232, 240, 0.8)', 
+                    fontSize: '0.7rem', 
+                    fontWeight: '600',
+                    marginBottom: '0.25rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>Health</div>
+                  <div style={{ 
+                    color: '#ffffff', 
+                    fontWeight: '700', 
+                    fontSize: '1.1rem',
+                    textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+                  }}>{characterStats.hp}/{characterStats.maxHp || characterStats.hp}</div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#94a3b8' }}>XP:</span>
-                  <span style={{ color: '#e2e8f0' }}>{characterStats.xp || 0}</span>
+                <div style={{
+                  background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%)',
+                  border: '1px solid rgba(16, 185, 129, 0.2)',
+                  borderRadius: '16px',
+                  padding: '1rem',
+                  textAlign: 'center',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  backdropFilter: 'blur(10px)'
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    top: '-20%',
+                    right: '-20%',
+                    width: '60px',
+                    height: '60px',
+                    background: 'radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%)',
+                    borderRadius: '50%'
+                  }}></div>
+                  <div style={{ 
+                    color: 'rgba(226, 232, 240, 0.8)', 
+                    fontSize: '0.7rem', 
+                    fontWeight: '600',
+                    marginBottom: '0.25rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>Experience</div>
+                  <div style={{ 
+                    color: '#ffffff', 
+                    fontWeight: '700', 
+                    fontSize: '1.1rem',
+                    textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+                  }}>{characterStats.xp || 0}</div>
                 </div>
               </div>
               
@@ -2007,7 +2108,6 @@ export default function Home() {
                 onClick={() => setShowCharacterCreation(true)}
                 style={{
                   width: '100%',
-                  marginTop: '1rem',
                   padding: '0.75rem',
                   background: 'rgba(139, 92, 246, 0.1)',
                   border: '1px solid rgba(139, 92, 246, 0.3)',
