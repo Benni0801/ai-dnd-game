@@ -241,7 +241,6 @@ export default function Home() {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [showQuestPopup, setShowQuestPopup] = useState(false);
   const [pendingQuest, setPendingQuest] = useState<Quest | null>(null);
-  const [showFloatingQuestWindow, setShowFloatingQuestWindow] = useState(true);
   const [isQuestWindowMinimized, setIsQuestWindowMinimized] = useState(false);
   
   // Refs for auto-scrolling and inventory
@@ -295,8 +294,13 @@ export default function Home() {
 
   // Quest management functions
   const handleAcceptQuest = (quest: Quest) => {
+    console.log('handleAcceptQuest called with:', quest);
     const newQuest = { ...quest, status: 'active' as const };
-    setQuests(prev => [...prev, newQuest]);
+    setQuests(prev => {
+      const updated = [...prev, newQuest];
+      console.log('Updated quests array:', updated);
+      return updated;
+    });
     addActionLogEntry('item', `Accepted quest: ${quest.title}`, '📜');
   };
 
@@ -938,6 +942,10 @@ export default function Home() {
       }
 
       const data = await response.json();
+      console.log('AI Response:', data);
+      console.log('AI Response keys:', Object.keys(data));
+      console.log('AI Response.response:', data.response);
+      console.log('AI Response.message:', data.message);
       
       if (data.error) {
         throw new Error(data.error);
@@ -1095,7 +1103,10 @@ export default function Home() {
       }
 
       // Parse quest offers from AI response
-      const questMatches = (data.response || data.message || '').match(/\[QUEST:(\{.*?\})\]/g);
+      const responseText = data.response || data.message || '';
+      console.log('AI Response text for quest parsing:', responseText);
+      const questMatches = responseText.match(/\[QUEST:(\{.*?\})\]/g);
+      console.log('Quest matches found:', questMatches);
       if (questMatches) {
         questMatches.forEach((questMatch: string) => {
           try {
@@ -1118,6 +1129,7 @@ export default function Home() {
             
             // Fallback: If popup doesn't show within 200ms, auto-add the quest
             setTimeout(() => {
+              console.log('Fallback check - showQuestPopup:', showQuestPopup, 'pendingQuest:', pendingQuest);
               if (showQuestPopup && pendingQuest) {
                 console.log('Quest popup is showing, waiting for user action');
               } else {
@@ -1898,25 +1910,6 @@ export default function Home() {
             }}>
               <span style={{ position: 'relative', zIndex: 1 }}>⚔️</span>
             </div>
-            {!showFloatingQuestWindow && (
-              <button
-                onClick={() => setShowFloatingQuestWindow(true)}
-                style={{
-                  background: 'rgba(139, 92, 246, 0.1)',
-                  border: '1px solid rgba(139, 92, 246, 0.3)',
-                  borderRadius: '8px',
-                  padding: '8px 12px',
-                  color: '#a78bfa',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}
-              >
-                📜 Show Quests
-              </button>
-            )}
               <div>
                 <h1 style={{
                   fontSize: '1.25rem',
@@ -2457,26 +2450,6 @@ export default function Home() {
           }}>
             <span style={{ position: 'relative', zIndex: 1 }}>⚔️</span>
           </div>
-          {!showFloatingQuestWindow && (
-            <button
-              onClick={() => setShowFloatingQuestWindow(true)}
-              style={{
-                background: 'rgba(139, 92, 246, 0.1)',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                borderRadius: '12px',
-                padding: '12px 16px',
-                color: '#a78bfa',
-                fontSize: '14px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontWeight: '500'
-              }}
-            >
-              📜 Show Quests
-            </button>
-          )}
                   <div>
                     <h1 style={{
                       fontSize: '2.5rem',
@@ -3281,12 +3254,11 @@ export default function Home() {
       </div>
 
       {/* Floating Quest Window */}
-      {showFloatingQuestWindow && (
-        <div style={{
-          position: 'fixed',
-          bottom: '20px',
-          right: '20px',
-          width: isQuestWindowMinimized ? '200px' : '350px',
+      <div style={{
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        width: isQuestWindowMinimized ? '200px' : '350px',
           height: isQuestWindowMinimized ? '50px' : '400px',
           background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%)',
           backdropFilter: 'blur(20px)',
@@ -3329,42 +3301,23 @@ export default function Home() {
                 {quests.filter(q => q.status === 'active').length} Active
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '4px' }}>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsQuestWindowMinimized(!isQuestWindowMinimized);
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#94a3b8',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  borderRadius: '4px',
-                  fontSize: '12px'
-                }}
-              >
-                {isQuestWindowMinimized ? '⬆️' : '⬇️'}
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowFloatingQuestWindow(false);
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#94a3b8',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  borderRadius: '4px',
-                  fontSize: '12px'
-                }}
-              >
-                ✕
-              </button>
-            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsQuestWindowMinimized(!isQuestWindowMinimized);
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#94a3b8',
+                cursor: 'pointer',
+                padding: '4px',
+                borderRadius: '4px',
+                fontSize: '12px'
+              }}
+            >
+              {isQuestWindowMinimized ? '⬆️' : '⬇️'}
+            </button>
           </div>
 
           {/* Window Content */}
@@ -3382,6 +3335,36 @@ export default function Home() {
                   padding: '20px'
                 }}>
                   No active quests. Explore the world to find new adventures!
+                  <br /><br />
+                  <button
+                    onClick={() => {
+                      const testQuest: Quest = {
+                        id: Date.now().toString(),
+                        title: 'Debug Test Quest',
+                        description: 'This is a test quest to verify the quest system is working.',
+                        questGiver: 'Debug System',
+                        xpReward: 100,
+                        goldReward: 50,
+                        status: 'active',
+                        createdAt: new Date(),
+                        type: 'side',
+                        objectives: ['Test the quest system', 'Verify quest display']
+                      };
+                      handleAcceptQuest(testQuest);
+                    }}
+                    style={{
+                      marginTop: '10px',
+                      padding: '8px 12px',
+                      background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: 'white',
+                      fontSize: '12px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Add Test Quest
+                  </button>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -3459,7 +3442,6 @@ export default function Home() {
             </div>
           )}
         </div>
-      )}
 
       {/* Quest Popup */}
       {showQuestPopup && pendingQuest && (
