@@ -331,8 +331,10 @@ export default function Home() {
   };
 
   const showQuestOffer = (quest: Quest) => {
+    console.log('showQuestOffer called with:', quest);
     setPendingQuest(quest);
     setShowQuestPopup(true);
+    console.log('Quest popup state set to true');
   };
 
   // Function to trigger glow effect on specific elements
@@ -350,6 +352,11 @@ export default function Home() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Debug quest popup state
+  useEffect(() => {
+    console.log('Quest popup state changed:', showQuestPopup, 'Pending quest:', pendingQuest);
+  }, [showQuestPopup, pendingQuest]);
 
   // Auto-save adventure session when messages or character stats change
   useEffect(() => {
@@ -1104,9 +1111,13 @@ export default function Home() {
               type: questData.type || 'side',
               objectives: questData.objectives || []
             };
+            console.log('Quest generated:', quest);
             showQuestOffer(quest);
             // Trigger glow effect on quest tab
-            setTimeout(() => triggerGlowEffect('quest-tab'), 100);
+            setTimeout(() => {
+              triggerGlowEffect('quest-tab');
+              triggerGlowEffect('quest-tab-mobile');
+            }, 100);
           } catch (error) {
             console.error('Error parsing quest:', error);
           }
@@ -2512,6 +2523,7 @@ export default function Home() {
                 ].map((tab) => (
                   <button
                     key={tab.id}
+                    id={tab.id === 'quests' ? 'quest-tab' : undefined}
                     onClick={() => setActiveTab(tab.id as any)}
                     style={{
                       padding: '0.875rem 1.75rem',
@@ -2603,6 +2615,7 @@ export default function Home() {
                 ].map((tab) => (
                   <button
                     key={tab.id}
+                    id={tab.id === 'quests' ? 'quest-tab-mobile' : undefined}
                     onClick={() => setActiveTab(tab.id as any)}
                     style={{
                       padding: '1rem 1.5rem',
@@ -3163,7 +3176,7 @@ export default function Home() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 1000,
+          zIndex: 9999,
           padding: '1rem'
         }}>
           <div style={{
