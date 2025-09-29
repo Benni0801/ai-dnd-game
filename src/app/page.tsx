@@ -19,6 +19,7 @@ import SupabaseAuthModal from '../components/SupabaseAuthModal';
 import SupabaseCharacterSelector from '../components/SupabaseCharacterSelector';
 import HomePage from '../components/HomePage';
 import AICharacterCreation from '../components/AICharacterCreation';
+import QuestSystem, { Quest } from '../components/QuestSystem';
 import { authService, characterService, getSupabase } from '../lib/supabase-auth';
 import { adventureService } from '../lib/adventure-service';
 import MultiplayerLobby from '../components/MultiplayerLobby';
@@ -170,7 +171,7 @@ export default function Home() {
     isDead: false // Add death state
   });
 
-  const [activeTab, setActiveTab] = useState<'chat' | 'character' | 'inventory' | 'combat' | 'actions'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'character' | 'inventory' | 'combat' | 'quests' | 'actions'>('chat');
   const [diceRolling, setDiceRolling] = useState(false);
   const [inventory, setInventory] = useState<any[]>([
     {
@@ -250,6 +251,11 @@ export default function Home() {
   const [gameMode, setGameMode] = useState<'single' | 'multiplayer' | null>(null);
   const [userHasChosenMode, setUserHasChosenMode] = useState(false);
   
+  // Quest system state
+  const [quests, setQuests] = useState<Quest[]>([]);
+  const [showQuestPopup, setShowQuestPopup] = useState(false);
+  const [pendingQuest, setPendingQuest] = useState<Quest | null>(null);
+  
   // Refs for auto-scrolling and inventory
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -297,6 +303,50 @@ export default function Home() {
       const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
       setShowScrollButton(!isNearBottom);
     }
+  };
+
+  // Quest management functions
+  const handleAcceptQuest = (quest: Quest) => {
+    const newQuest = { ...quest, status: 'active' as const };
+    setQuests(prev => [...prev, newQuest]);
+    addActionLogEntry('item', `Accepted quest: ${quest.title}`, '📜');
+  };
+
+  const handleDeclineQuest = (questId: string) => {
+    addActionLogEntry('item', 'Declined quest offer', '❌');
+  };
+
+  const handleUpdateQuest = (questId: string, updates: Partial<Quest>) => {
+    setQuests(prev => prev.map(quest => 
+      quest.id === questId ? { ...quest, ...updates } : quest
+    ));
+  };
+
+  const handleCompleteQuest = (questId: string) => {
+    const quest = quests.find(q => q.id === questId);
+    if (quest) {
+      handleUpdateQuest(questId, { 
+        status: 'completed', 
+        completedAt: new Date() 
+      });
+      
+      // Award XP and gold
+      setCharacterStats(prev => ({
+        ...prev,
+        xp: (prev.xp || 0) + quest.xpReward,
+        gold: (prev.gold || 0) + (quest.goldReward || 0)
+      }));
+      
+      addActionLogEntry('xp', `Completed quest: ${quest.title} (+${quest.xpReward} XP)`, '✅');
+      if (quest.goldReward) {
+        addActionLogEntry('gold', `Quest reward: +${quest.goldReward} gold`, '🪙');
+      }
+    }
+  };
+
+  const showQuestOffer = (quest: Quest) => {
+    setPendingQuest(quest);
+    setShowQuestPopup(true);
   };
 
   // Scroll to bottom when messages change
@@ -1036,6 +1086,32 @@ export default function Home() {
         });
       } else {
         console.log('No stat changes received from AI');
+      }
+
+      // Parse quest offers from AI response
+      const questMatches = (data.response || data.message || '').match(/\[QUEST:(\{.*?\})\]/g);
+      if (questMatches) {
+        questMatches.forEach((questMatch: string) => {
+          try {
+            const questJson = questMatch.replace(/\[QUEST:|\]/g, '');
+            const questData = JSON.parse(questJson);
+            const quest: Quest = {
+              id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+              title: questData.title || 'Untitled Quest',
+              description: questData.description || 'No description provided',
+              questGiver: questData.questGiver || 'Unknown NPC',
+              xpReward: questData.xpReward || 100,
+              goldReward: questData.goldReward || 0,
+              status: 'active',
+              createdAt: new Date(),
+              type: questData.type || 'side',
+              objectives: questData.objectives || []
+            };
+            showQuestOffer(quest);
+          } catch (error) {
+            console.error('Error parsing quest:', error);
+          }
+        });
       }
 
       console.log('Creating AI message with content:', data.response || data.message);
@@ -2156,6 +2232,15 @@ export default function Home() {
                   onStatsUpdate={(stats) => setCharacterStats(prev => ({ ...prev, ...stats }))}
                 />
               )}
+              {activeTab === 'quests' && (
+                <QuestSystem
+                  quests={quests}
+                  onUpdateQuest={handleUpdateQuest}
+                  onCompleteQuest={handleCompleteQuest}
+                  onAcceptQuest={handleAcceptQuest}
+                  onDeclineQuest={handleDeclineQuest}
+                />
+              )}
               {activeTab === 'combat' && (
                 <CombatSystem
                   characterStats={characterStats}
@@ -2410,7 +2495,8 @@ export default function Home() {
                   { id: 'chat', label: 'Chat' },
                   { id: 'character', label: 'Stats' },
                   { id: 'inventory', label: 'Items' },
-                  { id: 'combat', label: 'Combat' }
+                  { id: 'combat', label: 'Combat' },
+                  { id: 'quests', label: 'Quests' }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -2502,6 +2588,7 @@ export default function Home() {
                   { id: 'character', label: 'Stats', color: 'rgba(16, 185, 129, 0.1)' },
                   { id: 'inventory', label: 'Items', color: 'rgba(245, 158, 11, 0.1)' },
                   { id: 'combat', label: 'Combat', color: 'rgba(239, 68, 68, 0.1)' },
+                  { id: 'quests', label: 'Quests', color: 'rgba(168, 85, 247, 0.1)' },
                   { id: 'actions', label: 'Actions', color: 'rgba(99, 102, 241, 0.1)' }
                 ].map((tab) => (
                   <button
@@ -2589,6 +2676,15 @@ export default function Home() {
                 <CharacterProgression
                   characterStats={characterStats}
                   onStatsUpdate={(stats) => setCharacterStats(prev => ({ ...prev, ...stats }))}
+                />
+              )}
+              {activeTab === 'quests' && (
+                <QuestSystem
+                  quests={quests}
+                  onUpdateQuest={handleUpdateQuest}
+                  onCompleteQuest={handleCompleteQuest}
+                  onAcceptQuest={handleAcceptQuest}
+                  onDeclineQuest={handleDeclineQuest}
                 />
               )}
               {activeTab === 'combat' && (
@@ -3058,6 +3154,236 @@ export default function Home() {
         </div>
         </div> {/* Close padding div for fixed header */}
       </div>
+
+      {/* Quest Popup */}
+      {showQuestPopup && pendingQuest && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '1rem'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(139, 92, 246, 0.3)',
+            borderRadius: '24px',
+            padding: '2rem',
+            maxWidth: '500px',
+            width: '100%',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            {/* Decorative elements */}
+            <div style={{
+              position: 'absolute',
+              top: '-20%',
+              right: '-20%',
+              width: '150px',
+              height: '150px',
+              background: 'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%)',
+              borderRadius: '50%'
+            }}></div>
+            
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              {/* Quest Header */}
+              <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                <div style={{
+                  fontSize: '2rem',
+                  marginBottom: '0.5rem'
+                }}>📜</div>
+                <h2 style={{
+                  fontSize: '1.5rem',
+                  fontWeight: 'bold',
+                  background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  marginBottom: '0.5rem'
+                }}>
+                  {pendingQuest.title}
+                </h2>
+                <div style={{
+                  color: '#94a3b8',
+                  fontSize: '0.9rem'
+                }}>
+                  Quest from: <span style={{ color: '#e2e8f0', fontWeight: '600' }}>{pendingQuest.questGiver}</span>
+                </div>
+              </div>
+
+              {/* Quest Description */}
+              <div style={{
+                background: 'rgba(15, 15, 35, 0.6)',
+                border: '1px solid rgba(139, 92, 246, 0.2)',
+                borderRadius: '16px',
+                padding: '1.5rem',
+                marginBottom: '1.5rem'
+              }}>
+                <h3 style={{
+                  color: '#e2e8f0',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  marginBottom: '0.75rem'
+                }}>Description:</h3>
+                <p style={{
+                  color: '#94a3b8',
+                  lineHeight: '1.6',
+                  margin: 0
+                }}>
+                  {pendingQuest.description}
+                </p>
+              </div>
+
+              {/* Quest Objectives */}
+              {pendingQuest.objectives && pendingQuest.objectives.length > 0 && (
+                <div style={{
+                  background: 'rgba(15, 15, 35, 0.6)',
+                  border: '1px solid rgba(139, 92, 246, 0.2)',
+                  borderRadius: '16px',
+                  padding: '1.5rem',
+                  marginBottom: '1.5rem'
+                }}>
+                  <h3 style={{
+                    color: '#e2e8f0',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    marginBottom: '0.75rem'
+                  }}>Objectives:</h3>
+                  <ul style={{
+                    color: '#94a3b8',
+                    margin: 0,
+                    paddingLeft: '1.5rem'
+                  }}>
+                    {pendingQuest.objectives.map((objective, index) => (
+                      <li key={index} style={{ marginBottom: '0.5rem' }}>
+                        {objective}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Rewards */}
+              <div style={{
+                background: 'rgba(15, 15, 35, 0.6)',
+                border: '1px solid rgba(139, 92, 246, 0.2)',
+                borderRadius: '16px',
+                padding: '1.5rem',
+                marginBottom: '2rem'
+              }}>
+                <h3 style={{
+                  color: '#e2e8f0',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  marginBottom: '0.75rem'
+                }}>Rewards:</h3>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    borderRadius: '12px',
+                    padding: '0.75rem 1rem'
+                  }}>
+                    <span style={{ fontSize: '1.2rem' }}>⭐</span>
+                    <span style={{ color: '#10b981', fontWeight: '600' }}>
+                      {pendingQuest.xpReward} XP
+                    </span>
+                  </div>
+                  {pendingQuest.goldReward && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      background: 'rgba(245, 158, 11, 0.1)',
+                      border: '1px solid rgba(245, 158, 11, 0.3)',
+                      borderRadius: '12px',
+                      padding: '0.75rem 1rem'
+                    }}>
+                      <span style={{ fontSize: '1.2rem' }}>🪙</span>
+                      <span style={{ color: '#f59e0b', fontWeight: '600' }}>
+                        {pendingQuest.goldReward} Gold
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button
+                  onClick={() => {
+                    handleAcceptQuest(pendingQuest);
+                    setShowQuestPopup(false);
+                    setPendingQuest(null);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '1rem',
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    border: 'none',
+                    borderRadius: '16px',
+                    color: 'white',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 8px 25px rgba(16, 185, 129, 0.3)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 12px 35px rgba(16, 185, 129, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 8px 25px rgba(16, 185, 129, 0.3)';
+                  }}
+                >
+                  ✅ Accept Quest
+                </button>
+                <button
+                  onClick={() => {
+                    handleDeclineQuest(pendingQuest.id);
+                    setShowQuestPopup(false);
+                    setPendingQuest(null);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '1rem',
+                    background: 'rgba(55, 65, 81, 0.6)',
+                    border: '1px solid rgba(55, 65, 81, 0.3)',
+                    borderRadius: '16px',
+                    color: '#94a3b8',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(55, 65, 81, 0.8)';
+                    e.currentTarget.style.color = '#e2e8f0';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(55, 65, 81, 0.6)';
+                    e.currentTarget.style.color = '#94a3b8';
+                  }}
+                >
+                  ❌ Decline
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
