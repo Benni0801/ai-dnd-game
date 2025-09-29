@@ -1932,11 +1932,14 @@ export default function Home() {
           }}>
             {/* Character Info */}
             <div style={{
-              background: 'rgba(26, 26, 46, 0.8)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(139, 92, 246, 0.2)',
-              borderRadius: '16px',
-              padding: '1.5rem'
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(236, 72, 153, 0.05) 100%)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(139, 92, 246, 0.15)',
+              borderRadius: '24px',
+              padding: '1.5rem',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
               <h3 style={{
                 fontSize: '1.25rem',
@@ -1984,11 +1987,14 @@ export default function Home() {
 
             {/* Character Stats - Always Visible */}
             <div style={{
-              background: 'rgba(26, 26, 46, 0.8)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(139, 92, 246, 0.2)',
-              borderRadius: '16px',
-              padding: '1.5rem'
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(236, 72, 153, 0.05) 100%)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(139, 92, 246, 0.15)',
+              borderRadius: '24px',
+              padding: '1.5rem',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
               <CharacterProgression
                 characterStats={characterStats}
@@ -2055,34 +2061,109 @@ export default function Home() {
             {/* Desktop Header */}
             <div style={{
               display: window.innerWidth >= 1024 ? 'block' : 'none',
-              background: 'rgba(26, 26, 46, 0.8)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(139, 92, 246, 0.2)',
-              borderRadius: '16px',
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(236, 72, 153, 0.05) 100%)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(139, 92, 246, 0.15)',
+              borderRadius: '24px',
               margin: '1rem',
-              padding: '2rem'
+              padding: '2rem',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
-              <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-                <h1 style={{
-                  fontSize: '2rem',
-                  fontWeight: 'bold',
-                  background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  margin: 0
+              {/* Decorative background elements */}
+              <div style={{
+                position: 'absolute',
+                top: '-30%',
+                right: '-10%',
+                width: '200px',
+                height: '200px',
+                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%)',
+                borderRadius: '50%',
+                zIndex: 0
+              }}></div>
+              <div style={{
+                position: 'absolute',
+                bottom: '-20%',
+                left: '-5%',
+                width: '150px',
+                height: '150px',
+                background: 'radial-gradient(circle, rgba(236, 72, 153, 0.05) 0%, transparent 70%)',
+                borderRadius: '50%',
+                zIndex: 0
+              }}></div>
+              
+              <div style={{ 
+                textAlign: 'center', 
+                marginBottom: '1.5rem',
+                position: 'relative',
+                zIndex: 1
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '1rem',
+                  marginBottom: '1rem'
                 }}>
-                  ⚔️ AI D&D Adventure
-                </h1>
+                  <div style={{
+                    width: '64px',
+                    height: '64px',
+                    background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                    borderRadius: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '2rem',
+                    boxShadow: '0 12px 24px rgba(139, 92, 246, 0.3)'
+                  }}>
+                    ⚔️
+                  </div>
+                  <div>
+                    <h1 style={{
+                      fontSize: '2.5rem',
+                      fontWeight: '700',
+                      background: 'linear-gradient(135deg, #ffffff, #e2e8f0)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      margin: 0,
+                      lineHeight: 1.2
+                    }}>
+                      AI D&D Adventure
+                    </h1>
+                    <p style={{
+                      fontSize: '0.9rem',
+                      color: 'rgba(226, 232, 240, 0.7)',
+                      margin: 0,
+                      fontWeight: '500'
+                    }}>
+                      Epic Fantasy RPG Experience
+                    </p>
+                  </div>
+                </div>
+                <div style={{
+                  background: 'rgba(15, 15, 35, 0.6)',
+                  border: '1px solid rgba(139, 92, 246, 0.2)',
+                  borderRadius: '16px',
+                  padding: '1rem 2rem',
+                  display: 'inline-block'
+                }}>
+                  <p style={{ 
+                    color: '#94a3b8', 
+                    margin: 0,
+                    fontSize: '1.1rem',
+                    fontWeight: '500'
+                  }}>
+                    {characterStats.isDead ? (
+                      <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
+                        💀 {characterStats.name} is DEAD 💀
+                      </span>
+                    ) : (
+                      `Playing as ${characterStats.name} the ${characterStats.race} ${characterStats.class}`
+                    )}
+                  </p>
+                </div>
               </div>
-              <p style={{ color: '#94a3b8', margin: 0, textAlign: 'center', marginBottom: '1rem' }}>
-                {characterStats.isDead ? (
-                  <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
-                    💀 {characterStats.name} is DEAD 💀
-                  </span>
-                ) : (
-                  `Playing as ${characterStats.name} the ${characterStats.race} ${characterStats.class}`
-                )}
-              </p>
               
               {/* Save Button and Keyboard Shortcuts */}
               <div style={{ textAlign: 'center' }}>
@@ -2130,14 +2211,35 @@ export default function Home() {
             {/* Desktop Tab Navigation */}
             <div style={{
               display: window.innerWidth >= 1024 ? 'block' : 'none',
-              background: 'rgba(26, 26, 46, 0.8)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(139, 92, 246, 0.2)',
-              borderRadius: '16px',
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(236, 72, 153, 0.05) 100%)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(139, 92, 246, 0.15)',
+              borderRadius: '24px',
               margin: '0 1rem 1rem 1rem',
-              padding: '1rem'
+              padding: '1.5rem',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
-              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+              {/* Decorative background elements */}
+              <div style={{
+                position: 'absolute',
+                top: '-20%',
+                right: '-5%',
+                width: '120px',
+                height: '120px',
+                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%)',
+                borderRadius: '50%',
+                zIndex: 0
+              }}></div>
+              
+              <div style={{ 
+                display: 'flex', 
+                gap: '1rem', 
+                justifyContent: 'center',
+                position: 'relative',
+                zIndex: 1
+              }}>
                 {[
                   { id: 'chat', label: '💬 Chat', icon: '💬' },
                   { id: 'character', label: '📈 Stats', icon: '📈' },
@@ -2618,13 +2720,13 @@ export default function Home() {
 
             {/* Input */}
             <div style={{
-              background: window.innerWidth < 1024 ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(236, 72, 153, 0.05) 100%)' : 'rgba(26, 26, 46, 0.8)',
-              backdropFilter: window.innerWidth < 1024 ? 'blur(20px)' : 'blur(10px)',
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(236, 72, 153, 0.05) 100%)',
+              backdropFilter: 'blur(20px)',
               border: '1px solid rgba(139, 92, 246, 0.15)',
-              borderRadius: window.innerWidth < 1024 ? '24px' : '16px',
-              margin: window.innerWidth < 1024 ? '0.75rem' : '1rem',
-              padding: window.innerWidth < 1024 ? '1.25rem' : '1.5rem',
-              boxShadow: window.innerWidth < 1024 ? '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)' : 'none',
+              borderRadius: '24px',
+              margin: '1rem',
+              padding: '1.5rem',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)',
               position: 'relative',
               overflow: 'hidden'
             }}>
@@ -2730,7 +2832,19 @@ export default function Home() {
               </div>
 
               {/* Action Log - Desktop */}
-              <div style={{ width: '300px', display: window.innerWidth >= 1024 ? 'block' : 'none' }}>
+              <div style={{ 
+                width: '300px', 
+                display: window.innerWidth >= 1024 ? 'block' : 'none',
+                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(236, 72, 153, 0.05) 100%)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(139, 92, 246, 0.15)',
+                borderRadius: '24px',
+                padding: '1.5rem',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)',
+                position: 'relative',
+                overflow: 'hidden',
+                margin: '1rem'
+              }}>
                 <ActionLog 
                   entries={actionLog} 
                   onClear={() => setActionLog([])}
