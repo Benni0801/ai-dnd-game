@@ -2346,10 +2346,10 @@ export default function Home() {
                 zIndex: 1
               }}>
                 {[
-                  { id: 'chat', label: '💬 Chat', icon: '💬' },
-                  { id: 'character', label: '📈 Stats', icon: '📈' },
-                  { id: 'inventory', label: '🎒 Items', icon: '🎒' },
-                  { id: 'combat', label: '⚔️ Combat', icon: '⚔️' }
+                  { id: 'chat', label: 'Chat' },
+                  { id: 'character', label: 'Stats' },
+                  { id: 'inventory', label: 'Items' },
+                  { id: 'combat', label: 'Combat' }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -2396,7 +2396,6 @@ export default function Home() {
                       }
                     }}
                   >
-                    <span>{tab.icon}</span>
                     <span>{tab.label}</span>
                   </button>
                 ))}
@@ -2438,11 +2437,11 @@ export default function Home() {
                 WebkitOverflowScrolling: 'touch'
               }}>
                 {[
-                  { id: 'chat', label: 'Chat', icon: '💬', color: 'rgba(139, 92, 246, 0.1)' },
-                  { id: 'character', label: 'Stats', icon: '📈', color: 'rgba(16, 185, 129, 0.1)' },
-                  { id: 'inventory', label: 'Items', icon: '🎒', color: 'rgba(245, 158, 11, 0.1)' },
-                  { id: 'combat', label: 'Combat', icon: '⚔️', color: 'rgba(239, 68, 68, 0.1)' },
-                  { id: 'actions', label: 'Actions', icon: '📋', color: 'rgba(99, 102, 241, 0.1)' }
+                  { id: 'chat', label: 'Chat', color: 'rgba(139, 92, 246, 0.1)' },
+                  { id: 'character', label: 'Stats', color: 'rgba(16, 185, 129, 0.1)' },
+                  { id: 'inventory', label: 'Items', color: 'rgba(245, 158, 11, 0.1)' },
+                  { id: 'combat', label: 'Combat', color: 'rgba(239, 68, 68, 0.1)' },
+                  { id: 'actions', label: 'Actions', color: 'rgba(99, 102, 241, 0.1)' }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -2468,9 +2467,8 @@ export default function Home() {
                       transform: activeTab === tab.id ? 'translateY(-2px)' : 'translateY(0)',
                       backdropFilter: 'blur(10px)',
                       display: 'flex',
-                      flexDirection: 'column',
                       alignItems: 'center',
-                      gap: '0.25rem',
+                      justifyContent: 'center',
                       minWidth: '80px',
                       position: 'relative',
                       overflow: 'hidden'
@@ -2488,7 +2486,6 @@ export default function Home() {
                       }
                     }}
                   >
-                    <span style={{ fontSize: '1.2rem' }}>{tab.icon}</span>
                     <span>{tab.label}</span>
                     {activeTab === tab.id && (
                       <div style={{
