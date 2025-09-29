@@ -1664,38 +1664,107 @@ export default function Home() {
         {/* Mobile Header */}
         <div style={{
           display: window.innerWidth < 1024 ? 'block' : 'none',
-          background: 'rgba(26, 26, 46, 0.9)',
-          backdropFilter: 'blur(15px)',
-          border: '1px solid rgba(139, 92, 246, 0.3)',
-          borderRadius: '20px',
-          margin: '0.5rem',
-          padding: '1rem',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+          background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(236, 72, 153, 0.1) 100%)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(139, 92, 246, 0.2)',
+          borderRadius: '24px',
+          margin: '0.75rem',
+          padding: '1.25rem',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h1 style={{
-              fontSize: '1.5rem',
-              fontWeight: 'bold',
-              background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              margin: 0
-            }}>
-              ⚔️ AI D&D
-            </h1>
+          {/* Decorative background elements */}
+          <div style={{
+            position: 'absolute',
+            top: '-50%',
+            right: '-20%',
+            width: '200px',
+            height: '200px',
+            background: 'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%)',
+            borderRadius: '50%',
+            zIndex: 0
+          }}></div>
+          <div style={{
+            position: 'absolute',
+            bottom: '-30%',
+            left: '-10%',
+            width: '150px',
+            height: '150px',
+            background: 'radial-gradient(circle, rgba(236, 72, 153, 0.08) 0%, transparent 70%)',
+            borderRadius: '50%',
+            zIndex: 0
+          }}></div>
+          
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            marginBottom: '1.5rem',
+            position: 'relative',
+            zIndex: 1
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                borderRadius: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem',
+                boxShadow: '0 8px 20px rgba(139, 92, 246, 0.3)'
+              }}>
+                ⚔️
+              </div>
+              <div>
+                <h1 style={{
+                  fontSize: '1.25rem',
+                  fontWeight: '700',
+                  background: 'linear-gradient(135deg, #ffffff, #e2e8f0)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  margin: 0,
+                  lineHeight: 1.2
+                }}>
+                  AI D&D Adventure
+                </h1>
+                <p style={{
+                  fontSize: '0.75rem',
+                  color: 'rgba(226, 232, 240, 0.7)',
+                  margin: 0,
+                  fontWeight: '500'
+                }}>
+                  Epic Fantasy RPG
+                </p>
+              </div>
+            </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
                 onClick={saveAdventure}
                 style={{
-                  padding: '0.5rem 0.75rem',
+                  padding: '0.75rem 1rem',
                   background: 'linear-gradient(135deg, #10b981, #059669)',
-                  border: '1px solid rgba(16, 185, 129, 0.3)',
-                  borderRadius: '8px',
+                  border: 'none',
+                  borderRadius: '12px',
                   color: 'white',
                   fontSize: '0.75rem',
                   fontWeight: '600',
                   cursor: 'pointer',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem'
+                }}
+                onMouseEnter={(e) => {
+                  (e.target as HTMLButtonElement).style.transform = 'translateY(-2px)';
+                  (e.target as HTMLButtonElement).style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.target as HTMLButtonElement).style.transform = 'translateY(0)';
+                  (e.target as HTMLButtonElement).style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
                 }}
               >
                 💾 Save
@@ -1703,15 +1772,26 @@ export default function Home() {
               <button
                 onClick={() => setShowCharacterCreation(true)}
                 style={{
-                  padding: '0.5rem 1rem',
-                  background: 'rgba(139, 92, 246, 0.1)',
+                  padding: '0.75rem 1rem',
+                  background: 'rgba(139, 92, 246, 0.15)',
                   border: '1px solid rgba(139, 92, 246, 0.3)',
-                  borderRadius: '8px',
+                  borderRadius: '12px',
                   color: '#a78bfa',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
                   cursor: 'pointer',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem'
+                }}
+                onMouseEnter={(e) => {
+                  (e.target as HTMLButtonElement).style.background = 'rgba(139, 92, 246, 0.25)';
+                  (e.target as HTMLButtonElement).style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.target as HTMLButtonElement).style.background = 'rgba(139, 92, 246, 0.15)';
+                  (e.target as HTMLButtonElement).style.transform = 'translateY(0)';
                 }}
               >
                 ✏️ Edit
@@ -1720,48 +1800,127 @@ export default function Home() {
           </div>
           
           {/* Character Info Mobile */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(3, 1fr)', 
+            gap: '0.75rem',
+            position: 'relative',
+            zIndex: 1
+          }}>
             <div style={{
-              background: 'rgba(15, 15, 35, 0.6)',
-              borderRadius: '8px',
-              padding: '0.75rem',
-              textAlign: 'center'
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%)',
+              border: '1px solid rgba(139, 92, 246, 0.2)',
+              borderRadius: '16px',
+              padding: '1rem',
+              textAlign: 'center',
+              position: 'relative',
+              overflow: 'hidden',
+              backdropFilter: 'blur(10px)'
             }}>
-              <div style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Level</div>
-              <div style={{ color: '#e2e8f0', fontWeight: 'bold', fontSize: '1rem' }}>{characterStats.level || 1}</div>
+              <div style={{
+                position: 'absolute',
+                top: '-20%',
+                right: '-20%',
+                width: '60px',
+                height: '60px',
+                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%)',
+                borderRadius: '50%'
+              }}></div>
+              <div style={{ 
+                color: 'rgba(226, 232, 240, 0.8)', 
+                fontSize: '0.7rem', 
+                fontWeight: '600',
+                marginBottom: '0.25rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>Level</div>
+              <div style={{ 
+                color: '#ffffff', 
+                fontWeight: '700', 
+                fontSize: '1.25rem',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+              }}>{characterStats.level || 1}</div>
             </div>
             <div style={{
-              background: 'rgba(15, 15, 35, 0.6)',
-              borderRadius: '8px',
-              padding: '0.75rem',
-              textAlign: 'center'
+              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              borderRadius: '16px',
+              padding: '1rem',
+              textAlign: 'center',
+              position: 'relative',
+              overflow: 'hidden',
+              backdropFilter: 'blur(10px)'
             }}>
-              <div style={{ color: '#94a3b8', fontSize: '0.75rem' }}>HP</div>
-              <div style={{ color: '#e2e8f0', fontWeight: 'bold', fontSize: '1rem' }}>{characterStats.hp}/{characterStats.maxHp || characterStats.hp}</div>
+              <div style={{
+                position: 'absolute',
+                top: '-20%',
+                right: '-20%',
+                width: '60px',
+                height: '60px',
+                background: 'radial-gradient(circle, rgba(239, 68, 68, 0.1) 0%, transparent 70%)',
+                borderRadius: '50%'
+              }}></div>
+              <div style={{ 
+                color: 'rgba(226, 232, 240, 0.8)', 
+                fontSize: '0.7rem', 
+                fontWeight: '600',
+                marginBottom: '0.25rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>Health</div>
+              <div style={{ 
+                color: '#ffffff', 
+                fontWeight: '700', 
+                fontSize: '1.1rem',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+              }}>{characterStats.hp}/{characterStats.maxHp || characterStats.hp}</div>
             </div>
             <div style={{
-              background: 'rgba(15, 15, 35, 0.6)',
-              borderRadius: '8px',
-              padding: '0.75rem',
-              textAlign: 'center'
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%)',
+              border: '1px solid rgba(16, 185, 129, 0.2)',
+              borderRadius: '16px',
+              padding: '1rem',
+              textAlign: 'center',
+              position: 'relative',
+              overflow: 'hidden',
+              backdropFilter: 'blur(10px)'
             }}>
-              <div style={{ color: '#94a3b8', fontSize: '0.75rem' }}>XP</div>
-              <div style={{ color: '#e2e8f0', fontWeight: 'bold', fontSize: '1rem' }}>{characterStats.xp || 0}</div>
+              <div style={{
+                position: 'absolute',
+                top: '-20%',
+                right: '-20%',
+                width: '60px',
+                height: '60px',
+                background: 'radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%)',
+                borderRadius: '50%'
+              }}></div>
+              <div style={{ 
+                color: 'rgba(226, 232, 240, 0.8)', 
+                fontSize: '0.7rem', 
+                fontWeight: '600',
+                marginBottom: '0.25rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>Experience</div>
+              <div style={{ 
+                color: '#ffffff', 
+                fontWeight: '700', 
+                fontSize: '1.1rem',
+                textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+              }}>{characterStats.xp || 0}</div>
             </div>
           </div>
         </div>
 
         <div style={{ 
-          display: window.innerWidth < 1024 ? 'grid' : 'flex', 
-          gridTemplateColumns: window.innerWidth < 1024 ? '1fr' : 'none',
-          gridTemplateRows: window.innerWidth < 1024 ? 'auto auto auto 1fr auto' : 'none',
-          flexDirection: window.innerWidth >= 1024 ? 'row' : 'column', 
+          display: window.innerWidth < 1024 ? 'flex' : 'flex', 
+          flexDirection: window.innerWidth < 1024 ? 'column' : 'row', 
           minHeight: '100vh',
-          gap: window.innerWidth < 1024 ? '0.5rem' : '1rem',
           width: '100%',
           maxWidth: '100vw',
           boxSizing: 'border-box',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          background: window.innerWidth < 1024 ? 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)' : 'transparent'
         }}>
           {/* Desktop Sidebar */}
           <div style={{
@@ -2038,47 +2197,102 @@ export default function Home() {
             {/* Mobile Tab Navigation */}
             <div style={{
               display: window.innerWidth < 1024 ? 'block' : 'none',
-              background: 'rgba(26, 26, 46, 0.8)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(139, 92, 246, 0.2)',
-              borderRadius: '16px',
-              margin: '1rem',
-              padding: '0.5rem'
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(236, 72, 153, 0.05) 100%)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(139, 92, 246, 0.15)',
+              borderRadius: '24px',
+              margin: '0.75rem',
+              padding: '1rem',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
-              <div style={{ display: 'flex', overflowX: 'auto', gap: '0.5rem' }}>
+              {/* Decorative background elements */}
+              <div style={{
+                position: 'absolute',
+                top: '-30%',
+                right: '-10%',
+                width: '120px',
+                height: '120px',
+                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%)',
+                borderRadius: '50%',
+                zIndex: 0
+              }}></div>
+              
+              <div style={{ 
+                display: 'flex', 
+                overflowX: 'auto', 
+                gap: '0.75rem',
+                padding: '0.25rem',
+                position: 'relative',
+                zIndex: 1,
+                WebkitOverflowScrolling: 'touch'
+              }}>
                 {[
-                  { id: 'chat', label: '💬 Chat' },
-                  { id: 'character', label: '📈 Stats' },
-                  { id: 'inventory', label: '🎒 Items' },
-                  { id: 'combat', label: '⚔️ Combat' },
-                  { id: 'actions', label: '📋 Actions' }
+                  { id: 'chat', label: 'Chat', icon: '💬', color: 'rgba(139, 92, 246, 0.1)' },
+                  { id: 'character', label: 'Stats', icon: '📈', color: 'rgba(16, 185, 129, 0.1)' },
+                  { id: 'inventory', label: 'Items', icon: '🎒', color: 'rgba(245, 158, 11, 0.1)' },
+                  { id: 'combat', label: 'Combat', icon: '⚔️', color: 'rgba(239, 68, 68, 0.1)' },
+                  { id: 'actions', label: 'Actions', icon: '📋', color: 'rgba(99, 102, 241, 0.1)' }
                 ].map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
                     style={{
-                      padding: '0.75rem 1.25rem',
-                      borderRadius: '10px',
+                      padding: '1rem 1.5rem',
+                      borderRadius: '20px',
                       fontWeight: '600',
-                      fontSize: '0.85rem',
+                      fontSize: '0.8rem',
                       cursor: 'pointer',
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                       background: activeTab === tab.id 
                         ? 'linear-gradient(135deg, #8b5cf6, #ec4899)' 
-                        : 'linear-gradient(135deg, rgba(55, 65, 81, 0.6), rgba(75, 85, 99, 0.4))',
+                        : `linear-gradient(135deg, ${tab.color}, rgba(55, 65, 81, 0.3))`,
                       color: activeTab === tab.id ? 'white' : '#e2e8f0',
                       border: activeTab === tab.id 
                         ? 'none' 
-                        : '1px solid rgba(139, 92, 246, 0.3)',
+                        : '1px solid rgba(139, 92, 246, 0.2)',
                       whiteSpace: 'nowrap',
                       boxShadow: activeTab === tab.id 
-                        ? '0 6px 20px rgba(139, 92, 246, 0.4), 0 3px 10px rgba(236, 72, 153, 0.3)' 
-                        : '0 2px 8px rgba(0, 0, 0, 0.2)',
-                      transform: activeTab === tab.id ? 'translateY(-1px)' : 'translateY(0)',
-                      backdropFilter: 'blur(8px)'
+                        ? '0 8px 25px rgba(139, 92, 246, 0.4), 0 4px 12px rgba(236, 72, 153, 0.3)' 
+                        : '0 4px 12px rgba(0, 0, 0, 0.2)',
+                      transform: activeTab === tab.id ? 'translateY(-2px)' : 'translateY(0)',
+                      backdropFilter: 'blur(10px)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                      minWidth: '80px',
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (activeTab !== tab.id) {
+                        (e.target as HTMLButtonElement).style.transform = 'translateY(-1px)';
+                        (e.target as HTMLButtonElement).style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.3)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (activeTab !== tab.id) {
+                        (e.target as HTMLButtonElement).style.transform = 'translateY(0)';
+                        (e.target as HTMLButtonElement).style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
+                      }
                     }}
                   >
-                    {tab.label}
+                    <span style={{ fontSize: '1.2rem' }}>{tab.icon}</span>
+                    <span>{tab.label}</span>
+                    {activeTab === tab.id && (
+                      <div style={{
+                        position: 'absolute',
+                        bottom: '0',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: '20px',
+                        height: '3px',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        borderRadius: '2px'
+                      }}></div>
+                    )}
                   </button>
                 ))}
               </div>
@@ -2087,17 +2301,19 @@ export default function Home() {
             {/* Mobile Tab Content */}
             <div style={{
               display: window.innerWidth < 1024 ? 'block' : 'none',
-              background: 'rgba(26, 26, 46, 0.9)',
-              backdropFilter: 'blur(15px)',
-              border: '1px solid rgba(139, 92, 246, 0.3)',
-              borderRadius: '20px',
-              margin: '0.5rem',
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(236, 72, 153, 0.03) 100%)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(139, 92, 246, 0.15)',
+              borderRadius: '24px',
+              margin: '0.75rem',
               padding: '1.5rem',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-              minHeight: '200px',
-              maxHeight: '300px',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)',
+              minHeight: '250px',
+              maxHeight: '350px',
               overflowY: 'auto',
-              WebkitOverflowScrolling: 'touch'
+              WebkitOverflowScrolling: 'touch',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
               {activeTab === 'character' && (
                 <CharacterProgression
@@ -2126,20 +2342,22 @@ export default function Home() {
               ref={messagesContainerRef}
               style={{ 
                 flex: 1,
-                padding: window.innerWidth < 1024 ? '0.75rem' : '1rem',
+                padding: window.innerWidth < 1024 ? '1rem' : '1rem',
                 overflowY: 'auto',
                 overflowX: 'hidden', // Prevent horizontal overflow
-                maxHeight: window.innerWidth < 1024 ? 'calc(100vh - 400px)' : 'calc(100vh - 300px)',
+                maxHeight: window.innerWidth < 1024 ? 'calc(100vh - 500px)' : 'calc(100vh - 300px)',
                 WebkitOverflowScrolling: 'touch', // Smooth scrolling on iOS
-                background: window.innerWidth < 1024 ? 'rgba(26, 26, 46, 0.9)' : 'transparent',
-                backdropFilter: window.innerWidth < 1024 ? 'blur(15px)' : 'none',
-                border: window.innerWidth < 1024 ? '1px solid rgba(139, 92, 246, 0.3)' : 'none',
-                borderRadius: window.innerWidth < 1024 ? '20px' : '0',
-                margin: window.innerWidth < 1024 ? '0.5rem' : '0',
-                boxShadow: window.innerWidth < 1024 ? '0 8px 32px rgba(0, 0, 0, 0.3)' : 'none',
+                background: window.innerWidth < 1024 ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.03) 0%, rgba(236, 72, 153, 0.02) 100%)' : 'transparent',
+                backdropFilter: window.innerWidth < 1024 ? 'blur(20px)' : 'none',
+                border: window.innerWidth < 1024 ? '1px solid rgba(139, 92, 246, 0.15)' : 'none',
+                borderRadius: window.innerWidth < 1024 ? '24px' : '0',
+                margin: window.innerWidth < 1024 ? '0.75rem' : '0',
+                boxShadow: window.innerWidth < 1024 ? '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)' : 'none',
                 width: '100%',
                 maxWidth: '100%',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                position: 'relative',
+                overflow: 'hidden'
               }}
               onScroll={handleScroll}
             >
@@ -2400,14 +2618,38 @@ export default function Home() {
 
             {/* Input */}
             <div style={{
-              background: window.innerWidth < 1024 ? 'rgba(26, 26, 46, 0.9)' : 'rgba(26, 26, 46, 0.8)',
-              backdropFilter: window.innerWidth < 1024 ? 'blur(15px)' : 'blur(10px)',
-              border: '1px solid rgba(139, 92, 246, 0.3)',
-              borderRadius: window.innerWidth < 1024 ? '20px' : '16px',
-              margin: window.innerWidth < 1024 ? '0.5rem' : '1rem',
-              padding: window.innerWidth < 1024 ? '1rem' : '1.5rem',
-              boxShadow: window.innerWidth < 1024 ? '0 8px 32px rgba(0, 0, 0, 0.3)' : 'none'
+              background: window.innerWidth < 1024 ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(236, 72, 153, 0.05) 100%)' : 'rgba(26, 26, 46, 0.8)',
+              backdropFilter: window.innerWidth < 1024 ? 'blur(20px)' : 'blur(10px)',
+              border: '1px solid rgba(139, 92, 246, 0.15)',
+              borderRadius: window.innerWidth < 1024 ? '24px' : '16px',
+              margin: window.innerWidth < 1024 ? '0.75rem' : '1rem',
+              padding: window.innerWidth < 1024 ? '1.25rem' : '1.5rem',
+              boxShadow: window.innerWidth < 1024 ? '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)' : 'none',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
+              {/* Decorative background elements */}
+              <div style={{
+                position: 'absolute',
+                top: '-40%',
+                right: '-20%',
+                width: '150px',
+                height: '150px',
+                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%)',
+                borderRadius: '50%',
+                zIndex: 0
+              }}></div>
+              <div style={{
+                position: 'absolute',
+                bottom: '-30%',
+                left: '-10%',
+                width: '100px',
+                height: '100px',
+                background: 'radial-gradient(circle, rgba(236, 72, 153, 0.03) 0%, transparent 70%)',
+                borderRadius: '50%',
+                zIndex: 0
+              }}></div>
+              
               <form onSubmit={(e) => {
                 e.preventDefault();
                 if (inputMessage.trim() && !isLoading) {
@@ -2418,7 +2660,9 @@ export default function Home() {
                 <div style={{ 
                   display: 'flex', 
                   gap: window.innerWidth < 1024 ? '0.75rem' : '1rem',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  position: 'relative',
+                  zIndex: 1
                 }}>
                   <input
                     type="text"
@@ -2428,17 +2672,18 @@ export default function Home() {
                     disabled={isLoading || characterStats.isDead}
                     style={{
                       flex: 1,
-                      padding: window.innerWidth < 1024 ? '1rem 1.25rem' : '1rem 1.25rem',
-                      background: 'rgba(15, 15, 35, 0.8)',
-                      border: '1px solid rgba(139, 92, 246, 0.4)',
-                      borderRadius: window.innerWidth < 1024 ? '16px' : '12px',
+                      padding: window.innerWidth < 1024 ? '1.25rem 1.5rem' : '1rem 1.25rem',
+                      background: 'rgba(15, 15, 35, 0.9)',
+                      border: '1px solid rgba(139, 92, 246, 0.3)',
+                      borderRadius: window.innerWidth < 1024 ? '20px' : '12px',
                       color: '#e2e8f0',
                       fontSize: window.innerWidth < 1024 ? '1rem' : '1rem',
                       outline: 'none',
                       transition: 'all 0.3s ease',
-                      minHeight: window.innerWidth < 1024 ? '48px' : 'auto',
+                      minHeight: window.innerWidth < 1024 ? '56px' : 'auto',
                       WebkitAppearance: 'none',
-                      boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.1)'
+                      boxShadow: 'inset 0 4px 8px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(139, 92, 246, 0.1)',
+                      backdropFilter: 'blur(10px)'
                     }}
                     onFocus={(e) => {
                       e.target.style.borderColor = 'rgba(139, 92, 246, 0.5)';
@@ -2453,12 +2698,12 @@ export default function Home() {
                     type="submit"
                     disabled={!inputMessage.trim() || isLoading || characterStats.isDead}
                     style={{
-                      padding: window.innerWidth < 1024 ? '1rem 1.5rem' : '1rem 1.5rem',
+                      padding: window.innerWidth < 1024 ? '1.25rem 1.75rem' : '1rem 1.5rem',
                       background: (!inputMessage.trim() || isLoading || characterStats.isDead) 
                         ? 'rgba(55, 65, 81, 0.5)' 
                         : 'linear-gradient(135deg, #8b5cf6, #ec4899)',
                       border: 'none',
-                      borderRadius: window.innerWidth < 1024 ? '16px' : '12px',
+                      borderRadius: window.innerWidth < 1024 ? '20px' : '12px',
                       color: 'white',
                       fontSize: window.innerWidth < 1024 ? '1.25rem' : '1.25rem',
                       cursor: (!inputMessage.trim() || isLoading || characterStats.isDead) ? 'not-allowed' : 'pointer',
@@ -2467,13 +2712,14 @@ export default function Home() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      minWidth: window.innerWidth < 1024 ? '60px' : '60px',
-                      minHeight: window.innerWidth < 1024 ? '48px' : 'auto',
+                      minWidth: window.innerWidth < 1024 ? '70px' : '60px',
+                      minHeight: window.innerWidth < 1024 ? '56px' : 'auto',
                       boxShadow: (!inputMessage.trim() || isLoading || characterStats.isDead) 
                         ? 'none' 
-                        : '0 4px 15px rgba(139, 92, 246, 0.4)',
+                        : '0 8px 25px rgba(139, 92, 246, 0.4), 0 4px 12px rgba(236, 72, 153, 0.3)',
                       WebkitAppearance: 'none',
-                      touchAction: 'manipulation'
+                      touchAction: 'manipulation',
+                      backdropFilter: 'blur(10px)'
                     }}
                   >
                     {isLoading ? '⏳' : '🚀'}
