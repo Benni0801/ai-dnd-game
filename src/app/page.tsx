@@ -1130,7 +1130,22 @@ export default function Home() {
               .replace(/,\s*}/g, '}')  // Remove trailing commas before }
               .replace(/,\s*]/g, ']')  // Remove trailing commas before ]
               .replace(/'/g, '"')      // Replace single quotes with double quotes
-              .replace(/(\w+):/g, '"$1":'); // Add quotes around unquoted keys
+              .replace(/(\w+):/g, '"$1":') // Add quotes around unquoted keys
+              .replace(/\n/g, ' ')     // Remove line breaks
+              .replace(/\s+/g, ' ')    // Normalize whitespace
+              .replace(/:\s*"/g, ':"') // Fix spacing around colons
+              .replace(/"\s*:/g, '":') // Fix spacing around colons
+              .replace(/,\s*"/g, ',"') // Fix spacing around commas
+              .replace(/"\s*,/g, '",') // Fix spacing around commas
+              .trim();                 // Remove leading/trailing spaces
+            
+            // Try to fix common JSON structure issues
+            if (!cleanedJson.startsWith('{')) {
+              cleanedJson = '{' + cleanedJson;
+            }
+            if (!cleanedJson.endsWith('}')) {
+              cleanedJson = cleanedJson + '}';
+            }
             
             console.log('Cleaned quest JSON:', cleanedJson);
             const questData = JSON.parse(cleanedJson);
@@ -1165,17 +1180,29 @@ export default function Home() {
             console.error('Raw quest match:', questMatch);
             console.error('Cleaned JSON:', questJson);
             
-            // Try to create a basic quest from the raw text
+            // Try to extract information from the raw JSON even if parsing fails
+            const extractValue = (text: string, key: string): string => {
+              const regex = new RegExp(`"${key}"\\s*:\\s*"([^"]*)"`, 'i');
+              const match = text.match(regex);
+              return match ? match[1] : '';
+            };
+            
+            const extractNumber = (text: string, key: string): number => {
+              const regex = new RegExp(`"${key}"\\s*:\\s*(\\d+)`, 'i');
+              const match = text.match(regex);
+              return match ? parseInt(match[1]) : 0;
+            };
+            
             const basicQuest: Quest = {
               id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-              title: 'Quest from AI',
-              description: 'AI generated quest (parsing failed)',
-              questGiver: 'Unknown NPC',
-              xpReward: 100,
-              goldReward: 0,
+              title: extractValue(questJson, 'title') || 'Quest from AI',
+              description: extractValue(questJson, 'description') || 'AI generated quest (parsing failed)',
+              questGiver: extractValue(questJson, 'questGiver') || 'Unknown NPC',
+              xpReward: extractNumber(questJson, 'xpReward') || 100,
+              goldReward: extractNumber(questJson, 'goldReward') || 50,
               status: 'active',
               createdAt: new Date(),
-              type: 'side',
+              type: (extractValue(questJson, 'type') as 'main' | 'side' | 'daily') || 'side',
               objectives: ['Complete the quest']
             };
             console.log('Creating fallback quest:', basicQuest);
