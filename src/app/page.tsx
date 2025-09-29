@@ -76,39 +76,25 @@ export default function Home() {
         word-break: normal !important;
         white-space: normal !important;
       }
-      @keyframes rainbow {
-        0% { filter: hue-rotate(0deg); }
-        100% { filter: hue-rotate(360deg); }
-      }
-      @keyframes float {
-        0%, 100% { transform: translateY(0px) rotate(0deg); }
-        50% { transform: translateY(-20px) rotate(180deg); }
-      }
-      @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 0.7; }
-        50% { transform: scale(1.1); opacity: 1; }
-      }
-      @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-      }
-      @keyframes glow {
-        0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
-        50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.6), 0 0 60px rgba(236, 72, 153, 0.4); }
-      }
-      .floating-particle {
-        position: absolute;
-        width: 4px;
-        height: 4px;
-        background: radial-gradient(circle, rgba(139, 92, 246, 0.8) 0%, transparent 70%);
-        border-radius: 50%;
-        animation: float 6s ease-in-out infinite;
-      }
-      .shimmer-effect {
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        background-size: 200% 100%;
-        animation: shimmer 2s infinite;
-      }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        @keyframes glow {
+          0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+          50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.6), 0 0 60px rgba(236, 72, 153, 0.4); }
+        }
+        .floating-particle {
+          position: absolute;
+          width: 3px;
+          height: 3px;
+          background: radial-gradient(circle, rgba(139, 92, 246, 0.6) 0%, transparent 70%);
+          border-radius: 50%;
+          animation: float 8s ease-in-out infinite;
+        }
+        .glow-on-event {
+          animation: glow 2s ease-in-out;
+        }
     `;
     document.head.appendChild(style);
     return () => {
@@ -347,6 +333,17 @@ export default function Home() {
   const showQuestOffer = (quest: Quest) => {
     setPendingQuest(quest);
     setShowQuestPopup(true);
+  };
+
+  // Function to trigger glow effect on specific elements
+  const triggerGlowEffect = (elementId: string) => {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.classList.add('glow-on-event');
+      setTimeout(() => {
+        element.classList.remove('glow-on-event');
+      }, 2000);
+    }
   };
 
   // Scroll to bottom when messages change
@@ -1108,6 +1105,8 @@ export default function Home() {
               objectives: questData.objectives || []
             };
             showQuestOffer(quest);
+            // Trigger glow effect on quest tab
+            setTimeout(() => triggerGlowEffect('quest-tab'), 100);
           } catch (error) {
             console.error('Error parsing quest:', error);
           }
@@ -1835,21 +1834,21 @@ export default function Home() {
             animation: 'pulse 7s ease-in-out infinite reverse'
           }}></div>
           
-          {/* Mobile Floating Particles */}
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="floating-particle"
-              style={{
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 6}s`,
-                animationDuration: `${3 + Math.random() * 3}s`,
-                width: '3px',
-                height: '3px'
-              }}
-            />
-          ))}
+      {/* Mobile Floating Particles */}
+      {[...Array(12)].map((_, i) => (
+        <div
+          key={i}
+          className="floating-particle"
+          style={{
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 8}s`,
+            animationDuration: `${6 + Math.random() * 4}s`,
+            width: '2px',
+            height: '2px'
+          }}
+        />
+      ))}
           
           <div style={{ 
             display: 'flex', 
@@ -1860,30 +1859,21 @@ export default function Home() {
             zIndex: 1
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{
-                width: '48px',
-                height: '48px',
-                background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
-                borderRadius: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.5rem',
-                boxShadow: '0 8px 20px rgba(139, 92, 246, 0.3)',
-                animation: 'glow 4s ease-in-out infinite',
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
-                <div className="shimmer-effect" style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  borderRadius: '16px'
-                }}></div>
-                <span style={{ position: 'relative', zIndex: 1 }}>⚔️</span>
-              </div>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+              borderRadius: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.5rem',
+              boxShadow: '0 8px 20px rgba(139, 92, 246, 0.3)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <span style={{ position: 'relative', zIndex: 1 }}>⚔️</span>
+            </div>
               <div>
                 <h1 style={{
                   fontSize: '1.25rem',
@@ -2025,17 +2015,36 @@ export default function Home() {
           </div>
         </div>
 
-        <div style={{ 
-          display: window.innerWidth < 1024 ? 'flex' : 'flex', 
-          flexDirection: window.innerWidth < 1024 ? 'column' : 'row', 
-          minHeight: '100vh',
-          width: '100%',
-          maxWidth: '100vw',
-          boxSizing: 'border-box',
-          overflow: 'hidden',
-          background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
-          position: 'relative'
-        }}>
+    <div style={{ 
+      display: window.innerWidth < 1024 ? 'flex' : 'flex', 
+      flexDirection: window.innerWidth < 1024 ? 'column' : 'row', 
+      minHeight: '100vh',
+      width: '100%',
+      maxWidth: '100vw',
+      boxSizing: 'border-box',
+      overflow: 'hidden',
+      background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
+      position: 'relative'
+    }}>
+      {/* Global Background Particles */}
+      {[...Array(30)].map((_, i) => (
+        <div
+          key={`global-${i}`}
+          className="floating-particle"
+          style={{
+            position: 'fixed',
+            top: `${Math.random() * 100}vh`,
+            left: `${Math.random() * 100}vw`,
+            animationDelay: `${Math.random() * 10}s`,
+            animationDuration: `${8 + Math.random() * 6}s`,
+            width: '1px',
+            height: '1px',
+            opacity: 0.3,
+            zIndex: 0,
+            pointerEvents: 'none'
+          }}
+        />
+      ))}
           {/* Desktop Sidebar */}
           <div style={{
             display: window.innerWidth >= 1024 ? 'flex' : 'none',
@@ -2329,19 +2338,21 @@ export default function Home() {
                 animation: 'pulse 6s ease-in-out infinite reverse'
               }}></div>
               
-              {/* Floating Particles */}
-              {[...Array(8)].map((_, i) => (
-                <div
-                  key={i}
-                  className="floating-particle"
-                  style={{
-                    top: `${Math.random() * 100}%`,
-                    left: `${Math.random() * 100}%`,
-                    animationDelay: `${Math.random() * 6}s`,
-                    animationDuration: `${4 + Math.random() * 4}s`
-                  }}
-                />
-              ))}
+      {/* Floating Particles */}
+      {[...Array(20)].map((_, i) => (
+        <div
+          key={i}
+          className="floating-particle"
+          style={{
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 8}s`,
+            animationDuration: `${6 + Math.random() * 4}s`,
+            width: '2px',
+            height: '2px'
+          }}
+        />
+      ))}
               
               <div style={{ 
                 textAlign: 'center', 
@@ -2356,40 +2367,30 @@ export default function Home() {
                   gap: '1rem',
                   marginBottom: '1rem'
                 }}>
-                  <div style={{
-                    width: '64px',
-                    height: '64px',
-                    background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
-                    borderRadius: '20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '2rem',
-                    boxShadow: '0 12px 24px rgba(139, 92, 246, 0.3)',
-                    animation: 'glow 3s ease-in-out infinite',
-                    position: 'relative',
-                    overflow: 'hidden'
-                  }}>
-                    <div className="shimmer-effect" style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      borderRadius: '20px'
-                    }}></div>
-                    <span style={{ position: 'relative', zIndex: 1 }}>⚔️</span>
-                  </div>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+            borderRadius: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '2rem',
+            boxShadow: '0 12px 24px rgba(139, 92, 246, 0.3)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <span style={{ position: 'relative', zIndex: 1 }}>⚔️</span>
+          </div>
                   <div>
                     <h1 style={{
                       fontSize: '2.5rem',
                       fontWeight: '700',
-                      background: 'linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57)',
+                      background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                       margin: 0,
-                      lineHeight: 1.2,
-                      animation: 'rainbow 3s ease-in-out infinite'
+                      lineHeight: 1.2
                     }}>
                       ✨ AI D&D Adventure ✨
                     </h1>
@@ -2537,22 +2538,20 @@ export default function Home() {
                       position: 'relative',
                       overflow: 'hidden'
                     }}
-                    onMouseEnter={(e) => {
-                      if (activeTab !== tab.id) {
-                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(75, 85, 99, 0.9), rgba(95, 105, 119, 0.7))';
-                        e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
-                        e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.4), 0 6px 16px rgba(139, 92, 246, 0.2)';
-                        e.currentTarget.style.animation = 'glow 2s ease-in-out infinite';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (activeTab !== tab.id) {
-                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(55, 65, 81, 0.8), rgba(75, 85, 99, 0.6))';
-                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.2)';
-                        e.currentTarget.style.animation = 'none';
-                      }
-                    }}
+        onMouseEnter={(e) => {
+          if (activeTab !== tab.id) {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(75, 85, 99, 0.9), rgba(95, 105, 119, 0.7))';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(139, 92, 246, 0.2)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (activeTab !== tab.id) {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(55, 65, 81, 0.8), rgba(75, 85, 99, 0.6))';
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.2)';
+          }
+        }}
                   >
                     <span>{tab.label}</span>
                   </button>
@@ -3105,32 +3104,20 @@ export default function Home() {
                     position: 'relative',
                     overflow: 'hidden'
                   }}
-                  onMouseEnter={(e) => {
-                    if (!(!inputMessage.trim() || isLoading || characterStats.isDead)) {
-                      e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
-                      e.currentTarget.style.boxShadow = '0 12px 35px rgba(139, 92, 246, 0.6), 0 6px 20px rgba(236, 72, 153, 0.4)';
-                      e.currentTarget.style.animation = 'glow 1.5s ease-in-out infinite';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!(!inputMessage.trim() || isLoading || characterStats.isDead)) {
-                      e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(139, 92, 246, 0.4), 0 4px 12px rgba(236, 72, 153, 0.3)';
-                      e.currentTarget.style.animation = 'none';
-                    }
-                  }}
+      onMouseEnter={(e) => {
+        if (!(!inputMessage.trim() || isLoading || characterStats.isDead)) {
+          e.currentTarget.style.transform = 'translateY(-2px)';
+          e.currentTarget.style.boxShadow = '0 12px 30px rgba(139, 92, 246, 0.5), 0 6px 15px rgba(236, 72, 153, 0.3)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!(!inputMessage.trim() || isLoading || characterStats.isDead)) {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 8px 25px rgba(139, 92, 246, 0.4), 0 4px 12px rgba(236, 72, 153, 0.3)';
+        }
+      }}
                 >
-                  {!(!inputMessage.trim() || isLoading || characterStats.isDead) && (
-                    <div className="shimmer-effect" style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      borderRadius: '20px'
-                    }}></div>
-                  )}
-                  <span style={{ position: 'relative', zIndex: 1 }}>
+                  <span>
                     {isLoading ? '⏳' : '🚀'}
                   </span>
                 </button>
