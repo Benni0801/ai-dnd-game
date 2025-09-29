@@ -2241,6 +2241,17 @@ export default function Home() {
                   onDeclineQuest={handleDeclineQuest}
                 />
               )}
+              {activeTab === 'inventory' && (
+                <InventorySystem
+                  ref={inventoryRef}
+                  characterStats={characterStats}
+                  onInventoryChange={(newInventory) => {
+                    console.log('Parent inventory changed (desktop), new count:', newInventory.length, 'items:', newInventory.map(i => i.name));
+                    setInventory(newInventory);
+                  }}
+                  initialInventory={inventory}
+                />
+              )}
               {activeTab === 'combat' && (
                 <CombatSystem
                   characterStats={characterStats}
@@ -2667,7 +2678,6 @@ export default function Home() {
               overflowY: 'auto',
               WebkitOverflowScrolling: 'touch',
               position: 'relative',
-              overflow: 'hidden',
               width: '100%',
               maxWidth: '100%',
               boxSizing: 'border-box'
@@ -2722,8 +2732,7 @@ export default function Home() {
                 width: '100%',
                 maxWidth: '100%',
                 boxSizing: 'border-box',
-                position: 'relative',
-                overflow: 'hidden'
+                position: 'relative'
               }}
               onScroll={handleScroll}
             >
