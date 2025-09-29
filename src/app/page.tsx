@@ -35,6 +35,7 @@ export default function Home() {
     style.textContent = `
       * {
         box-sizing: border-box;
+        max-width: 100%;
       }
       html, body {
         width: 100%;
@@ -44,11 +45,22 @@ export default function Home() {
         padding: 0;
         background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
         min-height: 100vh;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
       }
       #__next {
         width: 100%;
         max-width: 100vw;
         overflow-x: hidden;
+      }
+      div, span, p, h1, h2, h3, h4, h5, h6 {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        hyphens: auto;
+        -webkit-hyphens: auto;
+        -ms-hyphens: auto;
       }
       @keyframes rainbow {
         0% { filter: hue-rotate(0deg); }
@@ -1927,7 +1939,7 @@ export default function Home() {
           maxWidth: '100vw',
           boxSizing: 'border-box',
           overflow: 'hidden',
-          background: window.innerWidth < 1024 ? 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)' : 'transparent'
+          background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
         }}>
           {/* Desktop Sidebar */}
           <div style={{
@@ -2411,19 +2423,22 @@ export default function Home() {
             {/* Mobile Tab Content */}
             <div style={{
               display: window.innerWidth < 1024 ? 'block' : 'none',
-              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(236, 72, 153, 0.03) 100%)',
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(236, 72, 153, 0.05) 100%)',
               backdropFilter: 'blur(20px)',
               border: '1px solid rgba(139, 92, 246, 0.15)',
               borderRadius: '24px',
               margin: '0.75rem',
               padding: '1.5rem',
               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)',
-              minHeight: '250px',
-              maxHeight: '350px',
+              minHeight: '200px',
+              maxHeight: '300px',
               overflowY: 'auto',
               WebkitOverflowScrolling: 'touch',
               position: 'relative',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              width: '100%',
+              maxWidth: '100%',
+              boxSizing: 'border-box'
             }}>
               {activeTab === 'character' && (
                 <CharacterProgression
@@ -2452,17 +2467,17 @@ export default function Home() {
               ref={messagesContainerRef}
               style={{ 
                 flex: 1,
-                padding: window.innerWidth < 1024 ? '1rem' : '1rem',
+                padding: '1rem',
                 overflowY: 'auto',
-                overflowX: 'hidden', // Prevent horizontal overflow
-                maxHeight: window.innerWidth < 1024 ? 'calc(100vh - 500px)' : 'calc(100vh - 300px)',
-                WebkitOverflowScrolling: 'touch', // Smooth scrolling on iOS
-                background: window.innerWidth < 1024 ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.03) 0%, rgba(236, 72, 153, 0.02) 100%)' : 'transparent',
-                backdropFilter: window.innerWidth < 1024 ? 'blur(20px)' : 'none',
-                border: window.innerWidth < 1024 ? '1px solid rgba(139, 92, 246, 0.15)' : 'none',
-                borderRadius: window.innerWidth < 1024 ? '24px' : '0',
-                margin: window.innerWidth < 1024 ? '0.75rem' : '0',
-                boxShadow: window.innerWidth < 1024 ? '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)' : 'none',
+                overflowX: 'hidden',
+                maxHeight: window.innerWidth < 1024 ? 'calc(100vh - 600px)' : 'calc(100vh - 300px)',
+                WebkitOverflowScrolling: 'touch',
+                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(236, 72, 153, 0.03) 100%)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(139, 92, 246, 0.15)',
+                borderRadius: '24px',
+                margin: '0.75rem',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)',
                 width: '100%',
                 maxWidth: '100%',
                 boxSizing: 'border-box',
@@ -2732,11 +2747,14 @@ export default function Home() {
               backdropFilter: 'blur(20px)',
               border: '1px solid rgba(139, 92, 246, 0.15)',
               borderRadius: '24px',
-              margin: '1rem',
-              padding: '1.5rem',
+              margin: '0.75rem',
+              padding: '1.25rem',
               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(139, 92, 246, 0.1)',
               position: 'relative',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              width: '100%',
+              maxWidth: '100%',
+              boxSizing: 'border-box'
             }}>
               {/* Decorative background elements */}
               <div style={{
@@ -2774,27 +2792,30 @@ export default function Home() {
                   position: 'relative',
                   zIndex: 1
                 }}>
-                  <input
-                    type="text"
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    placeholder="What would you like to do, adventurer?"
-                    disabled={isLoading || characterStats.isDead}
-                    style={{
-                      flex: 1,
-                      padding: window.innerWidth < 1024 ? '1.25rem 1.5rem' : '1rem 1.25rem',
-                      background: 'rgba(15, 15, 35, 0.9)',
-                      border: '1px solid rgba(139, 92, 246, 0.3)',
-                      borderRadius: window.innerWidth < 1024 ? '20px' : '12px',
-                      color: '#e2e8f0',
-                      fontSize: window.innerWidth < 1024 ? '1rem' : '1rem',
-                      outline: 'none',
-                      transition: 'all 0.3s ease',
-                      minHeight: window.innerWidth < 1024 ? '56px' : 'auto',
-                      WebkitAppearance: 'none',
-                      boxShadow: 'inset 0 4px 8px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(139, 92, 246, 0.1)',
-                      backdropFilter: 'blur(10px)'
-                    }}
+                <input
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder="What would you like to do, adventurer?"
+                  disabled={isLoading || characterStats.isDead}
+                  style={{
+                    flex: 1,
+                    padding: '1.25rem 1.5rem',
+                    background: 'rgba(15, 15, 35, 0.9)',
+                    border: '1px solid rgba(139, 92, 246, 0.3)',
+                    borderRadius: '20px',
+                    color: '#e2e8f0',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'all 0.3s ease',
+                    minHeight: '56px',
+                    WebkitAppearance: 'none',
+                    boxShadow: 'inset 0 4px 8px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(139, 92, 246, 0.1)',
+                    backdropFilter: 'blur(10px)',
+                    width: '100%',
+                    maxWidth: '100%',
+                    boxSizing: 'border-box'
+                  }}
                     onFocus={(e) => {
                       e.target.style.borderColor = 'rgba(139, 92, 246, 0.5)';
                       e.target.style.background = 'rgba(15, 15, 35, 0.8)';
@@ -2804,34 +2825,35 @@ export default function Home() {
                       e.target.style.background = 'rgba(15, 15, 35, 0.6)';
                     }}
                   />
-                  <button
-                    type="submit"
-                    disabled={!inputMessage.trim() || isLoading || characterStats.isDead}
-                    style={{
-                      padding: window.innerWidth < 1024 ? '1.25rem 1.75rem' : '1rem 1.5rem',
-                      background: (!inputMessage.trim() || isLoading || characterStats.isDead) 
-                        ? 'rgba(55, 65, 81, 0.5)' 
-                        : 'linear-gradient(135deg, #8b5cf6, #ec4899)',
-                      border: 'none',
-                      borderRadius: window.innerWidth < 1024 ? '20px' : '12px',
-                      color: 'white',
-                      fontSize: window.innerWidth < 1024 ? '1.25rem' : '1.25rem',
-                      cursor: (!inputMessage.trim() || isLoading || characterStats.isDead) ? 'not-allowed' : 'pointer',
-                      opacity: (!inputMessage.trim() || isLoading || characterStats.isDead) ? 0.5 : 1,
-                      transition: 'all 0.3s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: window.innerWidth < 1024 ? '70px' : '60px',
-                      minHeight: window.innerWidth < 1024 ? '56px' : 'auto',
-                      boxShadow: (!inputMessage.trim() || isLoading || characterStats.isDead) 
-                        ? 'none' 
-                        : '0 8px 25px rgba(139, 92, 246, 0.4), 0 4px 12px rgba(236, 72, 153, 0.3)',
-                      WebkitAppearance: 'none',
-                      touchAction: 'manipulation',
-                      backdropFilter: 'blur(10px)'
-                    }}
-                  >
+                <button
+                  type="submit"
+                  disabled={!inputMessage.trim() || isLoading || characterStats.isDead}
+                  style={{
+                    padding: '1.25rem 1.75rem',
+                    background: (!inputMessage.trim() || isLoading || characterStats.isDead) 
+                      ? 'rgba(55, 65, 81, 0.5)' 
+                      : 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                    border: 'none',
+                    borderRadius: '20px',
+                    color: 'white',
+                    fontSize: '1.25rem',
+                    cursor: (!inputMessage.trim() || isLoading || characterStats.isDead) ? 'not-allowed' : 'pointer',
+                    opacity: (!inputMessage.trim() || isLoading || characterStats.isDead) ? 0.5 : 1,
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minWidth: '70px',
+                    minHeight: '56px',
+                    boxShadow: (!inputMessage.trim() || isLoading || characterStats.isDead) 
+                      ? 'none' 
+                      : '0 8px 25px rgba(139, 92, 246, 0.4), 0 4px 12px rgba(236, 72, 153, 0.3)',
+                    WebkitAppearance: 'none',
+                    touchAction: 'manipulation',
+                    backdropFilter: 'blur(10px)',
+                    flexShrink: 0
+                  }}
+                >
                     {isLoading ? '⏳' : '🚀'}
                   </button>
                 </div>
