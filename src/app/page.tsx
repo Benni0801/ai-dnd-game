@@ -1102,7 +1102,19 @@ export default function Home() {
         console.log('No stat changes received from AI');
       }
 
-      // Parse quest offers from AI response
+      console.log('Creating AI message with content:', data.response || data.message);
+      console.log('Available data fields:', Object.keys(data));
+      
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: data.response || data.message,
+        timestamp: new Date()
+      };
+
+      console.log('AI message created:', aiMessage);
+
+      // Parse quest offers from AI response BEFORE adding to messages
       const responseText = data.response || data.message || '';
       console.log('AI Response text for quest parsing:', responseText);
       const questMatches = responseText.match(/\[QUEST:(\{.*?\})\]/g);
@@ -1127,16 +1139,11 @@ export default function Home() {
             console.log('Quest generated:', quest);
             showQuestOffer(quest);
             
-            // Fallback: If popup doesn't show within 200ms, auto-add the quest
+            // Fallback: Always auto-add the quest after a short delay
             setTimeout(() => {
-              console.log('Fallback check - showQuestPopup:', showQuestPopup, 'pendingQuest:', pendingQuest);
-              if (showQuestPopup && pendingQuest) {
-                console.log('Quest popup is showing, waiting for user action');
-              } else {
-                console.log('Quest popup not showing, auto-adding quest to state');
-                handleAcceptQuest(quest);
-              }
-            }, 200);
+              console.log('Auto-adding quest to state:', quest.title);
+              handleAcceptQuest(quest);
+            }, 100);
             
             // Trigger glow effect on quest tab
             setTimeout(() => {
@@ -1149,17 +1156,6 @@ export default function Home() {
         });
       }
 
-      console.log('Creating AI message with content:', data.response || data.message);
-      console.log('Available data fields:', Object.keys(data));
-      
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: data.response || data.message,
-        timestamp: new Date()
-      };
-
-      console.log('AI message created:', aiMessage);
       setMessages(prev => [...prev, aiMessage]);
 
     } catch (error: any) {
