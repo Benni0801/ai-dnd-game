@@ -66,6 +66,35 @@ export default function Home() {
         0% { filter: hue-rotate(0deg); }
         100% { filter: hue-rotate(360deg); }
       }
+      @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+      }
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.7; }
+        50% { transform: scale(1.1); opacity: 1; }
+      }
+      @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+      @keyframes glow {
+        0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+        50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.6), 0 0 60px rgba(236, 72, 153, 0.4); }
+      }
+      .floating-particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.8) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+      }
+      .shimmer-effect {
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        background-size: 200% 100%;
+        animation: shimmer 2s infinite;
+      }
     `;
     document.head.appendChild(style);
     return () => {
@@ -1693,7 +1722,7 @@ export default function Home() {
           position: 'relative',
           overflow: 'hidden'
         }}>
-          {/* Decorative background elements */}
+          {/* Enhanced Decorative background elements */}
           <div style={{
             position: 'absolute',
             top: '-50%',
@@ -1702,7 +1731,8 @@ export default function Home() {
             height: '200px',
             background: 'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%)',
             borderRadius: '50%',
-            zIndex: 0
+            zIndex: 0,
+            animation: 'pulse 5s ease-in-out infinite'
           }}></div>
           <div style={{
             position: 'absolute',
@@ -1712,8 +1742,25 @@ export default function Home() {
             height: '150px',
             background: 'radial-gradient(circle, rgba(236, 72, 153, 0.08) 0%, transparent 70%)',
             borderRadius: '50%',
-            zIndex: 0
+            zIndex: 0,
+            animation: 'pulse 7s ease-in-out infinite reverse'
           }}></div>
+          
+          {/* Mobile Floating Particles */}
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="floating-particle"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 6}s`,
+                animationDuration: `${3 + Math.random() * 3}s`,
+                width: '3px',
+                height: '3px'
+              }}
+            />
+          ))}
           
           <div style={{ 
             display: 'flex', 
@@ -1733,9 +1780,20 @@ export default function Home() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '1.5rem',
-                boxShadow: '0 8px 20px rgba(139, 92, 246, 0.3)'
+                boxShadow: '0 8px 20px rgba(139, 92, 246, 0.3)',
+                animation: 'glow 4s ease-in-out infinite',
+                position: 'relative',
+                overflow: 'hidden'
               }}>
-                ⚔️
+                <div className="shimmer-effect" style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: '16px'
+                }}></div>
+                <span style={{ position: 'relative', zIndex: 1 }}>⚔️</span>
               </div>
               <div>
                 <h1 style={{
@@ -2090,7 +2148,7 @@ export default function Home() {
               position: 'relative',
               overflow: 'hidden'
             }}>
-              {/* Decorative background elements */}
+              {/* Enhanced Decorative background elements */}
               <div style={{
                 position: 'absolute',
                 top: '-30%',
@@ -2099,7 +2157,8 @@ export default function Home() {
                 height: '200px',
                 background: 'radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%)',
                 borderRadius: '50%',
-                zIndex: 0
+                zIndex: 0,
+                animation: 'pulse 4s ease-in-out infinite'
               }}></div>
               <div style={{
                 position: 'absolute',
@@ -2109,8 +2168,23 @@ export default function Home() {
                 height: '150px',
                 background: 'radial-gradient(circle, rgba(236, 72, 153, 0.05) 0%, transparent 70%)',
                 borderRadius: '50%',
-                zIndex: 0
+                zIndex: 0,
+                animation: 'pulse 6s ease-in-out infinite reverse'
               }}></div>
+              
+              {/* Floating Particles */}
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={i}
+                  className="floating-particle"
+                  style={{
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 6}s`,
+                    animationDuration: `${4 + Math.random() * 4}s`
+                  }}
+                />
+              ))}
               
               <div style={{ 
                 textAlign: 'center', 
@@ -2134,9 +2208,20 @@ export default function Home() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: '2rem',
-                    boxShadow: '0 12px 24px rgba(139, 92, 246, 0.3)'
+                    boxShadow: '0 12px 24px rgba(139, 92, 246, 0.3)',
+                    animation: 'glow 3s ease-in-out infinite',
+                    position: 'relative',
+                    overflow: 'hidden'
                   }}>
-                    ⚔️
+                    <div className="shimmer-effect" style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      borderRadius: '20px'
+                    }}></div>
+                    <span style={{ position: 'relative', zIndex: 1 }}>⚔️</span>
                   </div>
                   <div>
                     <h1 style={{
@@ -2297,15 +2382,17 @@ export default function Home() {
                     onMouseEnter={(e) => {
                       if (activeTab !== tab.id) {
                         e.currentTarget.style.background = 'linear-gradient(135deg, rgba(75, 85, 99, 0.9), rgba(95, 105, 119, 0.7))';
-                        e.currentTarget.style.transform = 'translateY(-1px)';
-                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.3)';
+                        e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
+                        e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.4), 0 6px 16px rgba(139, 92, 246, 0.2)';
+                        e.currentTarget.style.animation = 'glow 2s ease-in-out infinite';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (activeTab !== tab.id) {
                         e.currentTarget.style.background = 'linear-gradient(135deg, rgba(55, 65, 81, 0.8), rgba(75, 85, 99, 0.6))';
-                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
                         e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.2)';
+                        e.currentTarget.style.animation = 'none';
                       }
                     }}
                   >
@@ -2839,7 +2926,7 @@ export default function Home() {
                     fontSize: '1.25rem',
                     cursor: (!inputMessage.trim() || isLoading || characterStats.isDead) ? 'not-allowed' : 'pointer',
                     opacity: (!inputMessage.trim() || isLoading || characterStats.isDead) ? 0.5 : 1,
-                    transition: 'all 0.3s ease',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -2851,11 +2938,39 @@ export default function Home() {
                     WebkitAppearance: 'none',
                     touchAction: 'manipulation',
                     backdropFilter: 'blur(10px)',
-                    flexShrink: 0
+                    flexShrink: 0,
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!(!inputMessage.trim() || isLoading || characterStats.isDead)) {
+                      e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
+                      e.currentTarget.style.boxShadow = '0 12px 35px rgba(139, 92, 246, 0.6), 0 6px 20px rgba(236, 72, 153, 0.4)';
+                      e.currentTarget.style.animation = 'glow 1.5s ease-in-out infinite';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!(!inputMessage.trim() || isLoading || characterStats.isDead)) {
+                      e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(139, 92, 246, 0.4), 0 4px 12px rgba(236, 72, 153, 0.3)';
+                      e.currentTarget.style.animation = 'none';
+                    }
                   }}
                 >
+                  {!(!inputMessage.trim() || isLoading || characterStats.isDead) && (
+                    <div className="shimmer-effect" style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      borderRadius: '20px'
+                    }}></div>
+                  )}
+                  <span style={{ position: 'relative', zIndex: 1 }}>
                     {isLoading ? '⏳' : '🚀'}
-                  </button>
+                  </span>
+                </button>
                 </div>
               </form>
             </div>
