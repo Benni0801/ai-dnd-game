@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       
       if (userInput.toLowerCase().includes('look') || userInput.toLowerCase().includes('examine')) {
         aiResponse = `You look around and see a mysterious forest path ahead. Ancient trees tower above you, their branches creating a canopy that filters the sunlight. You notice a small wooden sign that reads "Adventure Awaits" pointing deeper into the woods.`
-      } else if (userInput.toLowerCase().includes('walk') || userInput.toLowerCase().includes('go') || userInput.toLowerCase().includes('move')) {
+      } else if (userInput.toLowerCase().includes('walk') || userInput.toLowerCase().includes('go') || userInput.toLowerCase().includes('move') || userInput.toLowerCase().includes('find') || userInput.toLowerCase().includes('search for') || userInput.toLowerCase().includes('look for')) {
         aiResponse = `You begin walking down the forest path. The air is filled with the sounds of birds chirping and leaves rustling. After a few minutes, you come across a clearing where you see a small cottage with smoke rising from its chimney. An old woman waves at you from the window.`
       } else if (userInput.toLowerCase().includes('talk') || userInput.toLowerCase().includes('speak')) {
         aiResponse = `You approach the cottage and knock on the door. The old woman opens it with a warm smile. "Welcome, ${character.name || 'traveler'}! I've been expecting you. I have a quest that might interest a ${character.race || 'brave soul'} like yourself."`
