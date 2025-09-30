@@ -1269,10 +1269,10 @@ export default function Home() {
       console.log('Items from AI:', data.items);
       console.log('Stat changes from AI:', data.statChanges);
       
-      // Check if AI wants to roll dice
-      if (data.diceRoll) {
-        handleAIDiceRoll(data.diceRoll);
-      }
+      // AI now handles dice rolls in its responses, no need for separate dice roll handling
+      // if (data.diceRoll) {
+      //   handleAIDiceRoll(data.diceRoll);
+      // }
       
       if (data.items && data.items.length > 0) {
         console.log('Processing items:', data.items);

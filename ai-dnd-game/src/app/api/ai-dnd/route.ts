@@ -61,31 +61,25 @@ export async function POST(request: Request) {
           aiResponse = `A ${randomEnemy.name.toLowerCase()} appears before you! ${randomEnemy.desc} Combat begins! [ENEMY:{"name":"${randomEnemy.name}","hp":${randomEnemy.hp},"ac":${randomEnemy.ac},"damage":"${randomEnemy.damage}","description":"${randomEnemy.desc}"}]`
         }
       } else if (userInput.toLowerCase().includes('i attack') || userInput.toLowerCase().includes('attack the') || userInput.toLowerCase().includes('attack with my weapon')) {
-        // Handle combat attacks with dice rolls - works with any enemy
-        diceRoll = '1d20'
+        // Handle combat attacks - AI will handle dice rolls in response
         aiResponse = `You swing your weapon at your enemy! Let me roll for your attack...`
       } else if (userInput.toLowerCase().includes('i cast') || userInput.toLowerCase().includes('cast a spell')) {
-        // Handle spell casting with dice rolls
-        diceRoll = '1d20'
+        // Handle spell casting - AI will handle dice rolls in response
         aiResponse = `You channel magical energy and cast a spell! Let me roll for your spell attack...`
       } else if (userInput.toLowerCase().includes('i use an item') || userInput.toLowerCase().includes('use an item')) {
         // Handle item usage
         aiResponse = `You reach into your inventory and use an item. The effect takes hold immediately.`
       } else if (userInput.toLowerCase().includes('i dodge') || userInput.toLowerCase().includes('dodge')) {
-        // Handle dodging
-        diceRoll = '1d20'
+        // Handle dodging - AI will handle dice rolls in response
         aiResponse = `You attempt to dodge and avoid your enemy's attacks. Let me roll for your Dexterity check...`
       } else if (userInput.toLowerCase().includes('enemy turn') || userInput.toLowerCase().includes('enemy attacks')) {
-        // Handle enemy turn with dice rolls
-        diceRoll = '1d20'
+        // Handle enemy turn - AI will handle dice rolls in response
         aiResponse = `The enemy attacks you! Let me roll for the enemy's attack...`
       } else if (isInCombat && (userInput.toLowerCase().includes('sneak attack') || userInput.toLowerCase().includes('hide'))) {
-        // Handle rogue abilities in combat
+        // Handle rogue abilities in combat - AI will handle dice rolls in response
         if (userInput.toLowerCase().includes('sneak attack')) {
-          diceRoll = '1d20'
           aiResponse = `You attempt a sneak attack! Let me roll for your attack...`
         } else {
-          diceRoll = '1d20'
           aiResponse = `You try to hide from your enemy. Let me roll for your Stealth check...`
         }
       } else if (userInput.toLowerCase().includes('climb') || userInput.toLowerCase().includes('jump') || userInput.toLowerCase().includes('stealth')) {
