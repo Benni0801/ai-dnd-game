@@ -413,12 +413,29 @@ export default function Home() {
   const startCombat = (enemyType: string) => {
     const enemyTemplates: { [key: string]: any } = {
       'Goblin': { name: 'Goblin', hp: 7, maxHp: 7, ac: 15, damage: '1d6+1' },
+      'Giant Rat': { name: 'Giant Rat', hp: 5, maxHp: 5, ac: 12, damage: '1d4' },
+      'Giant Spider': { name: 'Giant Spider', hp: 8, maxHp: 8, ac: 13, damage: '1d6' },
       'Orc': { name: 'Orc', hp: 15, maxHp: 15, ac: 13, damage: '1d12+3' },
       'Skeleton': { name: 'Skeleton', hp: 13, maxHp: 13, ac: 13, damage: '1d6+2' },
+      'Skeleton Warrior': { name: 'Skeleton Warrior', hp: 13, maxHp: 13, ac: 13, damage: '1d6+1' },
       'Wolf': { name: 'Wolf', hp: 11, maxHp: 11, ac: 13, damage: '1d6+2' }
     };
     
     const enemy = enemyTemplates[enemyType] || enemyTemplates['Goblin'];
+    setEnemyStats(enemy);
+    setCombatActions(getClassCombatActions(characterStats.class || 'Fighter'));
+    setCombatTurn('player');
+    setIsInCombat(true);
+    setCombatLog([`Combat begins! You encounter a ${enemy.name}!`]);
+  };
+
+  const startCombatWithEnemy = (enemyData: any) => {
+    console.log('Starting combat with enemy:', enemyData);
+    // Ensure enemy has maxHp if not provided
+    const enemy = {
+      ...enemyData,
+      maxHp: enemyData.maxHp || enemyData.hp
+    };
     setEnemyStats(enemy);
     setCombatActions(getClassCombatActions(characterStats.class || 'Fighter'));
     setCombatTurn('player');
@@ -442,6 +459,24 @@ export default function Home() {
     }
   };
 
+  const rollDamage = (damageDice: string) => {
+    // Parse dice notation like "1d4", "2d6+1", "1d8+2"
+    const match = damageDice.match(/(\d+)d(\d+)([+-]\d+)?/);
+    if (!match) return 1;
+    
+    const numDice = parseInt(match[1]);
+    const dieSize = parseInt(match[2]);
+    const modifier = match[3] ? parseInt(match[3]) : 0;
+    
+    let damage = 0;
+    for (let i = 0; i < numDice; i++) {
+      damage += Math.floor(Math.random() * dieSize) + 1;
+    }
+    damage += modifier;
+    
+    return Math.max(1, damage);
+  };
+
   const handleEnemyAttack = () => {
     if (!enemyStats || !isInCombat) return;
 
@@ -450,8 +485,8 @@ export default function Home() {
     const playerAC = 10 + (characterStats.dex || 0);
     
     if (enemyAttackRoll >= playerAC) {
-      // Hit - roll damage (reduced damage)
-      const enemyDamage = Math.floor(Math.random() * 3) + 1; // 1-3 damage instead of 1-6
+      // Hit - roll damage based on enemy's damage dice
+      const enemyDamage = rollDamage(enemyStats.damage || '1d4');
       setCharacterStats(prev => ({
         ...prev,
         hp: Math.max(0, prev.hp - enemyDamage)
@@ -1498,21 +1533,37 @@ export default function Home() {
         });
       }
 
-      // Parse combat triggers from AI response - only if not already in combat
+      // Parse combat triggers and enemy data from AI response - only if not already in combat
       if (!isInCombat) {
         const combatTriggers = ['combat begins', 'battle starts', 'you are attacked', 'a fight breaks out', 'combat starts'];
         const responseLower = responseText.toLowerCase();
         const isCombatTriggered = combatTriggers.some(trigger => responseLower.includes(trigger));
         
         if (isCombatTriggered) {
-          // Extract enemy type from response
-          let enemyType = 'Goblin'; // default
-          if (responseLower.includes('goblin')) enemyType = 'Goblin';
-          else if (responseLower.includes('orc')) enemyType = 'Orc';
-          else if (responseLower.includes('skeleton')) enemyType = 'Skeleton';
-          else if (responseLower.includes('wolf')) enemyType = 'Wolf';
-          
-          startCombat(enemyType);
+          // Try to parse enemy data from [ENEMY:...] tag
+          const enemyMatch = responseText.match(/\[ENEMY:(\{.*?\})\]/);
+          if (enemyMatch) {
+            try {
+              const enemyData = JSON.parse(enemyMatch[1]);
+              console.log('Parsed enemy data:', enemyData);
+              startCombatWithEnemy(enemyData);
+            } catch (error) {
+              console.error('Error parsing enemy data:', error);
+              // Fallback to default enemy
+              startCombat('Goblin');
+            }
+          } else {
+            // Fallback to old system
+            let enemyType = 'Goblin'; // default
+            if (responseLower.includes('goblin')) enemyType = 'Goblin';
+            else if (responseLower.includes('rat')) enemyType = 'Giant Rat';
+            else if (responseLower.includes('spider')) enemyType = 'Giant Spider';
+            else if (responseLower.includes('orc')) enemyType = 'Orc';
+            else if (responseLower.includes('skeleton')) enemyType = 'Skeleton';
+            else if (responseLower.includes('wolf')) enemyType = 'Wolf';
+            
+            startCombat(enemyType);
+          }
         }
       }
 

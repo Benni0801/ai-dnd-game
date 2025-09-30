@@ -45,6 +45,14 @@ export async function POST(request: Request) {
         aiResponse = `The old woman's smile fades slightly. "I understand. Not everyone is ready for such a dangerous quest. Perhaps you'd like to explore the area first and gain some experience? There are always smaller tasks that need doing."`
       } else if (userInput.toLowerCase().includes('fight') || userInput.toLowerCase().includes('attack') || userInput.toLowerCase().includes('battle')) {
         aiResponse = `You prepare for combat! As a ${character.class || 'warrior'}, you draw your weapon and assume a fighting stance. The old woman looks concerned. "Please, there's no need for violence here. I mean you no harm!"`
+      } else if (userInput.toLowerCase().includes('rat') || userInput.toLowerCase().includes('encounter a rat')) {
+        aiResponse = `A large, aggressive rat emerges from the shadows! Its beady eyes gleam with malice as it bares its sharp teeth. Combat begins! [ENEMY:{"name":"Giant Rat","hp":5,"ac":12,"damage":"1d4","description":"A large, aggressive rat with sharp teeth"}]`
+      } else if (userInput.toLowerCase().includes('spider') || userInput.toLowerCase().includes('encounter a spider')) {
+        aiResponse = `A massive spider drops down from the ceiling! Its eight eyes fix on you as venom drips from its fangs. Combat begins! [ENEMY:{"name":"Giant Spider","hp":8,"ac":13,"damage":"1d6","description":"A large spider with venomous fangs"}]`
+      } else if (userInput.toLowerCase().includes('wolf') || userInput.toLowerCase().includes('encounter a wolf')) {
+        aiResponse = `A fierce wolf emerges from the underbrush, growling menacingly. Its yellow eyes lock onto you as it prepares to attack. Combat begins! [ENEMY:{"name":"Wolf","hp":11,"ac":13,"damage":"2d4","description":"A fierce wolf with sharp claws and teeth"}]`
+      } else if (userInput.toLowerCase().includes('skeleton') || userInput.toLowerCase().includes('encounter a skeleton')) {
+        aiResponse = `A skeletal warrior rises from the ground, its bones clattering as it draws a rusty sword. Combat begins! [ENEMY:{"name":"Skeleton Warrior","hp":13,"ac":13,"damage":"1d6+1","description":"An animated skeleton with a rusty sword"}]`
       } else if (userInput.toLowerCase().includes('i attack') || userInput.toLowerCase().includes('attack the')) {
         // Combat is handled by the game system, not AI
         aiResponse = `You swing your weapon at your enemy!`
