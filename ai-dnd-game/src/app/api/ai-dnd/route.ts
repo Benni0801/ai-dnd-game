@@ -37,18 +37,31 @@ export async function POST(request: Request) {
         aiResponse = `"Excellent!" the old woman claps her hands. "The dragon's lair is in the mountains to the north. But be careful - the path is treacherous and filled with dangers. You'll need all your ${character.class || 'skills'} to survive. Good luck, ${character.name || 'brave adventurer'}!"`
       } else if (userInput.toLowerCase().includes('no') || userInput.toLowerCase().includes('decline') || userInput.toLowerCase().includes('refuse')) {
         aiResponse = `The old woman's smile fades slightly. "I understand. Not everyone is ready for such a dangerous quest. Perhaps you'd like to explore the area first and gain some experience? There are always smaller tasks that need doing."`
-      } else if (userInput.toLowerCase().includes('fight') || userInput.toLowerCase().includes('attack') || userInput.toLowerCase().includes('battle')) {
-        aiResponse = `You prepare for combat! As a ${character.class || 'warrior'}, you draw your weapon and assume a fighting stance. The old woman looks concerned. "Please, there's no need for violence here. I mean you no harm!"`
-      } else if (userInput.toLowerCase().includes('rat') || userInput.toLowerCase().includes('encounter a rat')) {
-        aiResponse = `A large, aggressive rat emerges from the shadows! Its beady eyes gleam with malice as it bares its sharp teeth. Combat begins! [ENEMY:{"name":"Giant Rat","hp":5,"ac":12,"damage":"1d4","description":"A large, aggressive rat with sharp teeth"}]`
-      } else if (userInput.toLowerCase().includes('spider') || userInput.toLowerCase().includes('encounter a spider')) {
-        aiResponse = `A massive spider drops down from the ceiling! Its eight eyes fix on you as venom drips from its fangs. Combat begins! [ENEMY:{"name":"Giant Spider","hp":8,"ac":13,"damage":"1d6","description":"A large spider with venomous fangs"}]`
-      } else if (userInput.toLowerCase().includes('wolf') || userInput.toLowerCase().includes('encounter a wolf')) {
-        aiResponse = `A fierce wolf emerges from the underbrush, growling menacingly. Its yellow eyes lock onto you as it prepares to attack. Combat begins! [ENEMY:{"name":"Wolf","hp":11,"ac":13,"damage":"2d4","description":"A fierce wolf with sharp claws and teeth"}]`
-      } else if (userInput.toLowerCase().includes('skeleton') || userInput.toLowerCase().includes('encounter a skeleton')) {
-        aiResponse = `A skeletal warrior rises from the ground, its bones clattering as it draws a rusty sword. Combat begins! [ENEMY:{"name":"Skeleton Warrior","hp":13,"ac":13,"damage":"1d6+1","description":"An animated skeleton with a rusty sword"}]`
-      } else if (userInput.toLowerCase().includes('i attack') || userInput.toLowerCase().includes('attack the') || userInput.toLowerCase().includes('attack the goblin') || userInput.toLowerCase().includes('attack the rat') || userInput.toLowerCase().includes('attack the spider') || userInput.toLowerCase().includes('attack the wolf') || userInput.toLowerCase().includes('attack the skeleton') || userInput.toLowerCase().includes('attack with my weapon') || userInput.toLowerCase().includes('i attack the goblin with my weapon')) {
-        // Handle combat attacks with dice rolls
+      } else if (userInput.toLowerCase().includes('fight') || userInput.toLowerCase().includes('attack') || userInput.toLowerCase().includes('battle') || userInput.toLowerCase().includes('worg') || userInput.toLowerCase().includes('encounter') || userInput.toLowerCase().includes('monster')) {
+        // AI creates dynamic enemies based on what the player wants to fight
+        if (userInput.toLowerCase().includes('worg')) {
+          aiResponse = `A massive worg emerges from the shadows, its yellow eyes gleaming with hunger. This is no ordinary wolf - it's a fearsome predator with razor-sharp claws and powerful jaws. Combat begins! [ENEMY:{"name":"Worg","hp":26,"ac":13,"damage":"2d6+3","description":"A massive wolf-like creature with supernatural intelligence"}]`
+        } else if (userInput.toLowerCase().includes('dragon')) {
+          aiResponse = `A massive dragon swoops down from the sky, its scales glinting in the light. Fire erupts from its maw as it roars a challenge. Combat begins! [ENEMY:{"name":"Young Red Dragon","hp":178,"ac":18,"damage":"2d10+4","description":"A young but deadly red dragon with fire breath"}]`
+        } else if (userInput.toLowerCase().includes('troll')) {
+          aiResponse = `A towering troll lumbers forward, its green skin covered in warts and scars. It wields a massive club and regenerates from wounds. Combat begins! [ENEMY:{"name":"Troll","hp":84,"ac":15,"damage":"2d8+4","description":"A massive troll with regenerative abilities"}]`
+        } else if (userInput.toLowerCase().includes('orc')) {
+          aiResponse = `A fierce orc warrior charges at you, brandishing a crude but deadly weapon. Its tusks gleam as it lets out a battle cry. Combat begins! [ENEMY:{"name":"Orc Warrior","hp":15,"ac":13,"damage":"1d12+3","description":"A battle-hardened orc warrior"}]`
+        } else if (userInput.toLowerCase().includes('goblin')) {
+          aiResponse = `A sneaky goblin jumps out from behind a rock, brandishing a rusty dagger. It cackles menacingly as it prepares to strike. Combat begins! [ENEMY:{"name":"Goblin","hp":7,"ac":15,"damage":"1d4+2","description":"A small but cunning goblin"}]`
+        } else {
+          // Generic combat encounter - AI creates a random enemy
+          const enemies = [
+            {name: "Giant Rat", hp: 5, ac: 12, damage: "1d4", desc: "A large, aggressive rat with sharp teeth"},
+            {name: "Giant Spider", hp: 8, ac: 13, damage: "1d6", desc: "A large spider with venomous fangs"},
+            {name: "Wolf", hp: 11, ac: 13, damage: "2d4", desc: "A fierce wolf with sharp claws and teeth"},
+            {name: "Skeleton Warrior", hp: 13, ac: 13, damage: "1d6+1", desc: "An animated skeleton with a rusty sword"}
+          ];
+          const randomEnemy = enemies[Math.floor(Math.random() * enemies.length)];
+          aiResponse = `A ${randomEnemy.name.toLowerCase()} appears before you! ${randomEnemy.desc} Combat begins! [ENEMY:{"name":"${randomEnemy.name}","hp":${randomEnemy.hp},"ac":${randomEnemy.ac},"damage":"${randomEnemy.damage}","description":"${randomEnemy.desc}"}]`
+        }
+      } else if (userInput.toLowerCase().includes('i attack') || userInput.toLowerCase().includes('attack the') || userInput.toLowerCase().includes('attack with my weapon')) {
+        // Handle combat attacks with dice rolls - works with any enemy
         diceRoll = '1d20'
         aiResponse = `You swing your weapon at your enemy! Let me roll for your attack...`
       } else if (userInput.toLowerCase().includes('i cast') || userInput.toLowerCase().includes('cast a spell')) {

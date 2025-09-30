@@ -410,24 +410,8 @@ export default function Home() {
     return classActions[className] || ['Attack', 'Use Item', 'Dodge'];
   };
 
-  const startCombat = (enemyType: string) => {
-    const enemyTemplates: { [key: string]: any } = {
-      'Goblin': { name: 'Goblin', hp: 7, maxHp: 7, ac: 15, damage: '1d6+1' },
-      'Giant Rat': { name: 'Giant Rat', hp: 5, maxHp: 5, ac: 12, damage: '1d4' },
-      'Giant Spider': { name: 'Giant Spider', hp: 8, maxHp: 8, ac: 13, damage: '1d6' },
-      'Orc': { name: 'Orc', hp: 15, maxHp: 15, ac: 13, damage: '1d12+3' },
-      'Skeleton': { name: 'Skeleton', hp: 13, maxHp: 13, ac: 13, damage: '1d6+2' },
-      'Skeleton Warrior': { name: 'Skeleton Warrior', hp: 13, maxHp: 13, ac: 13, damage: '1d6+1' },
-      'Wolf': { name: 'Wolf', hp: 11, maxHp: 11, ac: 13, damage: '1d6+2' }
-    };
-    
-    const enemy = enemyTemplates[enemyType] || enemyTemplates['Goblin'];
-    setEnemyStats(enemy);
-    setCombatActions(getClassCombatActions(characterStats.class || 'Fighter'));
-    setCombatTurn('player');
-    setIsInCombat(true);
-    setCombatLog([`Combat begins! You encounter a ${enemy.name}!`]);
-  };
+  // AI now controls all enemy creation through [ENEMY:] tags
+  // No more hardcoded enemy templates - AI creates dynamic enemies
 
   const startCombatWithEnemy = (enemyData: any) => {
     console.log('Starting combat with enemy:', enemyData);
@@ -1564,20 +1548,8 @@ export default function Home() {
               startCombatWithEnemy(enemyData);
             } catch (error) {
               console.error('Error parsing enemy data:', error);
-              // Fallback to default enemy
-              startCombat('Goblin');
+              // No fallback - AI must provide proper [ENEMY:] tags
             }
-          } else {
-            // Fallback to old system
-            let enemyType = 'Goblin'; // default
-            if (responseLower.includes('goblin')) enemyType = 'Goblin';
-            else if (responseLower.includes('rat')) enemyType = 'Giant Rat';
-            else if (responseLower.includes('spider')) enemyType = 'Giant Spider';
-            else if (responseLower.includes('orc')) enemyType = 'Orc';
-            else if (responseLower.includes('skeleton')) enemyType = 'Skeleton';
-            else if (responseLower.includes('wolf')) enemyType = 'Wolf';
-            
-            startCombat(enemyType);
           }
         }
       }
@@ -1586,8 +1558,8 @@ export default function Home() {
       
       // Handle combat turn progression
       if (isInCombat && combatTurn === 'enemy' && enemyStats) {
-        // Check if this is a player action response (not enemy turn)
-        if (!responseText.toLowerCase().includes('enemy') && !responseText.toLowerCase().includes('attacks you')) {
+        // Check if this is a player action response (contains attack roll or spell cast)
+        if (responseText.toLowerCase().includes('roll for your attack') || responseText.toLowerCase().includes('roll for your spell') || responseText.toLowerCase().includes('swing your weapon') || responseText.toLowerCase().includes('channel magical energy')) {
           // After AI responds to player action, trigger enemy turn
           setTimeout(() => {
             const enemyTurnMessage = `The ${enemyStats.name} attacks you!`;
@@ -1595,7 +1567,7 @@ export default function Home() {
           }, 2000);
         }
         // Check if this is an enemy turn response
-        else if (responseText.toLowerCase().includes('enemy') || responseText.toLowerCase().includes('attacks you')) {
+        else if (responseText.toLowerCase().includes('enemy') || responseText.toLowerCase().includes('attacks you') || responseText.toLowerCase().includes('roll for the enemy')) {
           // After AI responds to enemy turn, switch back to player turn
           setTimeout(() => {
             setCombatTurn('player');
