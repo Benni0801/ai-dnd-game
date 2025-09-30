@@ -545,56 +545,39 @@ export default function Home() {
       return;
     }
     
-    // Handle the action directly without AI
+    // Send combat action to AI instead of handling locally
+    let combatMessage = '';
+    
     if (action === 'Attack') {
-      // Roll attack
-      const attackRoll = Math.floor(Math.random() * 20) + 1 + (characterStats.str || 0);
-      setCombatLog(prev => [...prev, `You roll ${attackRoll} to hit (need ${enemyStats.ac})`]);
-      
-      if (attackRoll >= enemyStats.ac) {
-        // Hit - roll damage (reduced damage to make combat last longer)
-        const damage = Math.floor(Math.random() * 4) + 1; // 1-4 damage instead of 1-8+str
-        setCombatLog(prev => [...prev, `You roll ${damage} damage!`]);
-        const newEnemyHp = Math.max(0, enemyStats.hp - damage);
-        setEnemyStats((prev: any) => ({ ...prev, hp: newEnemyHp }));
-        setCombatLog(prev => [...prev, `You attack and hit for ${damage} damage!`]);
-        
-        if (newEnemyHp <= 0) {
-          setCombatLog(prev => [...prev, `The ${enemyStats.name} is defeated!`]);
-          endCombat(true);
-          return;
-        }
-      } else {
-        setCombatLog(prev => [...prev, `You attack but miss!`]);
-      }
+      combatMessage = `I attack the ${enemyStats.name} with my weapon.`;
+    } else if (action === 'Cast Spell') {
+      combatMessage = `I cast a spell at the ${enemyStats.name}.`;
     } else if (action === 'Use Item') {
-      // Check for health potion
-      const hasHealthPotion = inventory.some(item => 
-        item.name.toLowerCase().includes('health') && item.name.toLowerCase().includes('potion')
-      );
-      
-      if (hasHealthPotion) {
-        const healAmount = 10;
-        setCharacterStats(prev => ({
-          ...prev,
-          hp: Math.min(prev.maxHp || 20, prev.hp + healAmount)
-        }));
-        setCombatLog(prev => [...prev, `You use a health potion and heal ${healAmount} HP!`]);
-        addActionLogEntry('heal', `Used health potion: +${healAmount} HP`, '❤️');
-      } else {
-        setCombatLog(prev => [...prev, `You don't have any usable items!`]);
-      }
+      combatMessage = `I use an item from my inventory.`;
+    } else if (action === 'Dodge') {
+      combatMessage = `I dodge and try to avoid the ${enemyStats.name}'s attacks.`;
     } else {
-      setCombatLog(prev => [...prev, `You attempt to ${action.toLowerCase()} but it has no effect in combat!`]);
+      combatMessage = `I attempt to ${action.toLowerCase()} against the ${enemyStats.name}.`;
     }
     
-    // Set to enemy turn
+    // Add the combat message to the chat
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: combatMessage,
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    
+    // Update combat log
+    setCombatLog(prev => [...prev, `You ${action.toLowerCase()} against the ${enemyStats.name}.`]);
+    
+    // Set to enemy turn and send to AI
     setCombatTurn('enemy');
     
-    // Enemy turn after a short delay
-    setTimeout(() => {
-      handleEnemyAttack();
-    }, 1500);
+    // Send the message to AI
+    handleSendMessage(combatMessage);
   };
 
 
@@ -1601,7 +1584,23 @@ export default function Home() {
 
       setMessages(prev => [...prev, aiMessage]);
       
-      // Combat is now handled directly in performCombatAction - no AI involvement needed
+      // Handle combat turn progression
+      if (isInCombat && combatTurn === 'enemy' && enemyStats && !responseText.toLowerCase().includes('enemy')) {
+        // After AI responds to player action, trigger enemy turn
+        setTimeout(() => {
+          const enemyTurnMessage = `The ${enemyStats.name} attacks you!`;
+          handleSendMessage(enemyTurnMessage);
+        }, 2000);
+      }
+      
+      // Handle switching back to player turn after enemy response
+      if (isInCombat && combatTurn === 'enemy' && enemyStats && responseText.toLowerCase().includes('enemy')) {
+        // After AI responds to enemy turn, switch back to player turn
+        setTimeout(() => {
+          setCombatTurn('player');
+          setCombatLog(prev => [...prev, `The ${enemyStats.name} has finished their turn. It's your turn now.`]);
+        }, 1000);
+      }
 
     } catch (error: any) {
       console.error('Error sending message:', error);
@@ -3541,14 +3540,6 @@ export default function Home() {
                     alignItems: 'center', 
                     gap: '0.75rem' 
                   }}>
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      border: '2px solid rgba(139, 92, 246, 0.3)',
-                      borderTop: '2px solid #8b5cf6',
-                      borderRadius: '50%',
-                      animation: 'spin 1s linear infinite'
-                    }}></div>
                     The AI is crafting your adventure...
                   </div>
                 </div>

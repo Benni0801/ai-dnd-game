@@ -54,44 +54,41 @@ export async function POST(request: Request) {
       } else if (userInput.toLowerCase().includes('skeleton') || userInput.toLowerCase().includes('encounter a skeleton')) {
         aiResponse = `A skeletal warrior rises from the ground, its bones clattering as it draws a rusty sword. Combat begins! [ENEMY:{"name":"Skeleton Warrior","hp":13,"ac":13,"damage":"1d6+1","description":"An animated skeleton with a rusty sword"}]`
       } else if (userInput.toLowerCase().includes('i attack') || userInput.toLowerCase().includes('attack the')) {
-        // Combat is handled by the game system, not AI
-        aiResponse = `You swing your weapon at your enemy!`
+        // Handle combat attacks with dice rolls
+        diceRoll = '1d20'
+        aiResponse = `You swing your weapon at your enemy! Let me roll for your attack...`
       } else if (userInput.toLowerCase().includes('i cast') || userInput.toLowerCase().includes('cast a spell')) {
-        // Combat is handled by the game system, not AI
-        aiResponse = `You channel magical energy and cast a spell!`
+        // Handle spell casting with dice rolls
+        diceRoll = '1d20'
+        aiResponse = `You channel magical energy and cast a spell! Let me roll for your spell attack...`
       } else if (userInput.toLowerCase().includes('i use an item') || userInput.toLowerCase().includes('use an item')) {
-        // Combat is handled by the game system, not AI
-        aiResponse = `You reach into your inventory and use an item.`
+        // Handle item usage
+        aiResponse = `You reach into your inventory and use an item. The effect takes hold immediately.`
       } else if (userInput.toLowerCase().includes('i dodge') || userInput.toLowerCase().includes('dodge')) {
-        // Combat is handled by the game system, not AI
-        aiResponse = `You attempt to dodge and avoid your enemy's attacks.`
+        // Handle dodging
+        diceRoll = '1d20'
+        aiResponse = `You attempt to dodge and avoid your enemy's attacks. Let me roll for your Dexterity check...`
       } else if (userInput.toLowerCase().includes('enemy turn') || userInput.toLowerCase().includes('enemy attacks')) {
-        // Combat is handled by the game system, not AI
-        aiResponse = `The enemy attacks you!`
+        // Handle enemy turn with dice rolls
+        diceRoll = '1d20'
+        aiResponse = `The enemy attacks you! Let me roll for the enemy's attack...`
       } else if (userInput.toLowerCase().includes('climb') || userInput.toLowerCase().includes('jump') || userInput.toLowerCase().includes('stealth')) {
-        // Trigger ability checks with dice rolls
+        // Only roll dice for specific skill checks when explicitly requested
         if (userInput.toLowerCase().includes('climb')) {
-          diceRoll = '1d20'
-          aiResponse = `You attempt to climb the rocky surface. Let me roll for your Athletics check...`
+          aiResponse = `You attempt to climb the rocky surface.`
         } else if (userInput.toLowerCase().includes('jump')) {
-          diceRoll = '1d20'
-          aiResponse = `You prepare to make a daring leap. Let me roll for your Athletics check...`
+          aiResponse = `You prepare to make a daring leap.`
         } else if (userInput.toLowerCase().includes('stealth')) {
-          diceRoll = '1d20'
-          aiResponse = `You try to move quietly and avoid detection. Let me roll for your Stealth check...`
+          aiResponse = `You try to move quietly and avoid detection.`
         }
       } else if (userInput.toLowerCase().includes('persuade') || userInput.toLowerCase().includes('convince') || userInput.toLowerCase().includes('charm')) {
-        diceRoll = '1d20'
-        aiResponse = `You attempt to persuade the person. Let me roll for your Persuasion check...`
+        aiResponse = `You attempt to persuade the person.`
       } else if (userInput.toLowerCase().includes('intimidate') || userInput.toLowerCase().includes('threaten')) {
-        diceRoll = '1d20'
-        aiResponse = `You try to intimidate your target. Let me roll for your Intimidation check...`
+        aiResponse = `You try to intimidate your target.`
       } else if (userInput.toLowerCase().includes('investigate') || userInput.toLowerCase().includes('search') || userInput.toLowerCase().includes('examine')) {
-        diceRoll = '1d20'
-        aiResponse = `You carefully investigate the area. Let me roll for your Investigation check...`
+        aiResponse = `You carefully investigate the area.`
       } else if (userInput.toLowerCase().includes('perception') || userInput.toLowerCase().includes('notice') || userInput.toLowerCase().includes('spot')) {
-        diceRoll = '1d20'
-        aiResponse = `You try to notice details around you. Let me roll for your Perception check...`
+        aiResponse = `You try to notice details around you.`
       } else if (userInput.toLowerCase().includes('help') || userInput.toLowerCase().includes('what')) {
         aiResponse = `You can try various actions like: look around, walk/go/move, talk/speak, ask about quests, accept or decline quests, fight/attack, climb/jump/stealth (triggers ability checks), persuade/intimidate (social checks), investigate/search (investigation), or explore. What would you like to do next?`
       } else {
