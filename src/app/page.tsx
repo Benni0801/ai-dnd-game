@@ -431,7 +431,7 @@ export default function Home() {
     setEnemyStats(null);
     setCombatActions([]);
     setCombatLog([]);
-    
+
     if (victory) {
       setCharacterStats(prev => ({
         ...prev,
@@ -439,6 +439,38 @@ export default function Home() {
       }));
       addActionLogEntry('xp', 'Combat victory: +100 XP', '⭐');
     }
+  };
+
+  const handleEnemyAttack = () => {
+    if (!enemyStats || !isInCombat) return;
+
+    // Roll enemy attack
+    const enemyAttackRoll = Math.floor(Math.random() * 20) + 1;
+    const playerAC = 10 + (characterStats.dex || 0);
+    
+    if (enemyAttackRoll >= playerAC) {
+      // Hit - roll damage
+      const enemyDamage = Math.floor(Math.random() * 6) + 1;
+      setCharacterStats(prev => ({
+        ...prev,
+        hp: Math.max(0, prev.hp - enemyDamage)
+      }));
+      setCombatLog(prev => [...prev, `The ${enemyStats.name} attacks and hits for ${enemyDamage} damage!`]);
+      addActionLogEntry('damage', `Enemy attack: -${enemyDamage} HP`, '⚔️');
+      
+      // Check if player is defeated
+      if (characterStats.hp - enemyDamage <= 0) {
+        setCombatLog(prev => [...prev, `You are defeated!`]);
+        endCombat(false);
+        return;
+      }
+    } else {
+      setCombatLog(prev => [...prev, `The ${enemyStats.name} attacks but misses!`]);
+    }
+
+    // Switch back to player turn
+    setCombatTurn('player');
+    setCombatLog(prev => [...prev, `The ${enemyStats.name} has finished their turn. It's your turn now.`]);
   };
 
   const performCombatAction = (action: string) => {
@@ -477,6 +509,28 @@ export default function Home() {
     
     // Send the message to AI
     handleSendMessage(combatMessage);
+  };
+
+  const handlePlayerAttack = () => {
+    if (!enemyStats || !isInCombat) return;
+
+    // Roll player attack
+    const attackRoll = Math.floor(Math.random() * 20) + 1 + (characterStats.str || 0);
+    if (attackRoll >= enemyStats.ac) {
+      // Hit - roll damage
+      const damage = Math.floor(Math.random() * 8) + 1 + (characterStats.str || 0);
+      const newEnemyHp = Math.max(0, enemyStats.hp - damage);
+      setEnemyStats((prev: any) => ({ ...prev, hp: newEnemyHp }));
+      setCombatLog(prev => [...prev, `You attack and hit for ${damage} damage!`]);
+      
+      if (newEnemyHp <= 0) {
+        setCombatLog(prev => [...prev, `The ${enemyStats.name} is defeated!`]);
+        endCombat(true);
+        return;
+      }
+    } else {
+      setCombatLog(prev => [...prev, `You attack but miss!`]);
+    }
   };
 
   // Quest management functions
@@ -1463,9 +1517,14 @@ export default function Home() {
 
       setMessages(prev => [...prev, aiMessage]);
       
-      // Handle enemy turn in combat
-      if (isInCombat && combatTurn === 'enemy' && enemyStats) {
-        // Add a delay to simulate enemy thinking, then send enemy turn message
+      // Handle player attack results and enemy turn
+      if (isInCombat && combatTurn === 'enemy' && enemyStats && !responseText.toLowerCase().includes('enemy')) {
+        // First handle the player's attack result
+        setTimeout(() => {
+          handlePlayerAttack();
+        }, 500);
+        
+        // Then trigger enemy turn after a delay
         setTimeout(() => {
           const enemyTurnMessage = `The ${enemyStats.name} attacks you!`;
           handleSendMessage(enemyTurnMessage);
@@ -1474,10 +1533,9 @@ export default function Home() {
       
       // Handle switching back to player turn after enemy response
       if (isInCombat && combatTurn === 'enemy' && enemyStats && responseText.toLowerCase().includes('enemy')) {
-        // After AI responds to enemy turn, switch back to player turn
+        // After AI responds to enemy turn, handle the actual enemy attack
         setTimeout(() => {
-          setCombatTurn('player');
-          setCombatLog(prev => [...prev, `The ${enemyStats.name} has finished their turn. It's your turn now.`]);
+          handleEnemyAttack();
         }, 1000);
       }
 

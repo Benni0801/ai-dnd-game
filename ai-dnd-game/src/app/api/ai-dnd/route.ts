@@ -62,8 +62,8 @@ export async function POST(request: Request) {
           'The enemy throws a projectile at you!'
         ]
         const randomAction = enemyActions[Math.floor(Math.random() * enemyActions.length)]
-        diceRoll = '1d20'
-        aiResponse = `${randomAction} Let me roll for the enemy's attack...`
+        // Don't roll dice here - let the main game handle enemy turn logic
+        aiResponse = `${randomAction}`
       } else if (userInput.toLowerCase().includes('climb') || userInput.toLowerCase().includes('jump') || userInput.toLowerCase().includes('stealth')) {
         // Trigger ability checks with dice rolls
         if (userInput.toLowerCase().includes('climb')) {
