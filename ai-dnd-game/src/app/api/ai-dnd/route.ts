@@ -9,25 +9,18 @@ export async function POST(request: Request) {
     console.log('Character:', character)
     console.log('Dice rolling available:', !!onDiceRoll)
     
-    // Check if Google API key is available
-    const apiKey = process.env.GOOGLE_API_KEY
-    if (!apiKey) {
-      console.log('No Google API key found, using intelligent fallback for game')
-      
-      // Intelligent fallback for D&D game responses
-      const lastUserMessage = messages[messages.length - 1]
-      const userInput = lastUserMessage?.content?.trim() || ''
-      
-      let aiResponse = ''
-      
-      // Simple game responses based on user input
-      let diceRoll = null
-      
-      // Handle combat actions properly instead of blocking them
-      if (isInCombat) {
-        // Let combat actions be processed normally - don't block them
-        // The combat handling logic below will take care of the responses
-      }
+    // Intelligent fallback for D&D game responses (works with or without API key)
+    const lastUserMessage = messages[messages.length - 1]
+    const userInput = lastUserMessage?.content?.trim() || ''
+    
+    let aiResponse = ''
+    let diceRoll = null
+    
+    // Handle combat actions properly instead of blocking them
+    if (isInCombat) {
+      // Let combat actions be processed normally - don't block them
+      // The combat handling logic below will take care of the responses
+    }
       
       if (userInput.toLowerCase().includes('look') || userInput.toLowerCase().includes('examine')) {
         aiResponse = `You look around and see a mysterious forest path ahead. Ancient trees tower above you, their branches creating a canopy that filters the sunlight. You notice a small wooden sign that reads "Adventure Awaits" pointing deeper into the woods.`
@@ -105,16 +98,10 @@ export async function POST(request: Request) {
         aiResponse = `You consider your options. The forest around you seems peaceful but mysterious. You could explore further, talk to the old woman, or perhaps look for other paths. What would you like to do?`
       }
       
-      return NextResponse.json({
-        message: aiResponse,
-        ...(diceRoll && { diceRoll })
-      })
-    }
-
-    // If Google API key is available, use it for more sophisticated responses
-    // This would be the full AI implementation
+    // Return the response (works for both API key and no API key cases)
     return NextResponse.json({
-      message: "AI service is configured but not fully implemented yet. Using fallback responses."
+      message: aiResponse,
+      ...(diceRoll && { diceRoll })
     })
     
   } catch (error) {
