@@ -4089,10 +4089,9 @@ export default function Home() {
           </div>
         </div>
       )}
-    </div>
 
-    {/* Combat Overlay */}
-    {isInCombat && (
+      {/* Combat Overlay */}
+      {isInCombat && (
       <div style={{
         position: 'fixed',
         top: '20px',
@@ -4339,6 +4338,7 @@ export default function Home() {
           </div>
         )}
       </div>
-    )}
+      )}
+    </div>
   );
 }
