@@ -427,6 +427,7 @@ export default function Home() {
   };
 
   const endCombat = (victory: boolean) => {
+    console.log('endCombat called:', { victory });
     setIsInCombat(false);
     setEnemyStats(null);
     setCombatActions([]);
@@ -449,8 +450,8 @@ export default function Home() {
     const playerAC = 10 + (characterStats.dex || 0);
     
     if (enemyAttackRoll >= playerAC) {
-      // Hit - roll damage
-      const enemyDamage = Math.floor(Math.random() * 6) + 1;
+      // Hit - roll damage (reduced damage)
+      const enemyDamage = Math.floor(Math.random() * 3) + 1; // 1-3 damage instead of 1-6
       setCharacterStats(prev => ({
         ...prev,
         hp: Math.max(0, prev.hp - enemyDamage)
@@ -474,15 +475,19 @@ export default function Home() {
   };
 
   const performCombatAction = (action: string) => {
-    if (!isInCombat || combatTurn !== 'player' || !enemyStats) return;
+    console.log('performCombatAction called:', { action, isInCombat, combatTurn, enemyStats });
+    if (!isInCombat || combatTurn !== 'player' || !enemyStats) {
+      console.log('Combat action blocked:', { isInCombat, combatTurn, enemyStats });
+      return;
+    }
     
     // Handle the action directly without AI
     if (action === 'Attack') {
       // Roll attack
       const attackRoll = Math.floor(Math.random() * 20) + 1 + (characterStats.str || 0);
       if (attackRoll >= enemyStats.ac) {
-        // Hit - roll damage
-        const damage = Math.floor(Math.random() * 8) + 1 + (characterStats.str || 0);
+        // Hit - roll damage (reduced damage to make combat last longer)
+        const damage = Math.floor(Math.random() * 4) + 1; // 1-4 damage instead of 1-8+str
         const newEnemyHp = Math.max(0, enemyStats.hp - damage);
         setEnemyStats((prev: any) => ({ ...prev, hp: newEnemyHp }));
         setCombatLog(prev => [...prev, `You attack and hit for ${damage} damage!`]);
