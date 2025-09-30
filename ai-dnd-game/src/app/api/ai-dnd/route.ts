@@ -109,10 +109,15 @@ export async function POST(request: Request) {
       }
       
     // Return the response (works for both API key and no API key cases)
-    return NextResponse.json({
-      message: aiResponse,
-      ...(diceRoll && { diceRoll })
-    })
+    const response: any = {
+      message: aiResponse
+    };
+    
+    if (diceRoll) {
+      response.diceRoll = diceRoll;
+    }
+    
+    return NextResponse.json(response)
     
   } catch (error) {
     console.error('Error in AI D&D API:', error)
