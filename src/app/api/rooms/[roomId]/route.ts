@@ -1,12 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { database } from '@/lib/database';
+﻿import { NextRequest, NextResponse } from "next/server";
+// Mock room data for now - this can be replaced with Supabase calls later
+const mockRooms: { [key: string]: any } = {
+  '1': {
+    id: '1',
+    name: 'Test Room',
+    players: [],
+    dmId: null,
+    isActive: false,
+    createdAt: new Date().toISOString()
+  }
+};
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { roomId: string } }
 ) {
   try {
-    const room = database.getGameRoomById(params.roomId);
+    const room = mockRooms[params.roomId];
     
     if (!room) {
       return NextResponse.json(
@@ -49,7 +59,7 @@ export async function POST(
       );
     }
 
-    const room = database.getGameRoomById(params.roomId);
+    const room = mockRooms[params.roomId];
     if (!room) {
       return NextResponse.json(
         { error: 'Room not found' },
@@ -60,9 +70,13 @@ export async function POST(
     let success = false;
     
     if (action === 'join') {
-      success = database.joinGameRoom(params.roomId, userId);
+      if (!room.players.includes(userId)) {
+        room.players.push(userId);
+        success = true;
+      }
     } else if (action === 'leave') {
-      success = database.leaveGameRoom(params.roomId, userId);
+      room.players = room.players.filter((id: string) => id !== userId);
+      success = true;
     } else {
       return NextResponse.json(
         { error: 'Invalid action. Use "join" or "leave"' },
@@ -78,15 +92,14 @@ export async function POST(
     }
 
     // Return updated room
-    const updatedRoom = database.getGameRoomById(params.roomId);
     return NextResponse.json({
       room: {
-        id: updatedRoom!.id,
-        name: updatedRoom!.name,
-        players: updatedRoom!.players,
-        dmId: updatedRoom!.dmId,
-        isActive: updatedRoom!.isActive,
-        createdAt: updatedRoom!.createdAt
+        id: room.id,
+        name: room.name,
+        players: room.players,
+        dmId: room.dmId,
+        isActive: room.isActive,
+        createdAt: room.createdAt
       }
     });
 
@@ -98,7 +111,3 @@ export async function POST(
     );
   }
 }
-
-
-
-
