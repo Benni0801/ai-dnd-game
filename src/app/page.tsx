@@ -1589,21 +1589,23 @@ export default function Home() {
       setMessages(prev => [...prev, aiMessage]);
       
       // Handle combat turn progression
-      if (isInCombat && combatTurn === 'enemy' && enemyStats && !responseText.toLowerCase().includes('enemy')) {
-        // After AI responds to player action, trigger enemy turn
-        setTimeout(() => {
-          const enemyTurnMessage = `The ${enemyStats.name} attacks you!`;
-          handleSendMessage(enemyTurnMessage);
-        }, 2000);
-      }
-      
-      // Handle switching back to player turn after enemy response
-      if (isInCombat && combatTurn === 'enemy' && enemyStats && responseText.toLowerCase().includes('enemy')) {
-        // After AI responds to enemy turn, switch back to player turn
-        setTimeout(() => {
-          setCombatTurn('player');
-          setCombatLog(prev => [...prev, `The ${enemyStats.name} has finished their turn. It's your turn now.`]);
-        }, 1000);
+      if (isInCombat && combatTurn === 'enemy' && enemyStats) {
+        // Check if this is a player action response (not enemy turn)
+        if (!responseText.toLowerCase().includes('enemy') && !responseText.toLowerCase().includes('attacks you')) {
+          // After AI responds to player action, trigger enemy turn
+          setTimeout(() => {
+            const enemyTurnMessage = `The ${enemyStats.name} attacks you!`;
+            handleSendMessage(enemyTurnMessage);
+          }, 2000);
+        }
+        // Check if this is an enemy turn response
+        else if (responseText.toLowerCase().includes('enemy') || responseText.toLowerCase().includes('attacks you')) {
+          // After AI responds to enemy turn, switch back to player turn
+          setTimeout(() => {
+            setCombatTurn('player');
+            setCombatLog(prev => [...prev, `The ${enemyStats.name} has finished their turn. It's your turn now.`]);
+          }, 1000);
+        }
       }
 
     } catch (error: any) {
