@@ -112,7 +112,7 @@ export default function RusticCharacterSheet({ characterStats, onEdit }: RusticC
           <div>
             <span className="text-dnd-gold font-bold">Inventory:</span>
             <div className="ml-2 text-xs max-h-20 overflow-y-auto rustic-scrollbar">
-              {characterStats.inventory || 'No items in inventory'}
+              {typeof characterStats.inventory === 'string' ? characterStats.inventory : JSON.stringify(characterStats.inventory, null, 2) || 'No items in inventory'}
             </div>
           </div>
         </div>

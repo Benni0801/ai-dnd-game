@@ -674,7 +674,7 @@ const AIDnDGame: React.FC = () => {
               <div className="bg-dnd-darker border border-dnd-gold rounded p-3">
                 <h3 className="font-bold text-dnd-gold mb-2">Inventory</h3>
                 <textarea
-                  value={characterStats.inventory}
+                  value={typeof characterStats.inventory === 'string' ? characterStats.inventory : JSON.stringify(characterStats.inventory, null, 2)}
                   onChange={(e) => updateCharacterStat('inventory', e.target.value)}
                   className="w-full bg-dnd-dark border border-dnd-gold rounded px-2 py-2 text-white text-sm h-24 resize-none"
                   placeholder="List your items..."

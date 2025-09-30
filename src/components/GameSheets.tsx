@@ -171,8 +171,8 @@ export default function GameSheets({
       
       <div className="bg-dnd-darker border border-dnd-gold rounded p-4">
         <h3 className="text-lg font-bold text-dnd-gold mb-3">Inventory</h3>
-        <div className="text-white text-sm whitespace-pre-wrap">
-          {characterStats.inventory || 'No items in inventory'}
+        <div className="text-white text-sm whitespace-pre-wrap">        
+          {typeof characterStats.inventory === 'string' ? characterStats.inventory : JSON.stringify(characterStats.inventory, null, 2) || 'No items in inventory'}
         </div>
       </div>
     </div>
