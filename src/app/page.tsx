@@ -1351,11 +1351,7 @@ export default function Home() {
         console.log('No items received from AI');
       }
 
-      // Handle dice rolling from AI response
-      if (data.diceRoll) {
-        console.log('AI wants to roll dice:', data.diceRoll);
-        handleAIDiceRoll(data.diceRoll);
-      }
+      // Dice rolling is already handled above, no need to duplicate
 
       // Handle stat changes from AI response
       if (data.statChanges && Object.keys(data.statChanges).length > 0) {
