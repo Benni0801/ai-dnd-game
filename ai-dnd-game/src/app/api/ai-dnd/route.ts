@@ -13,6 +13,9 @@ export async function POST(request: Request) {
     const lastUserMessage = messages[messages.length - 1]
     const userInput = lastUserMessage?.content?.trim() || ''
     
+    console.log('AI Route - User Input:', userInput)
+    console.log('AI Route - Is In Combat:', isInCombat)
+    
     let aiResponse = ''
     let diceRoll = null
     
@@ -44,7 +47,7 @@ export async function POST(request: Request) {
         aiResponse = `A fierce wolf emerges from the underbrush, growling menacingly. Its yellow eyes lock onto you as it prepares to attack. Combat begins! [ENEMY:{"name":"Wolf","hp":11,"ac":13,"damage":"2d4","description":"A fierce wolf with sharp claws and teeth"}]`
       } else if (userInput.toLowerCase().includes('skeleton') || userInput.toLowerCase().includes('encounter a skeleton')) {
         aiResponse = `A skeletal warrior rises from the ground, its bones clattering as it draws a rusty sword. Combat begins! [ENEMY:{"name":"Skeleton Warrior","hp":13,"ac":13,"damage":"1d6+1","description":"An animated skeleton with a rusty sword"}]`
-      } else if (userInput.toLowerCase().includes('i attack') || userInput.toLowerCase().includes('attack the') || userInput.toLowerCase().includes('attack the goblin') || userInput.toLowerCase().includes('attack the rat') || userInput.toLowerCase().includes('attack the spider') || userInput.toLowerCase().includes('attack the wolf') || userInput.toLowerCase().includes('attack the skeleton')) {
+      } else if (userInput.toLowerCase().includes('i attack') || userInput.toLowerCase().includes('attack the') || userInput.toLowerCase().includes('attack the goblin') || userInput.toLowerCase().includes('attack the rat') || userInput.toLowerCase().includes('attack the spider') || userInput.toLowerCase().includes('attack the wolf') || userInput.toLowerCase().includes('attack the skeleton') || userInput.toLowerCase().includes('attack with my weapon') || userInput.toLowerCase().includes('i attack the goblin with my weapon')) {
         // Handle combat attacks with dice rolls
         diceRoll = '1d20'
         aiResponse = `You swing your weapon at your enemy! Let me roll for your attack...`
