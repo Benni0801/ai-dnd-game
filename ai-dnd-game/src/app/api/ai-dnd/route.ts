@@ -60,21 +60,28 @@ export async function POST(request: Request) {
           const randomEnemy = enemies[Math.floor(Math.random() * enemies.length)];
           aiResponse = `A ${randomEnemy.name.toLowerCase()} appears before you! ${randomEnemy.desc} Combat begins! [ENEMY:{"name":"${randomEnemy.name}","hp":${randomEnemy.hp},"ac":${randomEnemy.ac},"damage":"${randomEnemy.damage}","description":"${randomEnemy.desc}"}]`
         }
-      } else if (userInput.toLowerCase().includes('i attack') || userInput.toLowerCase().includes('attack the') || userInput.toLowerCase().includes('attack with my weapon')) {
-        // Handle combat attacks - AI will handle dice rolls in response
-        aiResponse = `You swing your weapon at your enemy! Let me roll for your attack...`
+      } else if (userInput.toLowerCase().includes('i attack') || userInput.toLowerCase().includes('attack the') || userInput.toLowerCase().includes('attack with my weapon') || userInput.toLowerCase().includes('slash') || userInput.toLowerCase().includes('strike')) {
+        // Handle combat attacks with automatic dice rolls
+        const attackRoll = Math.floor(Math.random() * 20) + 1;
+        const damageRoll = Math.floor(Math.random() * 8) + 1;
+        aiResponse = `You swing your weapon at your enemy! [DICE:1d20] (Your Attack Roll: ${attackRoll}) You ${attackRoll >= 15 ? 'hit' : 'miss'}! ${attackRoll >= 15 ? `[DICE:1d8+1] (Your Damage: ${damageRoll}) The enemy takes ${damageRoll} damage!` : 'Your attack misses!'}`
       } else if (userInput.toLowerCase().includes('i cast') || userInput.toLowerCase().includes('cast a spell')) {
-        // Handle spell casting - AI will handle dice rolls in response
-        aiResponse = `You channel magical energy and cast a spell! Let me roll for your spell attack...`
+        // Handle spell casting with automatic dice rolls
+        const spellRoll = Math.floor(Math.random() * 20) + 1;
+        const spellDamage = Math.floor(Math.random() * 6) + 1;
+        aiResponse = `You channel magical energy and cast a spell! [DICE:1d20] (Your Spell Attack: ${spellRoll}) You ${spellRoll >= 15 ? 'hit' : 'miss'}! ${spellRoll >= 15 ? `[DICE:1d6] (Spell Damage: ${spellDamage}) The enemy takes ${spellDamage} magical damage!` : 'Your spell fizzles out!'}`
       } else if (userInput.toLowerCase().includes('i use an item') || userInput.toLowerCase().includes('use an item')) {
         // Handle item usage
         aiResponse = `You reach into your inventory and use an item. The effect takes hold immediately.`
       } else if (userInput.toLowerCase().includes('i dodge') || userInput.toLowerCase().includes('dodge')) {
-        // Handle dodging - AI will handle dice rolls in response
-        aiResponse = `You attempt to dodge and avoid your enemy's attacks. Let me roll for your Dexterity check...`
+        // Handle dodging with automatic dice rolls
+        const dodgeRoll = Math.floor(Math.random() * 20) + 1;
+        aiResponse = `You attempt to dodge and avoid your enemy's attacks. [DICE:1d20] (Your Dexterity Check: ${dodgeRoll}) You ${dodgeRoll >= 12 ? 'successfully dodge' : 'fail to dodge'}!`
       } else if (userInput.toLowerCase().includes('enemy turn') || userInput.toLowerCase().includes('enemy attacks')) {
-        // Handle enemy turn - AI will handle dice rolls in response
-        aiResponse = `The enemy attacks you! Let me roll for the enemy's attack...`
+        // Handle enemy turn with automatic dice rolls
+        const enemyAttackRoll = Math.floor(Math.random() * 20) + 1;
+        const enemyDamage = Math.floor(Math.random() * 6) + 1;
+        aiResponse = `The enemy attacks you! [DICE:1d20] (Enemy Attack Roll: ${enemyAttackRoll}) The enemy ${enemyAttackRoll >= 12 ? 'hits' : 'misses'}! ${enemyAttackRoll >= 12 ? `[DICE:1d6] (Enemy Damage: ${enemyDamage}) You take ${enemyDamage} damage!` : 'The enemy\'s attack misses!'}`
       } else if (isInCombat && (userInput.toLowerCase().includes('sneak attack') || userInput.toLowerCase().includes('hide'))) {
         // Handle rogue abilities in combat - AI will handle dice rolls in response
         if (userInput.toLowerCase().includes('sneak attack')) {

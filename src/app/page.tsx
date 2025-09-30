@@ -1558,8 +1558,8 @@ export default function Home() {
       
       // Handle combat turn progression
       if (isInCombat && combatTurn === 'enemy' && enemyStats) {
-        // Check if this is a player action response (contains attack roll or spell cast)
-        if (responseText.toLowerCase().includes('roll for your attack') || responseText.toLowerCase().includes('roll for your spell') || responseText.toLowerCase().includes('swing your weapon') || responseText.toLowerCase().includes('channel magical energy')) {
+        // Check if this is a player action response (contains dice rolls or combat actions)
+        if (responseText.toLowerCase().includes('dice:1d20') || responseText.toLowerCase().includes('attack roll') || responseText.toLowerCase().includes('spell attack') || responseText.toLowerCase().includes('swing your weapon') || responseText.toLowerCase().includes('channel magical energy') || responseText.toLowerCase().includes('takes') || responseText.toLowerCase().includes('damage')) {
           // After AI responds to player action, trigger enemy turn
           setTimeout(() => {
             const enemyTurnMessage = `The ${enemyStats.name} attacks you!`;
@@ -1567,7 +1567,7 @@ export default function Home() {
           }, 2000);
         }
         // Check if this is an enemy turn response
-        else if (responseText.toLowerCase().includes('enemy') || responseText.toLowerCase().includes('attacks you') || responseText.toLowerCase().includes('roll for the enemy')) {
+        else if (responseText.toLowerCase().includes('enemy') || responseText.toLowerCase().includes('attacks you') || responseText.toLowerCase().includes('enemy attack roll') || responseText.toLowerCase().includes('you take')) {
           // After AI responds to enemy turn, switch back to player turn
           setTimeout(() => {
             setCombatTurn('player');
@@ -4156,254 +4156,97 @@ export default function Home() {
         </div>
       )}
 
-      {/* Combat Overlay */}
-      {isInCombat && (
-      <div style={{
-        position: 'fixed',
-        top: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: '90%',
-        maxWidth: '800px',
-        background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.95) 0%, rgba(185, 28, 28, 0.95) 100%)',
-        backdropFilter: 'blur(20px)',
-        border: '2px solid rgba(239, 68, 68, 0.8)',
-        borderRadius: '16px',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
-        zIndex: 2000,
-        padding: '20px'
-      }}>
-        {/* Combat Header */}
+      {/* Combat Suggestions Above Chat */}
+      {isInCombat && combatTurn === 'player' && (
         <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.9) 0%, rgba(185, 28, 28, 0.9) 100%)',
+          border: '2px solid rgba(239, 68, 68, 0.6)',
+          borderRadius: '12px',
+          padding: '15px',
           marginBottom: '20px',
-          paddingBottom: '15px',
-          borderBottom: '2px solid rgba(255, 255, 255, 0.2)'
+          boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)'
         }}>
           <div style={{
             display: 'flex',
+            justifyContent: 'space-between',
             alignItems: 'center',
-            gap: '15px'
-          }}>
-            <span style={{ fontSize: '24px' }}>⚔️</span>
-            <div>
-              <h2 style={{
-                color: '#ffffff',
-                fontSize: '20px',
-                fontWeight: 'bold',
-                margin: 0
-              }}>
-                Combat in Progress
-              </h2>
-              <p style={{
-                color: '#fecaca',
-                fontSize: '14px',
-                margin: 0
-              }}>
-                {combatTurn === 'player' ? 'Your Turn' : `${enemyStats?.name}'s Turn`}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => endCombat(false)}
-            style={{
-              background: 'rgba(255, 255, 255, 0.2)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              borderRadius: '8px',
-              padding: '8px 12px',
-              color: '#ffffff',
-              fontSize: '12px',
-              cursor: 'pointer',
-              fontWeight: '600'
-            }}
-          >
-            Flee Combat
-          </button>
-        </div>
-
-        {/* Combatants */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '20px',
-          marginBottom: '20px'
-        }}>
-          {/* Player */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            border: '2px solid rgba(34, 197, 94, 0.5)',
-            borderRadius: '12px',
-            padding: '15px'
+            marginBottom: '10px'
           }}>
             <div style={{
               display: 'flex',
-              justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '10px'
+              gap: '10px'
             }}>
-              <h3 style={{
-                color: '#ffffff',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                margin: 0
-              }}>
-                {characterStats.name}
-              </h3>
-              <span style={{
-                color: '#86efac',
-                fontSize: '14px',
-                fontWeight: '600'
-              }}>
-                {characterStats.hp}/{characterStats.maxHp || 20} HP
-              </span>
-            </div>
-            <div style={{
-              width: '100%',
-              height: '8px',
-              background: 'rgba(0, 0, 0, 0.3)',
-              borderRadius: '4px',
-              overflow: 'hidden'
-            }}>
-              <div style={{
-                width: `${(characterStats.hp / (characterStats.maxHp || 20)) * 100}%`,
-                height: '100%',
-                background: 'linear-gradient(90deg, #22c55e, #16a34a)',
-                transition: 'width 0.3s ease'
-              }}></div>
-            </div>
-          </div>
-
-          {/* Enemy */}
-          {enemyStats && (
-            <div style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              border: '2px solid rgba(239, 68, 68, 0.5)',
-              borderRadius: '12px',
-              padding: '15px'
-            }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '10px'
-              }}>
+              <span style={{ fontSize: '18px' }}>⚔️</span>
+              <div>
                 <h3 style={{
                   color: '#ffffff',
                   fontSize: '16px',
                   fontWeight: 'bold',
                   margin: 0
                 }}>
-                  {enemyStats.name}
+                  Combat in Progress
                 </h3>
-                <span style={{
+                <p style={{
                   color: '#fecaca',
-                  fontSize: '14px',
-                  fontWeight: '600'
+                  fontSize: '12px',
+                  margin: 0
                 }}>
-                  {enemyStats.hp}/{enemyStats.maxHp} HP
-                </span>
-              </div>
-              <div style={{
-                width: '100%',
-                height: '8px',
-                background: 'rgba(0, 0, 0, 0.3)',
-                borderRadius: '4px',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  width: `${(enemyStats.hp / enemyStats.maxHp) * 100}%`,
-                  height: '100%',
-                  background: 'linear-gradient(90deg, #ef4444, #dc2626)',
-                  transition: 'width 0.3s ease'
-                }}></div>
+                  Your Turn - {characterStats.name}: {characterStats.hp}/{characterStats.maxHp} HP | {enemyStats?.name}: {enemyStats?.hp || 0}/{enemyStats?.maxHp || 0} HP
+                </p>
               </div>
             </div>
-          )}
-        </div>
-
-        {/* Combat Actions */}
-        {combatTurn === 'player' && (
-          <div>
-            <h4 style={{
-              color: '#ffffff',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              marginBottom: '15px',
-              textAlign: 'center'
-            }}>
-              Choose Your Action:
-            </h4>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-              gap: '10px'
-            }}>
-              {combatActions.map((action, index) => (
-                <button
-                  key={index}
-                  onClick={() => performCombatAction(action)}
-                  style={{
-                    background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-                    border: '1px solid rgba(59, 130, 246, 0.5)',
-                    borderRadius: '8px',
-                    padding: '12px 16px',
-                    color: '#ffffff',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    textAlign: 'center'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb, #1e40af)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  {action}
-                </button>
-              ))}
-            </div>
+            <button
+              onClick={() => endCombat(false)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '6px',
+                padding: '6px 10px',
+                color: '#ffffff',
+                fontSize: '11px',
+                cursor: 'pointer',
+                fontWeight: '600'
+              }}
+            >
+              Flee
+            </button>
           </div>
-        )}
 
-        {/* Combat Log */}
-        {combatLog.length > 0 && (
           <div style={{
-            marginTop: '20px',
-            background: 'rgba(0, 0, 0, 0.3)',
-            borderRadius: '8px',
-            padding: '15px',
-            maxHeight: '120px',
-            overflowY: 'auto'
+            display: 'flex',
+            gap: '8px',
+            flexWrap: 'wrap'
           }}>
-            <h5 style={{
-              color: '#ffffff',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              marginBottom: '10px'
-            }}>
-              Combat Log:
-            </h5>
-            {combatLog.slice(-5).map((log, index) => (
-              <div key={index} style={{
-                color: '#fecaca',
-                fontSize: '13px',
-                marginBottom: '5px',
-                padding: '5px 0',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-              }}>
-                {log}
-              </div>
+            {combatActions.slice(0, 4).map((action, index) => (
+              <button
+                key={index}
+                onClick={() => performCombatAction(action)}
+                style={{
+                  background: 'rgba(59, 130, 246, 0.8)',
+                  border: '1px solid rgba(59, 130, 246, 0.6)',
+                  borderRadius: '6px',
+                  padding: '8px 12px',
+                  color: '#ffffff',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  fontWeight: '500',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(59, 130, 246, 1)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(59, 130, 246, 0.8)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                {action}
+              </button>
             ))}
           </div>
-        )}
-      </div>
+        </div>
       )}
     </div>
   );
