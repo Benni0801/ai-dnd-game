@@ -328,7 +328,7 @@ Ability Scores: STR ${gameState.character.abilityScores.strength}, DEX ${gameSta
 **IMPORTANT INSTRUCTIONS:**
 - If character creation is incomplete, guide through the full process
 - Always maintain game state consistency
-- Use internal dice rolls for all checks (announce results)
+- Use internal dice rolls for all checks (announce results) - NEVER ask player to roll dice!
 - Track all character progression and world changes
 - Provide detailed descriptions and immersive roleplay
 - Respond as GAL for meta-game communication, as NPCs for in-game interactions
@@ -386,13 +386,25 @@ You MUST automatically apply damage in these situations:
 - ✅ "You feel stronger"
 - ✅ Pure descriptive narrative without numbers
 
+**DICE ROLLING - CRITICAL:**
+- You MUST automatically roll dice when appropriate - NEVER ask the player to roll!
+- Use the format: [DICE:1d20] or [DICE:2d6+3] for dice rolls
+- ALWAYS roll initiative when combat starts
+- ALWAYS roll attack rolls when players attack
+- ALWAYS roll damage dice when attacks hit
+- ALWAYS roll skill checks when players attempt actions (stealth, perception, investigation, etc.)
+- ALWAYS roll saving throws when players are affected by spells or effects
+- NEVER say "roll a d20" or "make a roll" - just roll the dice automatically
+- Always describe what you're rolling for and show the result
+
 **COMBAT MECHANICS:**
 When running combat, you MUST:
-1. Roll dice for attacks and damage (announce the rolls)
+1. ALWAYS roll dice for attacks and damage automatically - NEVER ask player to roll!
 2. If an attack hits, immediately apply damage with [STATS:{"hp":-X}]
 3. If the player takes damage from any source, use [STATS:{"hp":-X}]
 4. If the player heals, use [STATS:{"hp":+X}]
 5. If the player defeats an enemy, award XP with [STATS:{"xp":X}]
+6. Examples: "You attack! [DICE:1d20] You roll a 15, hitting for [DICE:1d8+2] damage!"
 
 **CRITICAL RULE:** NEVER just describe stat changes in text. You MUST include the [STATS:] command for ANY stat modification!
 
@@ -744,16 +756,54 @@ When running combat, you MUST:
           }, { status: 500 });
     }
 
+    // Check for automatic dice rolling based on AI response content
+    let diceRoll = null;
+    const responseLower = aiResponse.toLowerCase();
+    
+    // Combat and attack scenarios
+    if (responseLower.includes('attack') && (responseLower.includes('roll') || responseLower.includes('d20'))) {
+      diceRoll = '1d20';
+    } else if (responseLower.includes('initiative') || responseLower.includes('combat begins')) {
+      diceRoll = '1d20';
+    } else if (responseLower.includes('damage') && (responseLower.includes('roll') || responseLower.includes('d'))) {
+      // Extract damage dice from response (e.g., "1d8+2 damage")
+      const damageMatch = responseLower.match(/(\d+d\d+(?:\+\d+)?)/);
+      if (damageMatch) {
+        diceRoll = damageMatch[1];
+      }
+    }
+    
+    // Skill checks
+    else if (responseLower.includes('stealth') || responseLower.includes('sneak')) {
+      diceRoll = '1d20';
+    } else if (responseLower.includes('perception') || responseLower.includes('notice')) {
+      diceRoll = '1d20';
+    } else if (responseLower.includes('investigation') || responseLower.includes('search')) {
+      diceRoll = '1d20';
+    } else if (responseLower.includes('persuasion') || responseLower.includes('persuade')) {
+      diceRoll = '1d20';
+    } else if (responseLower.includes('intimidation') || responseLower.includes('intimidate')) {
+      diceRoll = '1d20';
+    } else if (responseLower.includes('athletics') || responseLower.includes('climb') || responseLower.includes('jump')) {
+      diceRoll = '1d20';
+    } else if (responseLower.includes('acrobatics') || responseLower.includes('balance')) {
+      diceRoll = '1d20';
+    } else if (responseLower.includes('saving throw') || responseLower.includes('save against')) {
+      diceRoll = '1d20';
+    }
+
     console.log('Final API response:', {
       response: aiResponse,
       items: items.length,
-      statChanges: Object.keys(statChanges).length > 0 ? statChanges : 'none'
+      statChanges: Object.keys(statChanges).length > 0 ? statChanges : 'none',
+      diceRoll: diceRoll || 'none'
     });
 
     return NextResponse.json({
       response: aiResponse,
       items: items,
       statChanges: statChanges,
+      ...(diceRoll && { diceRoll }),
       usage: { total_tokens: 0 },
       debug: 'Successfully connected to Gemini API'
     });
