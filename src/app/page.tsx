@@ -456,6 +456,33 @@ export default function Home() {
         xp: (prev.xp || 0) + 100
       }));
       addActionLogEntry('xp', 'Combat victory: +100 XP', '⭐');
+      
+      // Notify AI that combat ended
+      const combatEndMessage: Message = {
+        id: Date.now().toString(),
+        role: 'user',
+        content: `I have defeated the enemy in combat.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, combatEndMessage]);
+      
+      // Send message to AI to continue the story
+      setTimeout(() => {
+        handleSendMessage(`I have defeated the enemy in combat.`);
+      }, 500);
+    } else {
+      // Notify AI that player was defeated
+      const defeatMessage: Message = {
+        id: Date.now().toString(),
+        role: 'user',
+        content: `I have been defeated in combat.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, defeatMessage]);
+      
+      setTimeout(() => {
+        handleSendMessage(`I have been defeated in combat.`);
+      }, 500);
     }
   };
 
@@ -480,13 +507,15 @@ export default function Home() {
   const handleEnemyAttack = () => {
     if (!enemyStats || !isInCombat) return;
 
-    // Roll enemy attack
-    const enemyAttackRoll = Math.floor(Math.random() * 20) + 1;
+    // Roll enemy attack (enemy gets +2 bonus to hit)
+    const enemyAttackRoll = Math.floor(Math.random() * 20) + 1 + 2;
     const playerAC = 10 + (characterStats.dex || 0);
+    setCombatLog(prev => [...prev, `The ${enemyStats.name} rolls ${enemyAttackRoll} to hit (need ${playerAC})`]);
     
     if (enemyAttackRoll >= playerAC) {
       // Hit - roll damage based on enemy's damage dice
       const enemyDamage = rollDamage(enemyStats.damage || '1d4');
+      setCombatLog(prev => [...prev, `The ${enemyStats.name} rolls ${enemyDamage} damage!`]);
       setCharacterStats(prev => ({
         ...prev,
         hp: Math.max(0, prev.hp - enemyDamage)
@@ -520,9 +549,12 @@ export default function Home() {
     if (action === 'Attack') {
       // Roll attack
       const attackRoll = Math.floor(Math.random() * 20) + 1 + (characterStats.str || 0);
+      setCombatLog(prev => [...prev, `You roll ${attackRoll} to hit (need ${enemyStats.ac})`]);
+      
       if (attackRoll >= enemyStats.ac) {
         // Hit - roll damage (reduced damage to make combat last longer)
         const damage = Math.floor(Math.random() * 4) + 1; // 1-4 damage instead of 1-8+str
+        setCombatLog(prev => [...prev, `You roll ${damage} damage!`]);
         const newEnemyHp = Math.max(0, enemyStats.hp - damage);
         setEnemyStats((prev: any) => ({ ...prev, hp: newEnemyHp }));
         setCombatLog(prev => [...prev, `You attack and hit for ${damage} damage!`]);
