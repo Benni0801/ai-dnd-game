@@ -243,6 +243,13 @@ export default function Home() {
   const [pendingQuest, setPendingQuest] = useState<Quest | null>(null);
   const [isQuestWindowMinimized, setIsQuestWindowMinimized] = useState(false);
   
+  // Combat system state
+  const [isInCombat, setIsInCombat] = useState(false);
+  const [combatTurn, setCombatTurn] = useState<'player' | 'enemy'>('player');
+  const [enemyStats, setEnemyStats] = useState<any>(null);
+  const [combatActions, setCombatActions] = useState<string[]>([]);
+  const [combatLog, setCombatLog] = useState<string[]>([]);
+  
   // Refs for auto-scrolling and inventory
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -290,6 +297,225 @@ export default function Home() {
       const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
       setShowScrollButton(!isNearBottom);
     }
+  };
+
+  // Class starting equipment system
+  const getClassStartingEquipment = (className: string): Array<{ name: string; type: string; rarity: string; value: number; weight: number; quantity: number }> => {
+    const classEquipment: { [key: string]: Array<{ name: string; type: string; rarity: string; value: number; weight: number; quantity: number }> } = {
+      'Fighter': [
+        { name: 'Longsword', type: 'weapon', rarity: 'common', value: 15, weight: 3, quantity: 1 },
+        { name: 'Shield', type: 'armor', rarity: 'common', value: 10, weight: 6, quantity: 1 },
+        { name: 'Chain Mail', type: 'armor', rarity: 'common', value: 75, weight: 55, quantity: 1 },
+        { name: 'Crossbow', type: 'weapon', rarity: 'common', value: 25, weight: 5, quantity: 1 },
+        { name: 'Crossbow Bolts', type: 'ammunition', rarity: 'common', value: 1, weight: 0.05, quantity: 20 }
+      ],
+      'Wizard': [
+        { name: 'Quarterstaff', type: 'weapon', rarity: 'common', value: 2, weight: 4, quantity: 1 },
+        { name: 'Component Pouch', type: 'misc', rarity: 'common', value: 25, weight: 2, quantity: 1 },
+        { name: 'Scholar\'s Pack', type: 'misc', rarity: 'common', value: 40, weight: 8, quantity: 1 },
+        { name: 'Spellbook', type: 'misc', rarity: 'common', value: 50, weight: 3, quantity: 1 }
+      ],
+      'Rogue': [
+        { name: 'Rapier', type: 'weapon', rarity: 'common', value: 25, weight: 2, quantity: 1 },
+        { name: 'Shortbow', type: 'weapon', rarity: 'common', value: 25, weight: 2, quantity: 1 },
+        { name: 'Arrows', type: 'ammunition', rarity: 'common', value: 1, weight: 0.05, quantity: 20 },
+        { name: 'Leather Armor', type: 'armor', rarity: 'common', value: 10, weight: 10, quantity: 1 },
+        { name: 'Thieves\' Tools', type: 'misc', rarity: 'common', value: 25, weight: 1, quantity: 1 }
+      ],
+      'Cleric': [
+        { name: 'Mace', type: 'weapon', rarity: 'common', value: 5, weight: 4, quantity: 1 },
+        { name: 'Shield', type: 'armor', rarity: 'common', value: 10, weight: 6, quantity: 1 },
+        { name: 'Scale Mail', type: 'armor', rarity: 'common', value: 50, weight: 45, quantity: 1 },
+        { name: 'Holy Symbol', type: 'misc', rarity: 'common', value: 5, weight: 1, quantity: 1 },
+        { name: 'Priest\'s Pack', type: 'misc', rarity: 'common', value: 19, weight: 24, quantity: 1 }
+      ],
+      'Ranger': [
+        { name: 'Longsword', type: 'weapon', rarity: 'common', value: 15, weight: 3, quantity: 1 },
+        { name: 'Longbow', type: 'weapon', rarity: 'common', value: 50, weight: 2, quantity: 1 },
+        { name: 'Arrows', type: 'ammunition', rarity: 'common', value: 1, weight: 0.05, quantity: 20 },
+        { name: 'Leather Armor', type: 'armor', rarity: 'common', value: 10, weight: 10, quantity: 1 },
+        { name: 'Explorer\'s Pack', type: 'misc', rarity: 'common', value: 10, weight: 59, quantity: 1 }
+      ],
+      'Paladin': [
+        { name: 'Longsword', type: 'weapon', rarity: 'common', value: 15, weight: 3, quantity: 1 },
+        { name: 'Shield', type: 'armor', rarity: 'common', value: 10, weight: 6, quantity: 1 },
+        { name: 'Chain Mail', type: 'armor', rarity: 'common', value: 75, weight: 55, quantity: 1 },
+        { name: 'Holy Symbol', type: 'misc', rarity: 'common', value: 5, weight: 1, quantity: 1 },
+        { name: 'Priest\'s Pack', type: 'misc', rarity: 'common', value: 19, weight: 24, quantity: 1 }
+      ],
+      'Barbarian': [
+        { name: 'Greataxe', type: 'weapon', rarity: 'common', value: 30, weight: 7, quantity: 1 },
+        { name: 'Handaxe', type: 'weapon', rarity: 'common', value: 5, weight: 2, quantity: 2 },
+        { name: 'Javelin', type: 'weapon', rarity: 'common', value: 5, weight: 2, quantity: 4 },
+        { name: 'Explorer\'s Pack', type: 'misc', rarity: 'common', value: 10, weight: 59, quantity: 1 }
+      ],
+      'Bard': [
+        { name: 'Rapier', type: 'weapon', rarity: 'common', value: 25, weight: 2, quantity: 1 },
+        { name: 'Lute', type: 'misc', rarity: 'common', value: 35, weight: 2, quantity: 1 },
+        { name: 'Leather Armor', type: 'armor', rarity: 'common', value: 10, weight: 10, quantity: 1 },
+        { name: 'Entertainer\'s Pack', type: 'misc', rarity: 'common', value: 40, weight: 38, quantity: 1 }
+      ],
+      'Sorcerer': [
+        { name: 'Dagger', type: 'weapon', rarity: 'common', value: 2, weight: 1, quantity: 2 },
+        { name: 'Component Pouch', type: 'misc', rarity: 'common', value: 25, weight: 2, quantity: 1 },
+        { name: 'Dungeoneer\'s Pack', type: 'misc', rarity: 'common', value: 12, weight: 61.5, quantity: 1 }
+      ],
+      'Warlock': [
+        { name: 'Light Crossbow', type: 'weapon', rarity: 'common', value: 25, weight: 5, quantity: 1 },
+        { name: 'Crossbow Bolts', type: 'ammunition', rarity: 'common', value: 1, weight: 0.05, quantity: 20 },
+        { name: 'Component Pouch', type: 'misc', rarity: 'common', value: 25, weight: 2, quantity: 1 },
+        { name: 'Scholar\'s Pack', type: 'misc', rarity: 'common', value: 40, weight: 8, quantity: 1 }
+      ],
+      'Druid': [
+        { name: 'Scimitar', type: 'weapon', rarity: 'common', value: 25, weight: 3, quantity: 1 },
+        { name: 'Leather Armor', type: 'armor', rarity: 'common', value: 10, weight: 10, quantity: 1 },
+        { name: 'Shield', type: 'armor', rarity: 'common', value: 10, weight: 6, quantity: 1 },
+        { name: 'Explorer\'s Pack', type: 'misc', rarity: 'common', value: 10, weight: 59, quantity: 1 },
+        { name: 'Druidic Focus', type: 'misc', rarity: 'common', value: 1, weight: 0, quantity: 1 }
+      ],
+      'Monk': [
+        { name: 'Shortsword', type: 'weapon', rarity: 'common', value: 10, weight: 2, quantity: 1 },
+        { name: 'Dart', type: 'weapon', rarity: 'common', value: 5, weight: 0.25, quantity: 10 },
+        { name: 'Explorer\'s Pack', type: 'misc', rarity: 'common', value: 10, weight: 59, quantity: 1 }
+      ],
+      'Artificer': [
+        { name: 'Light Crossbow', type: 'weapon', rarity: 'common', value: 25, weight: 5, quantity: 1 },
+        { name: 'Crossbow Bolts', type: 'ammunition', rarity: 'common', value: 1, weight: 0.05, quantity: 20 },
+        { name: 'Scale Mail', type: 'armor', rarity: 'common', value: 50, weight: 45, quantity: 1 },
+        { name: 'Thieves\' Tools', type: 'misc', rarity: 'common', value: 25, weight: 1, quantity: 1 },
+        { name: 'Dungeoneer\'s Pack', type: 'misc', rarity: 'common', value: 12, weight: 61.5, quantity: 1 }
+      ]
+    };
+    
+    return classEquipment[className] || [];
+  };
+
+  // Combat system functions
+  const getClassCombatActions = (className: string) => {
+    const classActions: { [key: string]: string[] } = {
+      'Fighter': ['Attack', 'Second Wind', 'Action Surge', 'Defend'],
+      'Wizard': ['Attack', 'Cast Spell', 'Use Item', 'Dodge'],
+      'Rogue': ['Attack', 'Sneak Attack', 'Use Item', 'Hide'],
+      'Cleric': ['Attack', 'Cast Spell', 'Heal', 'Turn Undead'],
+      'Ranger': ['Attack', 'Hunter\'s Mark', 'Use Item', 'Dodge'],
+      'Paladin': ['Attack', 'Divine Smite', 'Lay on Hands', 'Cast Spell'],
+      'Barbarian': ['Attack', 'Rage', 'Reckless Attack', 'Intimidate'],
+      'Bard': ['Attack', 'Bardic Inspiration', 'Cast Spell', 'Use Item'],
+      'Sorcerer': ['Attack', 'Cast Spell', 'Metamagic', 'Use Item'],
+      'Warlock': ['Attack', 'Eldritch Blast', 'Cast Spell', 'Use Item'],
+      'Druid': ['Attack', 'Wild Shape', 'Cast Spell', 'Use Item'],
+      'Monk': ['Attack', 'Flurry of Blows', 'Stunning Strike', 'Dodge'],
+      'Artificer': ['Attack', 'Infuse Item', 'Cast Spell', 'Use Item']
+    };
+    return classActions[className] || ['Attack', 'Use Item', 'Dodge'];
+  };
+
+  const startCombat = (enemyType: string) => {
+    const enemyTemplates: { [key: string]: any } = {
+      'Goblin': { name: 'Goblin', hp: 7, maxHp: 7, ac: 15, damage: '1d6+1' },
+      'Orc': { name: 'Orc', hp: 15, maxHp: 15, ac: 13, damage: '1d12+3' },
+      'Skeleton': { name: 'Skeleton', hp: 13, maxHp: 13, ac: 13, damage: '1d6+2' },
+      'Wolf': { name: 'Wolf', hp: 11, maxHp: 11, ac: 13, damage: '1d6+2' }
+    };
+    
+    const enemy = enemyTemplates[enemyType] || enemyTemplates['Goblin'];
+    setEnemyStats(enemy);
+    setCombatActions(getClassCombatActions(characterStats.class || 'Fighter'));
+    setCombatTurn('player');
+    setIsInCombat(true);
+    setCombatLog([`Combat begins! You encounter a ${enemy.name}!`]);
+  };
+
+  const endCombat = (victory: boolean) => {
+    setIsInCombat(false);
+    setEnemyStats(null);
+    setCombatActions([]);
+    setCombatLog([]);
+    
+    if (victory) {
+      setCharacterStats(prev => ({
+        ...prev,
+        xp: (prev.xp || 0) + 100
+      }));
+      addActionLogEntry('xp', 'Combat victory: +100 XP', '⭐');
+    }
+  };
+
+  const performCombatAction = (action: string) => {
+    if (!isInCombat || combatTurn !== 'player' || !enemyStats) return;
+    
+    let logMessage = '';
+    let damage = 0;
+    
+    if (action === 'Attack') {
+      // Roll attack
+      const attackRoll = Math.floor(Math.random() * 20) + 1 + (characterStats.str || 0);
+      if (attackRoll >= enemyStats.ac) {
+        // Hit - roll damage
+        damage = Math.floor(Math.random() * 8) + 1 + (characterStats.str || 0);
+        const newEnemyHp = Math.max(0, enemyStats.hp - damage);
+        setEnemyStats((prev: any) => ({ ...prev, hp: newEnemyHp }));
+        logMessage = `You attack and hit for ${damage} damage!`;
+        
+        if (newEnemyHp <= 0) {
+          logMessage += ` The ${enemyStats.name} is defeated!`;
+          endCombat(true);
+          return;
+        }
+      } else {
+        logMessage = `You attack but miss!`;
+      }
+    } else if (action === 'Use Item') {
+      // Check for health potion
+      const hasHealthPotion = inventory.some(item => 
+        item.name.toLowerCase().includes('health') && item.name.toLowerCase().includes('potion')
+      );
+      
+      if (hasHealthPotion) {
+        const healAmount = 10;
+        setCharacterStats(prev => ({
+          ...prev,
+          hp: Math.min(prev.maxHp || 20, prev.hp + healAmount)
+        }));
+        logMessage = `You use a health potion and heal ${healAmount} HP!`;
+        addActionLogEntry('heal', `Used health potion: +${healAmount} HP`, '❤️');
+      } else {
+        logMessage = `You don't have any usable items!`;
+      }
+    } else {
+      logMessage = `You attempt to ${action.toLowerCase()} but it has no effect in combat!`;
+    }
+    
+    setCombatLog(prev => [...prev, logMessage]);
+    setCombatTurn('enemy');
+    
+    // Enemy turn after a short delay
+    setTimeout(() => {
+      if (enemyStats && enemyStats.hp > 0) {
+        const enemyAttackRoll = Math.floor(Math.random() * 20) + 1;
+        const playerAC = 10 + (characterStats.dex || 0);
+        
+        if (enemyAttackRoll >= playerAC) {
+          const enemyDamage = Math.floor(Math.random() * 6) + 1;
+          setCharacterStats(prev => ({
+            ...prev,
+            hp: Math.max(0, prev.hp - enemyDamage)
+          }));
+          setCombatLog(prev => [...prev, `The ${enemyStats.name} attacks and hits for ${enemyDamage} damage!`]);
+          addActionLogEntry('damage', `Enemy attack: -${enemyDamage} HP`, '⚔️');
+          
+          if (characterStats.hp - enemyDamage <= 0) {
+            setCombatLog(prev => [...prev, `You are defeated!`]);
+            endCombat(false);
+            return;
+          }
+        } else {
+          setCombatLog(prev => [...prev, `The ${enemyStats.name} attacks but misses!`]);
+        }
+        
+        setCombatTurn('player');
+      }
+    }, 1500);
   };
 
   // Quest management functions
@@ -936,6 +1162,18 @@ export default function Home() {
       return;
     }
 
+    // Check if in combat - restrict actions
+    if (isInCombat) {
+      const combatMessage: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `You are in combat! Use the combat overlay above to choose your actions. You can only use the available combat actions: ${combatActions.join(', ')}.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, combatMessage]);
+      return;
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -1244,6 +1482,22 @@ export default function Home() {
             handleAcceptQuest(basicQuest);
           }
         });
+      }
+
+      // Parse combat triggers from AI response
+      const combatTriggers = ['combat begins', 'battle starts', 'you are attacked', 'a fight breaks out', 'combat starts'];
+      const responseLower = responseText.toLowerCase();
+      const isCombatTriggered = combatTriggers.some(trigger => responseLower.includes(trigger));
+      
+      if (isCombatTriggered && !isInCombat) {
+        // Extract enemy type from response
+        let enemyType = 'Goblin'; // default
+        if (responseLower.includes('goblin')) enemyType = 'Goblin';
+        else if (responseLower.includes('orc')) enemyType = 'Orc';
+        else if (responseLower.includes('skeleton')) enemyType = 'Skeleton';
+        else if (responseLower.includes('wolf')) enemyType = 'Wolf';
+        
+        startCombat(enemyType);
       }
 
       setMessages(prev => [...prev, aiMessage]);
@@ -1662,7 +1916,15 @@ export default function Home() {
                   </label>
                   <select
                     value={characterStats.class || ''}
-                    onChange={(e) => setCharacterStats(prev => ({ ...prev, class: e.target.value }))}
+                    onChange={(e) => {
+                      const selectedClass = e.target.value;
+                      const startingEquipment = getClassStartingEquipment(selectedClass);
+                      setCharacterStats(prev => ({ 
+                        ...prev, 
+                        class: selectedClass,
+                        inventory: startingEquipment
+                      }));
+                    }}
                     style={{
                       width: '100%',
                       padding: '1rem 1.25rem',
@@ -1692,6 +1954,11 @@ export default function Home() {
                     <option value="Paladin">Paladin</option>
                     <option value="Barbarian">Barbarian</option>
                     <option value="Bard">Bard</option>
+                    <option value="Sorcerer">Sorcerer</option>
+                    <option value="Warlock">Warlock</option>
+                    <option value="Druid">Druid</option>
+                    <option value="Monk">Monk</option>
+                    <option value="Artificer">Artificer</option>
                   </select>
                 </div>
               </div>
@@ -1722,9 +1989,47 @@ export default function Home() {
                     }}>
                       {characterStats.name || 'Unnamed Hero'}
                     </div>
-                    <div style={{ color: '#94a3b8', fontSize: '1rem' }}>
+                    <div style={{ color: '#94a3b8', fontSize: '1rem', marginBottom: '1rem' }}>
                       {characterStats.race || 'Unknown'} {characterStats.class || 'Adventurer'}
                     </div>
+                    
+                    {/* Starting Equipment Preview */}
+                    {characterStats.class && (
+                      <div style={{ textAlign: 'left' }}>
+                        <div style={{
+                          fontSize: '0.875rem',
+                          fontWeight: '600',
+                          color: '#a78bfa',
+                          marginBottom: '0.5rem',
+                          textAlign: 'center'
+                        }}>
+                          Starting Equipment:
+                        </div>
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                          gap: '0.5rem',
+                          fontSize: '0.75rem'
+                        }}>
+                          {getClassStartingEquipment(characterStats.class).map((item, index) => (
+                            <div key={index} style={{
+                              background: 'rgba(139, 92, 246, 0.1)',
+                              border: '1px solid rgba(139, 92, 246, 0.2)',
+                              borderRadius: '8px',
+                              padding: '0.5rem',
+                              textAlign: 'center'
+                            }}>
+                              <div style={{ color: '#e2e8f0', fontWeight: '600' }}>
+                                {item.name}
+                              </div>
+                              <div style={{ color: '#94a3b8', fontSize: '0.7rem' }}>
+                                {item.type} • {item.quantity}x
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -3244,8 +3549,8 @@ export default function Home() {
                   type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder="What would you like to do, adventurer?"
-                  disabled={isLoading || characterStats.isDead}
+                  placeholder={isInCombat ? "Combat in progress - use the combat overlay above" : "What would you like to do, adventurer?"}
+                  disabled={isLoading || characterStats.isDead || isInCombat}
                   style={{
                     flex: 1,
                     padding: '1.25rem 1.5rem',
@@ -3785,5 +4090,255 @@ export default function Home() {
         </div>
       )}
     </div>
+
+    {/* Combat Overlay */}
+    {isInCombat && (
+      <div style={{
+        position: 'fixed',
+        top: '20px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '90%',
+        maxWidth: '800px',
+        background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.95) 0%, rgba(185, 28, 28, 0.95) 100%)',
+        backdropFilter: 'blur(20px)',
+        border: '2px solid rgba(239, 68, 68, 0.8)',
+        borderRadius: '16px',
+        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
+        zIndex: 2000,
+        padding: '20px'
+      }}>
+        {/* Combat Header */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '20px',
+          paddingBottom: '15px',
+          borderBottom: '2px solid rgba(255, 255, 255, 0.2)'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '15px'
+          }}>
+            <span style={{ fontSize: '24px' }}>⚔️</span>
+            <div>
+              <h2 style={{
+                color: '#ffffff',
+                fontSize: '20px',
+                fontWeight: 'bold',
+                margin: 0
+              }}>
+                Combat in Progress
+              </h2>
+              <p style={{
+                color: '#fecaca',
+                fontSize: '14px',
+                margin: 0
+              }}>
+                {combatTurn === 'player' ? 'Your Turn' : `${enemyStats?.name}'s Turn`}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => endCombat(false)}
+            style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              borderRadius: '8px',
+              padding: '8px 12px',
+              color: '#ffffff',
+              fontSize: '12px',
+              cursor: 'pointer',
+              fontWeight: '600'
+            }}
+          >
+            Flee Combat
+          </button>
+        </div>
+
+        {/* Combatants */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '20px',
+          marginBottom: '20px'
+        }}>
+          {/* Player */}
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            border: '2px solid rgba(34, 197, 94, 0.5)',
+            borderRadius: '12px',
+            padding: '15px'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '10px'
+            }}>
+              <h3 style={{
+                color: '#ffffff',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                margin: 0
+              }}>
+                {characterStats.name}
+              </h3>
+              <span style={{
+                color: '#86efac',
+                fontSize: '14px',
+                fontWeight: '600'
+              }}>
+                {characterStats.hp}/{characterStats.maxHp || 20} HP
+              </span>
+            </div>
+            <div style={{
+              width: '100%',
+              height: '8px',
+              background: 'rgba(0, 0, 0, 0.3)',
+              borderRadius: '4px',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                width: `${(characterStats.hp / (characterStats.maxHp || 20)) * 100}%`,
+                height: '100%',
+                background: 'linear-gradient(90deg, #22c55e, #16a34a)',
+                transition: 'width 0.3s ease'
+              }}></div>
+            </div>
+          </div>
+
+          {/* Enemy */}
+          {enemyStats && (
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '2px solid rgba(239, 68, 68, 0.5)',
+              borderRadius: '12px',
+              padding: '15px'
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '10px'
+              }}>
+                <h3 style={{
+                  color: '#ffffff',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  margin: 0
+                }}>
+                  {enemyStats.name}
+                </h3>
+                <span style={{
+                  color: '#fecaca',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}>
+                  {enemyStats.hp}/{enemyStats.maxHp} HP
+                </span>
+              </div>
+              <div style={{
+                width: '100%',
+                height: '8px',
+                background: 'rgba(0, 0, 0, 0.3)',
+                borderRadius: '4px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  width: `${(enemyStats.hp / enemyStats.maxHp) * 100}%`,
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #ef4444, #dc2626)',
+                  transition: 'width 0.3s ease'
+                }}></div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Combat Actions */}
+        {combatTurn === 'player' && (
+          <div>
+            <h4 style={{
+              color: '#ffffff',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              marginBottom: '15px',
+              textAlign: 'center'
+            }}>
+              Choose Your Action:
+            </h4>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: '10px'
+            }}>
+              {combatActions.map((action, index) => (
+                <button
+                  key={index}
+                  onClick={() => performCombatAction(action)}
+                  style={{
+                    background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                    border: '1px solid rgba(59, 130, 246, 0.5)',
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    textAlign: 'center'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb, #1e40af)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6, #1d4ed8)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  {action}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Combat Log */}
+        {combatLog.length > 0 && (
+          <div style={{
+            marginTop: '20px',
+            background: 'rgba(0, 0, 0, 0.3)',
+            borderRadius: '8px',
+            padding: '15px',
+            maxHeight: '120px',
+            overflowY: 'auto'
+          }}>
+            <h5 style={{
+              color: '#ffffff',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              marginBottom: '10px'
+            }}>
+              Combat Log:
+            </h5>
+            {combatLog.slice(-5).map((log, index) => (
+              <div key={index} style={{
+                color: '#fecaca',
+                fontSize: '13px',
+                marginBottom: '5px',
+                padding: '5px 0',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                {log}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )}
   );
 }

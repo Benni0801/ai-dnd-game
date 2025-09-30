@@ -15,3 +15,4 @@ ON CONFLICT (id) DO NOTHING;
 -- Verify the AI user was created
 SELECT id, username, email FROM users WHERE id = '00000000-0000-0000-0000-000000000000';
 
+

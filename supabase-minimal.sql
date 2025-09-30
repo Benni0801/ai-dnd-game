@@ -173,3 +173,4 @@ CREATE TRIGGER update_story_sessions_updated_at
   BEFORE UPDATE ON public.story_sessions
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+

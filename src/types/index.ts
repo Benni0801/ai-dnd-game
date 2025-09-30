@@ -19,7 +19,7 @@ export interface CharacterStats {
   cha: number;
   gold?: number;
   proficiencyBonus?: number;
-  inventory: string;
+  inventory: string | Array<{ name: string; type: string; rarity: string; value: number; weight: number; quantity: number }>;
   equippedItems?: string;
   spells?: Array<{ name: string; level: number; slots: number }> | string[];
   skills?: string[];
@@ -120,6 +120,6 @@ export interface Character {
   con: number;
   wis: number;
   cha: number;
-  inventory: string;
+  inventory: string | Array<{ name: string; type: string; rarity: string; value: number; weight: number; quantity: number }>;
   createdAt: Date;
 }
