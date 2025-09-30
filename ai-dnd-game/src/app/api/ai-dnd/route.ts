@@ -23,12 +23,10 @@ export async function POST(request: Request) {
       // Simple game responses based on user input
       let diceRoll = null
       
-      // Don't roll dice if in combat - combat is handled by the game system
+      // Handle combat actions properly instead of blocking them
       if (isInCombat) {
-        aiResponse = `You are in combat! Use the combat overlay to choose your actions.`
-        return NextResponse.json({
-          message: aiResponse
-        })
+        // Let combat actions be processed normally - don't block them
+        // The combat handling logic below will take care of the responses
       }
       
       if (userInput.toLowerCase().includes('look') || userInput.toLowerCase().includes('examine')) {
@@ -89,6 +87,9 @@ export async function POST(request: Request) {
         aiResponse = `You carefully investigate the area.`
       } else if (userInput.toLowerCase().includes('perception') || userInput.toLowerCase().includes('notice') || userInput.toLowerCase().includes('spot')) {
         aiResponse = `You try to notice details around you.`
+      } else if (userInput.toLowerCase().includes('i have completed the quest') || userInput.toLowerCase().includes('completed the quest')) {
+        // Handle quest completion
+        aiResponse = `Excellent work! You have successfully completed your quest. The quest giver is pleased with your efforts and thanks you for your service. You feel more experienced and confident in your abilities. What would you like to do next?`
       } else if (userInput.toLowerCase().includes('help') || userInput.toLowerCase().includes('what')) {
         aiResponse = `You can try various actions like: look around, walk/go/move, talk/speak, ask about quests, accept or decline quests, fight/attack, climb/jump/stealth (triggers ability checks), persuade/intimidate (social checks), investigate/search (investigation), or explore. What would you like to do next?`
       } else {

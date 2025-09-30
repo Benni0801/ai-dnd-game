@@ -603,22 +603,26 @@ export default function Home() {
     ));
   };
 
-  const handleCompleteQuest = (questId: string) => {
-    const quest = quests.find(q => q.id === questId);
+  const handleCompleteQuest = (questId: string) => {     
+    const quest = quests.find(q => q.id === questId);    
     if (quest) {
-      handleUpdateQuest(questId, { 
-        status: 'completed', 
-        completedAt: new Date() 
+      handleUpdateQuest(questId, {
+        status: 'completed',
+        completedAt: new Date()
       });
-      
+
       // Award XP and gold
       setCharacterStats(prev => ({
         ...prev,
         xp: (prev.xp || 0) + quest.xpReward,
-        gold: (prev.gold || 0) + (quest.goldReward || 0)
+        gold: (prev.gold || 0) + (quest.goldReward || 0) 
       }));
-      
+
       addActionLogEntry('xp', `Completed quest: ${quest.title} (+${quest.xpReward} XP)`, '✅');
+      
+      // Send quest completion message to AI
+      const completionMessage = `I have completed the quest "${quest.title}". ${quest.description}`;
+      handleSendMessage(completionMessage);
       if (quest.goldReward) {
         addActionLogEntry('gold', `Quest reward: +${quest.goldReward} gold`, '🪙');
       }
