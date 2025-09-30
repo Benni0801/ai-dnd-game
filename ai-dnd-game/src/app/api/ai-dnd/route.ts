@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
-    const { messages, character, onDiceRoll } = await request.json()
+    const { messages, character, onDiceRoll, isInCombat } = await request.json()
     
     console.log('AI D&D Game API called')
     console.log('Messages:', messages)
@@ -22,6 +22,14 @@ export async function POST(request: Request) {
       
       // Simple game responses based on user input
       let diceRoll = null
+      
+      // Don't roll dice if in combat - combat is handled by the game system
+      if (isInCombat) {
+        aiResponse = `You are in combat! Use the combat overlay to choose your actions.`
+        return NextResponse.json({
+          message: aiResponse
+        })
+      }
       
       if (userInput.toLowerCase().includes('look') || userInput.toLowerCase().includes('examine')) {
         aiResponse = `You look around and see a mysterious forest path ahead. Ancient trees tower above you, their branches creating a canopy that filters the sunlight. You notice a small wooden sign that reads "Adventure Awaits" pointing deeper into the woods.`

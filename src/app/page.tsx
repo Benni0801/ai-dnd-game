@@ -1170,8 +1170,8 @@ export default function Home() {
       return;
     }
 
-    // Check if in combat - only allow combat actions
-    if (isInCombat && combatTurn === 'player') {
+    // Check if in combat - block all text input during combat
+    if (isInCombat) {
       const combatMessage: Message = {
         id: Date.now().toString(),
         role: 'assistant',
@@ -1202,7 +1202,8 @@ export default function Home() {
           messages: [...messages, userMessage],
           characterStats,
           inventory,
-          onDiceRoll: 'handleAIDiceRoll' // Signal to AI that dice rolling is available
+          onDiceRoll: 'handleAIDiceRoll', // Signal to AI that dice rolling is available
+          isInCombat: isInCombat // Tell AI if we're in combat
         }),
       });
 
@@ -1492,20 +1493,22 @@ export default function Home() {
         });
       }
 
-      // Parse combat triggers from AI response
-      const combatTriggers = ['combat begins', 'battle starts', 'you are attacked', 'a fight breaks out', 'combat starts'];
-      const responseLower = responseText.toLowerCase();
-      const isCombatTriggered = combatTriggers.some(trigger => responseLower.includes(trigger));
-      
-      if (isCombatTriggered && !isInCombat) {
-        // Extract enemy type from response
-        let enemyType = 'Goblin'; // default
-        if (responseLower.includes('goblin')) enemyType = 'Goblin';
-        else if (responseLower.includes('orc')) enemyType = 'Orc';
-        else if (responseLower.includes('skeleton')) enemyType = 'Skeleton';
-        else if (responseLower.includes('wolf')) enemyType = 'Wolf';
+      // Parse combat triggers from AI response - only if not already in combat
+      if (!isInCombat) {
+        const combatTriggers = ['combat begins', 'battle starts', 'you are attacked', 'a fight breaks out', 'combat starts'];
+        const responseLower = responseText.toLowerCase();
+        const isCombatTriggered = combatTriggers.some(trigger => responseLower.includes(trigger));
         
-        startCombat(enemyType);
+        if (isCombatTriggered) {
+          // Extract enemy type from response
+          let enemyType = 'Goblin'; // default
+          if (responseLower.includes('goblin')) enemyType = 'Goblin';
+          else if (responseLower.includes('orc')) enemyType = 'Orc';
+          else if (responseLower.includes('skeleton')) enemyType = 'Skeleton';
+          else if (responseLower.includes('wolf')) enemyType = 'Wolf';
+          
+          startCombat(enemyType);
+        }
       }
 
       setMessages(prev => [...prev, aiMessage]);
