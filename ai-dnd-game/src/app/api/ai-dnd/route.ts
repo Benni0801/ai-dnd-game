@@ -37,6 +37,33 @@ export async function POST(request: Request) {
         aiResponse = `The old woman's smile fades slightly. "I understand. Not everyone is ready for such a dangerous quest. Perhaps you'd like to explore the area first and gain some experience? There are always smaller tasks that need doing."`
       } else if (userInput.toLowerCase().includes('fight') || userInput.toLowerCase().includes('attack') || userInput.toLowerCase().includes('battle')) {
         aiResponse = `You prepare for combat! As a ${character.class || 'warrior'}, you draw your weapon and assume a fighting stance. The old woman looks concerned. "Please, there's no need for violence here. I mean you no harm!"`
+      } else if (userInput.toLowerCase().includes('i attack') || userInput.toLowerCase().includes('attack the')) {
+        // Handle combat attacks
+        diceRoll = '1d20'
+        aiResponse = `You swing your weapon at your enemy! Let me roll for your attack...`
+      } else if (userInput.toLowerCase().includes('i cast') || userInput.toLowerCase().includes('cast a spell')) {
+        // Handle spell casting
+        diceRoll = '1d20'
+        aiResponse = `You channel magical energy and cast a spell! Let me roll for your spell attack...`
+      } else if (userInput.toLowerCase().includes('i use an item') || userInput.toLowerCase().includes('use an item')) {
+        // Handle item usage
+        aiResponse = `You reach into your inventory and use an item. The effect takes hold immediately.`
+      } else if (userInput.toLowerCase().includes('i dodge') || userInput.toLowerCase().includes('dodge')) {
+        // Handle dodging
+        diceRoll = '1d20'
+        aiResponse = `You attempt to dodge and avoid your enemy's attacks. Let me roll for your Dexterity check...`
+      } else if (userInput.toLowerCase().includes('enemy turn') || userInput.toLowerCase().includes('enemy attacks')) {
+        // Handle enemy turn in combat
+        const enemyActions = [
+          'The enemy swings their weapon at you!',
+          'The enemy lunges forward with a fierce attack!',
+          'The enemy casts a spell at you!',
+          'The enemy tries to bite you!',
+          'The enemy throws a projectile at you!'
+        ]
+        const randomAction = enemyActions[Math.floor(Math.random() * enemyActions.length)]
+        diceRoll = '1d20'
+        aiResponse = `${randomAction} Let me roll for the enemy's attack...`
       } else if (userInput.toLowerCase().includes('climb') || userInput.toLowerCase().includes('jump') || userInput.toLowerCase().includes('stealth')) {
         // Trigger ability checks with dice rolls
         if (userInput.toLowerCase().includes('climb')) {

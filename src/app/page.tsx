@@ -444,78 +444,39 @@ export default function Home() {
   const performCombatAction = (action: string) => {
     if (!isInCombat || combatTurn !== 'player' || !enemyStats) return;
     
-    let logMessage = '';
-    let damage = 0;
+    // Create a specific combat message for the AI
+    let combatMessage = '';
     
     if (action === 'Attack') {
-      // Roll attack
-      const attackRoll = Math.floor(Math.random() * 20) + 1 + (characterStats.str || 0);
-      if (attackRoll >= enemyStats.ac) {
-        // Hit - roll damage
-        damage = Math.floor(Math.random() * 8) + 1 + (characterStats.str || 0);
-        const newEnemyHp = Math.max(0, enemyStats.hp - damage);
-        setEnemyStats((prev: any) => ({ ...prev, hp: newEnemyHp }));
-        logMessage = `You attack and hit for ${damage} damage!`;
-        
-        if (newEnemyHp <= 0) {
-          logMessage += ` The ${enemyStats.name} is defeated!`;
-          endCombat(true);
-          return;
-        }
-      } else {
-        logMessage = `You attack but miss!`;
-      }
+      combatMessage = `I attack the ${enemyStats.name} with my weapon.`;
+    } else if (action === 'Cast Spell') {
+      combatMessage = `I cast a spell at the ${enemyStats.name}.`;
     } else if (action === 'Use Item') {
-      // Check for health potion
-      const hasHealthPotion = inventory.some(item => 
-        item.name.toLowerCase().includes('health') && item.name.toLowerCase().includes('potion')
-      );
-      
-      if (hasHealthPotion) {
-        const healAmount = 10;
-        setCharacterStats(prev => ({
-          ...prev,
-          hp: Math.min(prev.maxHp || 20, prev.hp + healAmount)
-        }));
-        logMessage = `You use a health potion and heal ${healAmount} HP!`;
-        addActionLogEntry('heal', `Used health potion: +${healAmount} HP`, '❤️');
-      } else {
-        logMessage = `You don't have any usable items!`;
-      }
+      combatMessage = `I use an item from my inventory.`;
+    } else if (action === 'Dodge') {
+      combatMessage = `I dodge and try to avoid the ${enemyStats.name}'s attacks.`;
     } else {
-      logMessage = `You attempt to ${action.toLowerCase()} but it has no effect in combat!`;
+      combatMessage = `I attempt to ${action.toLowerCase()} against the ${enemyStats.name}.`;
     }
     
-    setCombatLog(prev => [...prev, logMessage]);
+    // Add the combat message to the chat
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: combatMessage,
+      timestamp: new Date()
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
+    
+    // Update combat log
+    setCombatLog(prev => [...prev, `You ${action.toLowerCase()} against the ${enemyStats.name}.`]);
+    
+    // Set to enemy turn and send to AI
     setCombatTurn('enemy');
     
-    // Enemy turn after a short delay
-    setTimeout(() => {
-      if (enemyStats && enemyStats.hp > 0) {
-        const enemyAttackRoll = Math.floor(Math.random() * 20) + 1;
-        const playerAC = 10 + (characterStats.dex || 0);
-        
-        if (enemyAttackRoll >= playerAC) {
-          const enemyDamage = Math.floor(Math.random() * 6) + 1;
-          setCharacterStats(prev => ({
-            ...prev,
-            hp: Math.max(0, prev.hp - enemyDamage)
-          }));
-          setCombatLog(prev => [...prev, `The ${enemyStats.name} attacks and hits for ${enemyDamage} damage!`]);
-          addActionLogEntry('damage', `Enemy attack: -${enemyDamage} HP`, '⚔️');
-          
-          if (characterStats.hp - enemyDamage <= 0) {
-            setCombatLog(prev => [...prev, `You are defeated!`]);
-            endCombat(false);
-            return;
-          }
-        } else {
-          setCombatLog(prev => [...prev, `The ${enemyStats.name} attacks but misses!`]);
-        }
-        
-        setCombatTurn('player');
-      }
-    }, 1500);
+    // Send the message to AI
+    handleSendMessage(combatMessage);
   };
 
   // Quest management functions
@@ -1162,8 +1123,8 @@ export default function Home() {
       return;
     }
 
-    // Check if in combat - restrict actions
-    if (isInCombat) {
+    // Check if in combat - only allow combat actions
+    if (isInCombat && combatTurn === 'player') {
       const combatMessage: Message = {
         id: Date.now().toString(),
         role: 'assistant',
@@ -1501,6 +1462,24 @@ export default function Home() {
       }
 
       setMessages(prev => [...prev, aiMessage]);
+      
+      // Handle enemy turn in combat
+      if (isInCombat && combatTurn === 'enemy' && enemyStats) {
+        // Add a delay to simulate enemy thinking, then send enemy turn message
+        setTimeout(() => {
+          const enemyTurnMessage = `The ${enemyStats.name} attacks you!`;
+          handleSendMessage(enemyTurnMessage);
+        }, 2000);
+      }
+      
+      // Handle switching back to player turn after enemy response
+      if (isInCombat && combatTurn === 'enemy' && enemyStats && responseText.toLowerCase().includes('enemy')) {
+        // After AI responds to enemy turn, switch back to player turn
+        setTimeout(() => {
+          setCombatTurn('player');
+          setCombatLog(prev => [...prev, `The ${enemyStats.name} has finished their turn. It's your turn now.`]);
+        }, 1000);
+      }
 
     } catch (error: any) {
       console.error('Error sending message:', error);
