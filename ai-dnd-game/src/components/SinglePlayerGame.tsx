@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import DiceRoller from './DiceRoller'
 
 interface Message {
   id: string
@@ -156,15 +157,24 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
   ] : [])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [diceRolling, setDiceRolling] = useState(false)
   const [isInCombat, setIsInCombat] = useState(false)
   const [enemyStats, setEnemyStats] = useState<EnemyStats | null>(null)
   const [combatTurn, setCombatTurn] = useState<'player' | 'enemy'>('player')
   const [combatLog, setCombatLog] = useState<string[]>([])
+  const [diceRolling, setDiceRolling] = useState(false)
+  const [currentDice, setCurrentDice] = useState<string>('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  const handleDiceRollComplete = (result: number, rolls: number[]) => {
+    setDiceRolling(false)
+    setCurrentDice('')
+    
+    // Add dice result to combat log
+    setCombatLog(prev => [...prev, `🎲 Rolled ${currentDice}: ${result} (${rolls.join(', ')})`])
   }
 
   useEffect(() => {
@@ -302,6 +312,20 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
           }
         } catch (error) {
           console.error('Error parsing XP data:', error)
+        }
+      }
+      
+      // Check for dice rolls
+      if (responseText.includes('[DICE:')) {
+        try {
+          const diceMatch = responseText.match(/\[DICE:([^\]]+)\]/)
+          if (diceMatch && diceMatch[1]) {
+            const diceString = diceMatch[1]
+            setCurrentDice(diceString)
+            setDiceRolling(true)
+          }
+        } catch (error) {
+          console.error('Error parsing dice data:', error)
         }
       }
 
@@ -496,6 +520,20 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
           }
         } catch (error) {
           console.error('Error parsing XP data:', error)
+        }
+      }
+      
+      // Check for dice rolls
+      if (responseText.includes('[DICE:')) {
+        try {
+          const diceMatch = responseText.match(/\[DICE:([^\]]+)\]/)
+          if (diceMatch && diceMatch[1]) {
+            const diceString = diceMatch[1]
+            setCurrentDice(diceString)
+            setDiceRolling(true)
+          }
+        } catch (error) {
+          console.error('Error parsing dice data:', error)
         }
       }
 
@@ -1286,6 +1324,12 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
           </div>
         </div>
       </div>
+
+      <DiceRoller 
+        dice={currentDice}
+        onRollComplete={handleDiceRollComplete}
+        isRolling={diceRolling}
+      />
 
       <style jsx>{`
         @keyframes spin {

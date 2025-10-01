@@ -8,6 +8,49 @@ export async function POST(request: Request) {
     const lastUserMessage = messages[messages.length - 1]
     const userInput = lastUserMessage?.content?.trim() || ''
     
+    // AGGRESSIVE OVERRIDE: If this looks like a combat scenario, use our system immediately
+    if (userInput.toLowerCase().includes('goblin') || 
+        userInput.toLowerCase().includes('rat') || 
+        userInput.toLowerCase().includes('fight') || 
+        userInput.toLowerCase().includes('attack') ||
+        userInput.toLowerCase().includes('combat') ||
+        userInput.toLowerCase().includes('battle') ||
+        userInput.toLowerCase().includes('monster') ||
+        userInput.toLowerCase().includes('enemy') ||
+        isInCombat) {
+      
+      // IMMEDIATELY return our combat system response - don't let external AI interfere
+      if (userInput.toLowerCase().includes('goblin')) {
+        return NextResponse.json({ 
+          message: `A sneaky goblin jumps out from behind a rock, brandishing a rusty dagger. It cackles menacingly as it prepares to strike. Combat begins! [ENEMY:{"name":"Goblin","hp":7,"ac":15,"damage":"1d4+2","description":"A small but cunning goblin","xp":50}]`
+        })
+      }
+      
+      if (userInput.toLowerCase().includes('rat')) {
+        return NextResponse.json({ 
+          message: `A diseased-looking rat emerges from the shadows, its eyes glowing with malevolence. It bares its yellowed teeth and prepares to attack. Combat begins! [ENEMY:{"name":"Giant Rat","hp":5,"ac":12,"damage":"1d4","description":"A large, aggressive rat with sharp teeth","xp":25}]`
+        })
+      }
+      
+      if (userInput.toLowerCase().includes('i attack') || userInput.toLowerCase().includes('attack the')) {
+        const attackRoll = Math.floor(Math.random() * 20) + 1;
+        const damageRoll = Math.floor(Math.random() * 8) + 1;
+        const hit = attackRoll >= 15;
+        const enemyDies = hit && Math.random() < 0.5;
+        const xpReward = enemyDies ? Math.floor(Math.random() * 50) + 25 : 0;
+        
+        if (enemyDies) {
+          return NextResponse.json({ 
+            message: `You swing your weapon at your enemy! [DICE:1d20] (Your Attack Roll: ${attackRoll}) You hit! [DICE:1d8+1] (Your Damage: ${damageRoll}) The enemy takes ${damageRoll} damage and collapses! You feel more experienced after the victory! [XP:${xpReward}]`
+          })
+        } else {
+          return NextResponse.json({ 
+            message: `You swing your weapon at your enemy! [DICE:1d20] (Your Attack Roll: ${attackRoll}) You ${hit ? 'hit' : 'miss'}! ${hit ? `[DICE:1d8+1] (Your Damage: ${damageRoll}) The enemy takes ${damageRoll} damage!` : 'Your attack misses!'} [TURN:enemy]`
+          })
+        }
+      }
+    }
+    
     // AGGRESSIVE COMBAT DETECTION - catch ALL combat scenarios
     const combatKeywords = [
       'fight', 'attack', 'battle', 'encounter', 'monster', 'enemy', 'combat',
