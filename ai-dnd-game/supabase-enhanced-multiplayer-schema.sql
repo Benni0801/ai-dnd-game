@@ -88,3 +88,4 @@ SELECT 'team_chat_messages' as table_name, count(*) as row_count FROM team_chat_
 
 
 
+

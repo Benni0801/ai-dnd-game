@@ -44,6 +44,15 @@ interface CharacterData {
   stats?: CharacterStats
 }
 
+interface EnemyStats {
+  name: string
+  hp: number
+  maxHp: number
+  ac: number
+  damage: string
+  description: string
+}
+
 interface SinglePlayerGameProps {
   character?: CharacterData
   onBack: () => void
@@ -147,6 +156,10 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [diceRolling, setDiceRolling] = useState(false)
+  const [isInCombat, setIsInCombat] = useState(false)
+  const [enemyStats, setEnemyStats] = useState<EnemyStats | null>(null)
+  const [combatTurn, setCombatTurn] = useState<'player' | 'enemy'>('player')
+  const [combatLog, setCombatLog] = useState<string[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -195,6 +208,129 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
     }, 1500)
   }
 
+  const sendCombatMessage = async (message: string) => {
+    try {
+      const response = await fetch('/api/ai-dnd', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [...messages, { id: Date.now().toString(), type: 'user', content: message, timestamp: new Date() }],
+          character: characterData,
+          onDiceRoll: 'handleDMDiceRoll',
+          isInCombat: isInCombat
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.error) {
+        throw new Error(data.message || data.error)
+      }
+
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: data.message,
+        timestamp: new Date()
+      }
+
+      setMessages(prev => [...prev, aiMessage])
+
+      // Handle combat state changes
+      const responseText = data.message
+      
+      // Check if combat starts (enemy appears)
+      if (responseText.includes('[ENEMY:')) {
+        try {
+          const enemyMatch = responseText.match(/\[ENEMY:({.*?})\]/)
+          if (enemyMatch) {
+            const enemyData = JSON.parse(enemyMatch[1])
+            setEnemyStats({
+              name: enemyData.name,
+              hp: enemyData.hp,
+              maxHp: enemyData.hp,
+              ac: enemyData.ac,
+              damage: enemyData.damage,
+              description: enemyData.description
+            })
+            setIsInCombat(true)
+            setCombatTurn('player')
+            setCombatLog(prev => [...prev, `Combat begins! You face a ${enemyData.name}.`])
+          }
+        } catch (error) {
+          console.error('Error parsing enemy data:', error)
+        }
+      }
+
+      // Handle combat turn progression
+      if (isInCombat && combatTurn === 'enemy' && enemyStats) {
+        // Check if this is a player action response (contains dice rolls or combat actions)
+        if (responseText.toLowerCase().includes('dice:1d20') || responseText.toLowerCase().includes('attack roll') || responseText.toLowerCase().includes('spell attack') || responseText.toLowerCase().includes('swing your weapon') || responseText.toLowerCase().includes('channel magical energy') || responseText.toLowerCase().includes('takes') || responseText.toLowerCase().includes('damage')) {
+          // After AI responds to player action, trigger enemy turn
+          setTimeout(() => {
+            const enemyTurnMessage = `The ${enemyStats.name} attacks you!`
+            // Send enemy turn message
+            const enemyMessage: Message = {
+              id: Date.now().toString(),
+              type: 'user',
+              content: enemyTurnMessage,
+              timestamp: new Date()
+            }
+            setMessages(prev => [...prev, enemyMessage])
+            // Trigger AI response by calling the API directly
+            triggerEnemyTurn(enemyTurnMessage)
+          }, 2000)
+        }
+        // Check if this is an enemy turn response
+        else if (responseText.toLowerCase().includes('enemy') || responseText.toLowerCase().includes('attacks you') || responseText.toLowerCase().includes('enemy attack roll') || responseText.toLowerCase().includes('you take')) {
+          // After AI responds to enemy turn, switch back to player turn
+          setTimeout(() => {
+            setCombatTurn('player')
+            setCombatLog(prev => [...prev, `The ${enemyStats.name} has finished their turn. It's your turn now.`])
+          }, 1000)
+        }
+      }
+    } catch (error) {
+      console.error('Error in combat message:', error)
+    }
+  }
+
+  const triggerEnemyTurn = async (enemyMessage: string) => {
+    try {
+      const response = await fetch('/api/ai-dnd', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [...messages, { id: Date.now().toString(), type: 'user', content: enemyMessage, timestamp: new Date() }],
+          character: characterData,
+          onDiceRoll: 'handleDMDiceRoll',
+          isInCombat: isInCombat
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.error) {
+        throw new Error(data.message || data.error)
+      }
+
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: data.message,
+        timestamp: new Date()
+      }
+
+      setMessages(prev => [...prev, aiMessage])
+    } catch (error) {
+      console.error('Error in enemy turn:', error)
+    }
+  }
+
   const sendMessage = async () => {
     if (!inputValue.trim() || isLoading) return
 
@@ -218,7 +354,8 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
         body: JSON.stringify({
           messages: [...messages, userMessage],
           character: characterData,
-          onDiceRoll: 'handleDMDiceRoll' // Signal to AI that dice rolling is available
+          onDiceRoll: 'handleDMDiceRoll', // Signal to AI that dice rolling is available
+          isInCombat: isInCombat
         })
       })
 
@@ -241,6 +378,61 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
       }
 
       setMessages(prev => [...prev, aiMessage])
+
+      // Handle combat state changes
+      const responseText = data.message
+      
+      // Check if combat starts (enemy appears)
+      if (responseText.includes('[ENEMY:')) {
+        try {
+          const enemyMatch = responseText.match(/\[ENEMY:({.*?})\]/)
+          if (enemyMatch) {
+            const enemyData = JSON.parse(enemyMatch[1])
+            setEnemyStats({
+              name: enemyData.name,
+              hp: enemyData.hp,
+              maxHp: enemyData.hp,
+              ac: enemyData.ac,
+              damage: enemyData.damage,
+              description: enemyData.description
+            })
+            setIsInCombat(true)
+            setCombatTurn('player')
+            setCombatLog(prev => [...prev, `Combat begins! You face a ${enemyData.name}.`])
+          }
+        } catch (error) {
+          console.error('Error parsing enemy data:', error)
+        }
+      }
+
+      // Handle combat turn progression
+      if (isInCombat && combatTurn === 'enemy' && enemyStats) {
+        // Check if this is a player action response (contains dice rolls or combat actions)
+        if (responseText.toLowerCase().includes('dice:1d20') || responseText.toLowerCase().includes('attack roll') || responseText.toLowerCase().includes('spell attack') || responseText.toLowerCase().includes('swing your weapon') || responseText.toLowerCase().includes('channel magical energy') || responseText.toLowerCase().includes('takes') || responseText.toLowerCase().includes('damage')) {
+          // After AI responds to player action, trigger enemy turn
+          setTimeout(() => {
+            const enemyTurnMessage = `The ${enemyStats.name} attacks you!`
+            // Send enemy turn message
+            const enemyMessage: Message = {
+              id: Date.now().toString(),
+              type: 'user',
+              content: enemyTurnMessage,
+              timestamp: new Date()
+            }
+            setMessages(prev => [...prev, enemyMessage])
+            // Trigger AI response by calling the API directly
+            triggerEnemyTurn(enemyTurnMessage)
+          }, 2000)
+        }
+        // Check if this is an enemy turn response
+        else if (responseText.toLowerCase().includes('enemy') || responseText.toLowerCase().includes('attacks you') || responseText.toLowerCase().includes('enemy attack roll') || responseText.toLowerCase().includes('you take')) {
+          // After AI responds to enemy turn, switch back to player turn
+          setTimeout(() => {
+            setCombatTurn('player')
+            setCombatLog(prev => [...prev, `The ${enemyStats.name} has finished their turn. It's your turn now.`])
+          }, 1000)
+        }
+      }
 
     } catch (error) {
       console.error('Error sending message:', error)
@@ -594,6 +786,171 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
         </div>
       </div>
 
+      {/* Combat Overlay */}
+      {isInCombat && enemyStats && (
+        <div style={{
+          background: 'rgba(220, 38, 38, 0.1)',
+          border: '2px solid rgba(220, 38, 38, 0.3)',
+          borderLeft: 'none',
+          borderRight: 'none',
+          padding: '1rem',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            maxWidth: '1200px',
+            margin: '0 auto',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '1rem'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{
+                background: 'rgba(220, 38, 38, 0.2)',
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                border: '1px solid rgba(220, 38, 38, 0.3)'
+              }}>
+                <span style={{ color: '#fca5a5', fontWeight: 'bold' }}>⚔️ COMBAT</span>
+                <span style={{ color: '#fbbf24', marginLeft: '0.5rem' }}>
+                  {combatTurn === 'player' ? 'Your Turn' : `${enemyStats.name}'s Turn`}
+                </span>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ color: '#10b981', fontSize: '0.9rem', marginBottom: '0.25rem' }}>You</div>
+                <div style={{ color: '#fbbf24', fontWeight: 'bold' }}>
+                  HP: {characterData.stats?.hitPoints || 0}/{characterData.stats?.maxHitPoints || 0}
+                </div>
+              </div>
+              <div style={{ color: '#6b7280' }}>VS</div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ color: '#ef4444', fontSize: '0.9rem', marginBottom: '0.25rem' }}>{enemyStats.name}</div>
+                <div style={{ color: '#fbbf24', fontWeight: 'bold' }}>
+                  HP: {enemyStats.hp}/{enemyStats.maxHp}
+                </div>
+              </div>
+            </div>
+
+            {combatTurn === 'player' && (
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => {
+                    const attackMessage = 'I attack the enemy with my weapon'
+                    setInputValue(attackMessage)
+                    // Trigger the message send
+                    setTimeout(() => {
+                      const userMessage: Message = {
+                        id: Date.now().toString(),
+                        type: 'user',
+                        content: attackMessage,
+                        timestamp: new Date()
+                      }
+                      setMessages(prev => [...prev, userMessage])
+                      setInputValue('')
+                      // Call the API directly
+                      sendCombatMessage(attackMessage)
+                    }, 100)
+                  }}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: 'rgba(220, 38, 38, 0.2)',
+                    border: '1px solid rgba(220, 38, 38, 0.3)',
+                    borderRadius: '6px',
+                    color: '#fca5a5',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  ⚔️ Attack
+                </button>
+                <button
+                  onClick={() => {
+                    const spellMessage = 'I cast a spell at the enemy'
+                    setInputValue(spellMessage)
+                    setTimeout(() => {
+                      const userMessage: Message = {
+                        id: Date.now().toString(),
+                        type: 'user',
+                        content: spellMessage,
+                        timestamp: new Date()
+                      }
+                      setMessages(prev => [...prev, userMessage])
+                      setInputValue('')
+                      sendCombatMessage(spellMessage)
+                    }, 100)
+                  }}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: 'rgba(139, 92, 246, 0.2)',
+                    border: '1px solid rgba(139, 92, 246, 0.3)',
+                    borderRadius: '6px',
+                    color: '#a78bfa',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  🔮 Cast Spell
+                </button>
+                <button
+                  onClick={() => {
+                    const dodgeMessage = 'I dodge to avoid attacks'
+                    setInputValue(dodgeMessage)
+                    setTimeout(() => {
+                      const userMessage: Message = {
+                        id: Date.now().toString(),
+                        type: 'user',
+                        content: dodgeMessage,
+                        timestamp: new Date()
+                      }
+                      setMessages(prev => [...prev, userMessage])
+                      setInputValue('')
+                      sendCombatMessage(dodgeMessage)
+                    }, 100)
+                  }}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: 'rgba(34, 197, 94, 0.2)',
+                    border: '1px solid rgba(34, 197, 94, 0.3)',
+                    borderRadius: '6px',
+                    color: '#86efac',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  🏃 Dodge
+                </button>
+                <button
+                  onClick={() => {
+                    setIsInCombat(false)
+                    setEnemyStats(null)
+                    setCombatTurn('player')
+                    setCombatLog([])
+                  }}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: 'rgba(107, 114, 128, 0.2)',
+                    border: '1px solid rgba(107, 114, 128, 0.3)',
+                    borderRadius: '6px',
+                    color: '#d1d5db',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  🏃‍♂️ Flee
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Main Game Layout */}
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
