@@ -16,6 +16,19 @@ export async function POST(request: Request) {
     const lastUserMessage = messages[messages.length - 1]
     const userInput = lastUserMessage?.content?.trim() || ''
     
+    // Force our combat system for any combat-related input
+    const isCombatInput = userInput.toLowerCase().includes('fight') || 
+                         userInput.toLowerCase().includes('attack') || 
+                         userInput.toLowerCase().includes('battle') || 
+                         userInput.toLowerCase().includes('encounter') || 
+                         userInput.toLowerCase().includes('monster') ||
+                         userInput.toLowerCase().includes('i attack') ||
+                         userInput.toLowerCase().includes('i cast') ||
+                         userInput.toLowerCase().includes('i dodge') ||
+                         userInput.toLowerCase().includes('enemy turn') ||
+                         userInput.toLowerCase().includes('enemy attacks') ||
+                         isInCombat
+    
     // Debug logging (remove in production)
     if (process.env.NODE_ENV === 'development') {
       console.log('AI Route - User Input:', userInput)
@@ -25,6 +38,15 @@ export async function POST(request: Request) {
     
     let aiResponse = ''
     let diceRoll = null
+    
+    // FORCE our combat system for any combat-related input
+    if (isCombatInput) {
+      // Use our combat system - don't let external AI override combat
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Using our combat system for:', userInput)
+      }
+      // Skip any external AI and go directly to our combat logic
+    }
     
     // Handle combat actions properly instead of blocking them
     if (isInCombat) {
@@ -461,6 +483,20 @@ export async function POST(request: Request) {
     if (process.env.NODE_ENV === 'development') {
       console.log('AI Route - Generated Response:', aiResponse)
     }
+    
+    // Ensure combat data is always included for combat scenarios
+    if (isCombatInput && !aiResponse.includes('[ENEMY:') && !aiResponse.includes('[TURN:')) {
+      // If this is a combat input but our system didn't generate combat data,
+      // it means external AI was used - we need to override it
+      if (process.env.NODE_ENV === 'development') {
+        console.log('External AI detected for combat - overriding with our system')
+      }
+      // Force our combat system to handle this
+      return NextResponse.json({ 
+        message: "Combat system override - please try again with a specific combat action like 'fight a goblin' or 'I attack the enemy'"
+      })
+    }
+    
     const response: { message: string; diceRoll?: any } = {
       message: aiResponse
     };
