@@ -264,32 +264,29 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
         }
       }
 
-      // Handle combat turn progression
-      if (isInCombat && combatTurn === 'enemy' && enemyStats) {
-        // Check if this is a player action response (contains dice rolls or combat actions)
-        if (responseText.toLowerCase().includes('dice:1d20') || responseText.toLowerCase().includes('attack roll') || responseText.toLowerCase().includes('spell attack') || responseText.toLowerCase().includes('swing your weapon') || responseText.toLowerCase().includes('channel magical energy') || responseText.toLowerCase().includes('takes') || responseText.toLowerCase().includes('damage')) {
-          // After AI responds to player action, trigger enemy turn
-          setTimeout(() => {
-            const enemyTurnMessage = `The ${enemyStats.name} attacks you!`
-            // Send enemy turn message
-            const enemyMessage: Message = {
-              id: Date.now().toString(),
-              type: 'user',
-              content: enemyTurnMessage,
-              timestamp: new Date()
-            }
-            setMessages(prev => [...prev, enemyMessage])
-            // Trigger AI response by calling the API directly
-            triggerEnemyTurn(enemyTurnMessage)
-          }, 2000)
-        }
-        // Check if this is an enemy turn response
-        else if (responseText.toLowerCase().includes('enemy') || responseText.toLowerCase().includes('attacks you') || responseText.toLowerCase().includes('enemy attack roll') || responseText.toLowerCase().includes('you take')) {
-          // After AI responds to enemy turn, switch back to player turn
-          setTimeout(() => {
-            setCombatTurn('player')
-            setCombatLog(prev => [...prev, `The ${enemyStats.name} has finished their turn. It's your turn now.`])
-          }, 1000)
+      // Handle turn progression from AI responses
+      if (responseText.includes('[TURN:')) {
+        const turnMatch = responseText.match(/\[TURN:(player|enemy)\]/)
+        if (turnMatch) {
+          const newTurn = turnMatch[1] as 'player' | 'enemy'
+          setCombatTurn(newTurn)
+          
+          // If it's now the enemy's turn, automatically trigger enemy action
+          if (newTurn === 'enemy' && enemyStats) {
+            setTimeout(() => {
+              const enemyTurnMessage = `The ${enemyStats.name} attacks you!`
+              const enemyMessage: Message = {
+                id: Date.now().toString(),
+                type: 'user',
+                content: enemyTurnMessage,
+                timestamp: new Date()
+              }
+              setMessages(prev => [...prev, enemyMessage])
+              triggerEnemyTurn(enemyTurnMessage)
+            }, 1500)
+          } else if (newTurn === 'player') {
+            setCombatLog(prev => [...prev, `It's your turn now. Choose your action!`])
+          }
         }
       }
     } catch (error) {
@@ -333,6 +330,18 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
 
   const sendMessage = async () => {
     if (!inputValue.trim() || isLoading) return
+
+    // Turn-based combat restrictions
+    if (isInCombat && combatTurn === 'enemy') {
+      const aiMessage: Message = {
+        id: Date.now().toString(),
+        type: 'ai',
+        content: `It's the enemy's turn! Please wait for them to finish their action.`,
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, aiMessage])
+      return
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -405,32 +414,29 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
         }
       }
 
-      // Handle combat turn progression
-      if (isInCombat && combatTurn === 'enemy' && enemyStats) {
-        // Check if this is a player action response (contains dice rolls or combat actions)
-        if (responseText.toLowerCase().includes('dice:1d20') || responseText.toLowerCase().includes('attack roll') || responseText.toLowerCase().includes('spell attack') || responseText.toLowerCase().includes('swing your weapon') || responseText.toLowerCase().includes('channel magical energy') || responseText.toLowerCase().includes('takes') || responseText.toLowerCase().includes('damage')) {
-          // After AI responds to player action, trigger enemy turn
-          setTimeout(() => {
-            const enemyTurnMessage = `The ${enemyStats.name} attacks you!`
-            // Send enemy turn message
-            const enemyMessage: Message = {
-              id: Date.now().toString(),
-              type: 'user',
-              content: enemyTurnMessage,
-              timestamp: new Date()
-            }
-            setMessages(prev => [...prev, enemyMessage])
-            // Trigger AI response by calling the API directly
-            triggerEnemyTurn(enemyTurnMessage)
-          }, 2000)
-        }
-        // Check if this is an enemy turn response
-        else if (responseText.toLowerCase().includes('enemy') || responseText.toLowerCase().includes('attacks you') || responseText.toLowerCase().includes('enemy attack roll') || responseText.toLowerCase().includes('you take')) {
-          // After AI responds to enemy turn, switch back to player turn
-          setTimeout(() => {
-            setCombatTurn('player')
-            setCombatLog(prev => [...prev, `The ${enemyStats.name} has finished their turn. It's your turn now.`])
-          }, 1000)
+      // Handle turn progression from AI responses
+      if (responseText.includes('[TURN:')) {
+        const turnMatch = responseText.match(/\[TURN:(player|enemy)\]/)
+        if (turnMatch) {
+          const newTurn = turnMatch[1] as 'player' | 'enemy'
+          setCombatTurn(newTurn)
+          
+          // If it's now the enemy's turn, automatically trigger enemy action
+          if (newTurn === 'enemy' && enemyStats) {
+            setTimeout(() => {
+              const enemyTurnMessage = `The ${enemyStats.name} attacks you!`
+              const enemyMessage: Message = {
+                id: Date.now().toString(),
+                type: 'user',
+                content: enemyTurnMessage,
+                timestamp: new Date()
+              }
+              setMessages(prev => [...prev, enemyMessage])
+              triggerEnemyTurn(enemyTurnMessage)
+            }, 1500)
+          } else if (newTurn === 'player') {
+            setCombatLog(prev => [...prev, `It's your turn now. Choose your action!`])
+          }
         }
       }
 
@@ -1156,8 +1162,8 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="What do you want to do?"
-                disabled={isLoading}
+                placeholder={isInCombat && combatTurn === 'enemy' ? "Wait for the enemy's turn..." : "What do you want to do?"}
+                disabled={isLoading || (isInCombat && combatTurn === 'enemy')}
                 style={{
                   flex: 1,
                   minHeight: '60px',
