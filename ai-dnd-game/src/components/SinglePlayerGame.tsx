@@ -51,6 +51,7 @@ interface EnemyStats {
   ac: number
   damage: string
   description: string
+  xp?: number
 }
 
 interface SinglePlayerGameProps {
@@ -257,7 +258,8 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
               maxHp: enemyData.hp,
               ac: enemyData.ac,
               damage: enemyData.damage,
-              description: enemyData.description
+              description: enemyData.description,
+              xp: enemyData.xp || 0
             })
             setIsInCombat(true)
             setCombatTurn('player')
@@ -265,6 +267,41 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
           }
         } catch (error) {
           console.error('Error parsing enemy data:', error)
+        }
+      }
+      
+      // Check for XP rewards
+      if (responseText.includes('[XP:')) {
+        try {
+          const xpMatch = responseText.match(/\[XP:(\d+)\]/)
+          if (xpMatch && xpMatch[1]) {
+            const xpGained = parseInt(xpMatch[1])
+            setCharacterData(prev => ({
+              ...prev,
+              stats: prev.stats ? {
+                ...prev.stats,
+                experience: (prev.stats.experience || 0) + xpGained
+              } : {
+                level: 1,
+                hitPoints: 10,
+                maxHitPoints: 10,
+                armorClass: 10,
+                speed: 30,
+                strength: 10,
+                dexterity: 10,
+                constitution: 10,
+                intelligence: 10,
+                wisdom: 10,
+                charisma: 10,
+                proficiencyBonus: 2,
+                experience: xpGained,
+                gold: 0
+              }
+            }))
+            setCombatLog(prev => [...prev, `You gained ${xpGained} XP!`])
+          }
+        } catch (error) {
+          console.error('Error parsing XP data:', error)
         }
       }
 
@@ -415,7 +452,8 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
               maxHp: enemyData.hp,
               ac: enemyData.ac,
               damage: enemyData.damage,
-              description: enemyData.description
+              description: enemyData.description,
+              xp: enemyData.xp || 0
             })
             setIsInCombat(true)
             setCombatTurn('player')
@@ -423,6 +461,41 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
           }
         } catch (error) {
           console.error('Error parsing enemy data:', error)
+        }
+      }
+      
+      // Check for XP rewards
+      if (responseText.includes('[XP:')) {
+        try {
+          const xpMatch = responseText.match(/\[XP:(\d+)\]/)
+          if (xpMatch && xpMatch[1]) {
+            const xpGained = parseInt(xpMatch[1])
+            setCharacterData(prev => ({
+              ...prev,
+              stats: prev.stats ? {
+                ...prev.stats,
+                experience: (prev.stats.experience || 0) + xpGained
+              } : {
+                level: 1,
+                hitPoints: 10,
+                maxHitPoints: 10,
+                armorClass: 10,
+                speed: 30,
+                strength: 10,
+                dexterity: 10,
+                constitution: 10,
+                intelligence: 10,
+                wisdom: 10,
+                charisma: 10,
+                proficiencyBonus: 2,
+                experience: xpGained,
+                gold: 0
+              }
+            }))
+            setCombatLog(prev => [...prev, `You gained ${xpGained} XP!`])
+          }
+        } catch (error) {
+          console.error('Error parsing XP data:', error)
         }
       }
 

@@ -8,20 +8,27 @@ export async function POST(request: Request) {
     const lastUserMessage = messages[messages.length - 1]
     const userInput = lastUserMessage?.content?.trim() || ''
     
-    const isCombatInput = userInput.toLowerCase().includes('fight') || 
-                         userInput.toLowerCase().includes('attack') || 
-                         userInput.toLowerCase().includes('battle') || 
-                         userInput.toLowerCase().includes('encounter') || 
-                         userInput.toLowerCase().includes('monster') ||
-                         userInput.toLowerCase().includes('goblin') ||
-                         userInput.toLowerCase().includes('worg') ||
-                         userInput.toLowerCase().includes('dragon') ||
-                         userInput.toLowerCase().includes('i attack') ||
-                         userInput.toLowerCase().includes('i cast') ||
-                         userInput.toLowerCase().includes('i dodge') ||
-                         userInput.toLowerCase().includes('enemy turn') ||
-                         userInput.toLowerCase().includes('enemy attacks') ||
-                         isInCombat
+    // AGGRESSIVE COMBAT DETECTION - catch ALL combat scenarios
+    const combatKeywords = [
+      'fight', 'attack', 'battle', 'encounter', 'monster', 'enemy', 'combat',
+      'goblin', 'worg', 'dragon', 'troll', 'orc', 'skeleton', 'spider', 'wolf', 'rat', 'bandit', 'zombie', 'kobold', 'imp',
+      'bear', 'boar', 'crocodile', 'eagle', 'hyena', 'lion', 'panther', 'shark', 'tiger',
+      'ghoul', 'ghost', 'lich', 'mummy', 'vampire', 'wraith',
+      'demon', 'devil', 'succubus', 'balor',
+      'wyvern', 'drake', 'elemental', 'earth', 'water', 'air',
+      'giant', 'ogre', 'beholder', 'mind', 'aboleth',
+      'golem', 'animated', 'fairy', 'dryad', 'satyr',
+      'knight', 'mage', 'assassin', 'cultist', 'pirate', 'gladiator',
+      'chimera', 'griffon', 'hydra', 'medusa', 'minotaur', 'sphinx',
+      'ooze', 'slime', 'treant', 'shambler', 'angel', 'unicorn',
+      'hellhound', 'nightmare', 'i attack', 'i cast', 'i dodge',
+      'enemy turn', 'enemy attacks', 'slash', 'strike', 'hit', 'swing',
+      'cast spell', 'dodge', 'flee', 'run away'
+    ]
+    
+    const isCombatInput = combatKeywords.some(keyword => 
+      userInput.toLowerCase().includes(keyword)
+    ) || isInCombat
     
     // If this is a combat input, immediately use our combat system
     if (isCombatInput) {
@@ -49,42 +56,44 @@ export async function POST(request: Request) {
         
         // AI creates dynamic enemies based on what the player wants to fight
         if (userInput.toLowerCase().includes('worg')) {
-          aiResponse = `A massive worg emerges from the shadows, its yellow eyes gleaming with hunger. This is no ordinary wolf - it's a fearsome predator with razor-sharp claws and powerful jaws. Combat begins! [ENEMY:{"name":"Worg","hp":26,"ac":13,"damage":"2d6+3","description":"A massive wolf-like creature with supernatural intelligence"}]`
+          aiResponse = `A massive worg emerges from the shadows, its yellow eyes gleaming with hunger. This is no ordinary wolf - it's a fearsome predator with razor-sharp claws and powerful jaws. Combat begins! [ENEMY:{"name":"Worg","hp":26,"ac":13,"damage":"2d6+3","description":"A massive wolf-like creature with supernatural intelligence","xp":200}]`
         } else if (userInput.toLowerCase().includes('dragon')) {
-          aiResponse = `A massive dragon swoops down from the sky, its scales glinting in the light. Fire erupts from its maw as it roars a challenge. Combat begins! [ENEMY:{"name":"Young Red Dragon","hp":178,"ac":18,"damage":"2d10+4","description":"A young but deadly red dragon with fire breath"}]`
+          aiResponse = `A massive dragon swoops down from the sky, its scales glinting in the light. Fire erupts from its maw as it roars a challenge. Combat begins! [ENEMY:{"name":"Young Red Dragon","hp":178,"ac":18,"damage":"2d10+4","description":"A young but deadly red dragon with fire breath","xp":3900}]`
         } else if (userInput.toLowerCase().includes('troll')) {
-          aiResponse = `A towering troll lumbers forward, its green skin covered in warts and scars. It wields a massive club and regenerates from wounds. Combat begins! [ENEMY:{"name":"Troll","hp":84,"ac":15,"damage":"2d8+4","description":"A massive troll with regenerative abilities"}]`
+          aiResponse = `A towering troll lumbers forward, its green skin covered in warts and scars. It wields a massive club and regenerates from wounds. Combat begins! [ENEMY:{"name":"Troll","hp":84,"ac":15,"damage":"2d8+4","description":"A massive troll with regenerative abilities","xp":1800}]`
         } else if (userInput.toLowerCase().includes('orc')) {
-          aiResponse = `A fierce orc warrior charges at you, brandishing a crude but deadly weapon. Its tusks gleam as it lets out a battle cry. Combat begins! [ENEMY:{"name":"Orc Warrior","hp":15,"ac":13,"damage":"1d12+3","description":"A battle-hardened orc warrior"}]`
+          aiResponse = `A fierce orc warrior charges at you, brandishing a crude but deadly weapon. Its tusks gleam as it lets out a battle cry. Combat begins! [ENEMY:{"name":"Orc Warrior","hp":15,"ac":13,"damage":"1d12+3","description":"A battle-hardened orc warrior","xp":100}]`
         } else if (userInput.toLowerCase().includes('goblin')) {
-          aiResponse = `A sneaky goblin jumps out from behind a rock, brandishing a rusty dagger. It cackles menacingly as it prepares to strike. Combat begins! [ENEMY:{"name":"Goblin","hp":7,"ac":15,"damage":"1d4+2","description":"A small but cunning goblin"}]`
+          aiResponse = `A sneaky goblin jumps out from behind a rock, brandishing a rusty dagger. It cackles menacingly as it prepares to strike. Combat begins! [ENEMY:{"name":"Goblin","hp":7,"ac":15,"damage":"1d4+2","description":"A small but cunning goblin","xp":50}]`
+        } else if (userInput.toLowerCase().includes('rat')) {
+          aiResponse = `A diseased-looking rat emerges from the shadows, its eyes glowing with malevolence. It bares its yellowed teeth and prepares to attack. Combat begins! [ENEMY:{"name":"Giant Rat","hp":5,"ac":12,"damage":"1d4","description":"A large, aggressive rat with sharp teeth","xp":25}]`
         } else {
           // Use intelligent enemy generation
           const generateIntelligentEnemy = (userInput: string) => {
             const input = userInput.toLowerCase();
             
             if (input.includes('civilian') || input.includes('farmer') || input.includes('merchant') || input.includes('villager') || input.includes('commoner')) {
-              return {name: "Civilian", hp: 4, ac: 10, damage: "1d2", desc: "A frightened civilian with no combat training"};
+              return {name: "Civilian", hp: 4, ac: 10, damage: "1d2", desc: "A frightened civilian with no combat training", xp: 10};
             }
             if (input.includes('guard') || input.includes('soldier') || input.includes('watchman')) {
-              return {name: "Town Guard", hp: 11, ac: 16, damage: "1d6+1", desc: "A trained town guard with chain mail and a spear"};
+              return {name: "Town Guard", hp: 11, ac: 16, damage: "1d6+1", desc: "A trained town guard with chain mail and a spear", xp: 100};
             }
             if (input.includes('tree') || input.includes('oak') || input.includes('pine') || input.includes('willow')) {
-              return {name: "Ancient Tree", hp: 59, ac: 5, damage: "2d6+3", desc: "A massive ancient tree that has gained sentience"};
+              return {name: "Ancient Tree", hp: 59, ac: 5, damage: "2d6+3", desc: "A massive ancient tree that has gained sentience", xp: 1100};
             }
             if (input.includes('book') || input.includes('tome') || input.includes('grimoire') || input.includes('spellbook')) {
-              return {name: "Animated Spellbook", hp: 15, ac: 12, damage: "1d4", desc: "A magical book that has gained sentience and attacks"};
+              return {name: "Animated Spellbook", hp: 15, ac: 12, damage: "1d4", desc: "A magical book that has gained sentience and attacks", xp: 200};
             }
             if (input.includes('child') || input.includes('kid') || input.includes('young') || input.includes('baby')) {
-              return {name: "Child", hp: 2, ac: 8, damage: "1d2-1", desc: "A frightened child with no combat ability"};
+              return {name: "Child", hp: 2, ac: 8, damage: "1d2-1", desc: "A frightened child with no combat ability", xp: 5};
             }
             
             // Default to a goblin if no specific match
-            return {name: "Goblin", hp: 7, ac: 15, damage: "1d4+2", desc: "A small but cunning goblin with a rusty dagger"};
+            return {name: "Goblin", hp: 7, ac: 15, damage: "1d4+2", desc: "A small but cunning goblin with a rusty dagger", xp: 50};
           };
           
           const selectedEnemy = generateIntelligentEnemy(userInput);
-          aiResponse = `A ${selectedEnemy.name.toLowerCase()} appears before you! ${selectedEnemy.desc} Combat begins! [ENEMY:{"name":"${selectedEnemy.name}","hp":${selectedEnemy.hp},"ac":${selectedEnemy.ac},"damage":"${selectedEnemy.damage}","description":"${selectedEnemy.desc}"}]`
+          aiResponse = `A ${selectedEnemy.name.toLowerCase()} appears before you! ${selectedEnemy.desc} Combat begins! [ENEMY:{"name":"${selectedEnemy.name}","hp":${selectedEnemy.hp},"ac":${selectedEnemy.ac},"damage":"${selectedEnemy.damage}","description":"${selectedEnemy.desc}","xp":${selectedEnemy.xp}}]`
         }
       }
       // Handle combat actions
@@ -95,7 +104,16 @@ export async function POST(request: Request) {
           const attackRoll = Math.floor(Math.random() * 20) + 1;
           const damageRoll = Math.floor(Math.random() * 8) + 1;
           const hit = attackRoll >= 15;
-          aiResponse = `You swing your weapon at your enemy! [DICE:1d20] (Your Attack Roll: ${attackRoll}) You ${hit ? 'hit' : 'miss'}! ${hit ? `[DICE:1d8+1] (Your Damage: ${damageRoll}) The enemy takes ${damageRoll} damage!` : 'Your attack misses!'} [TURN:enemy]`
+          
+          // Simulate enemy death for XP reward (50% chance on hit)
+          const enemyDies = hit && Math.random() < 0.5;
+          const xpReward = enemyDies ? Math.floor(Math.random() * 50) + 25 : 0;
+          
+          if (enemyDies) {
+            aiResponse = `You swing your weapon at your enemy! [DICE:1d20] (Your Attack Roll: ${attackRoll}) You hit! [DICE:1d8+1] (Your Damage: ${damageRoll}) The enemy takes ${damageRoll} damage and collapses! You feel more experienced after the victory! [XP:${xpReward}]`
+          } else {
+            aiResponse = `You swing your weapon at your enemy! [DICE:1d20] (Your Attack Roll: ${attackRoll}) You ${hit ? 'hit' : 'miss'}! ${hit ? `[DICE:1d8+1] (Your Damage: ${damageRoll}) The enemy takes ${damageRoll} damage!` : 'Your attack misses!'} [TURN:enemy]`
+          }
         }
       }
       else if (userInput.toLowerCase().includes('i cast') || userInput.toLowerCase().includes('cast a spell')) {
