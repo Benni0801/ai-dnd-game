@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
       'enemy turn', 'enemy attacks', 'slash', 'strike', 'hit', 'swing',
       'cast spell', 'dodge', 'flee', 'run away'
     ];
+
     
     const isCombatInput = combatKeywords.some(keyword => 
       userInput.toLowerCase().includes(keyword)
@@ -74,7 +75,51 @@ export async function POST(request: NextRequest) {
     // Combat enhancement data to append to AI response
     let combatEnhancement = '';
     
-    if (isCombatInput) {
+    // Check for turn-based combat actions
+    const isCombatAction = userInput.toLowerCase().includes('i attack') || 
+                          userInput.toLowerCase().includes('i cast') || 
+                          userInput.toLowerCase().includes('i dodge') ||
+                          userInput.toLowerCase().includes('enemy turn');
+    
+    // Handle turn-based combat actions first
+    if (isCombatAction && body.isInCombat) {
+      if (userInput.toLowerCase().includes('i attack')) {
+        const attackRoll = Math.floor(Math.random() * 20) + 1;
+        const damageRoll = Math.floor(Math.random() * 8) + 1;
+        const hit = attackRoll >= 15; // Simple hit calculation
+        const enemyDies = hit && Math.random() < 0.3; // 30% chance to kill enemy
+        
+        if (enemyDies) {
+          combatEnhancement = ` [DICE:1d20] (Attack Roll: ${attackRoll}) You hit! [DICE:1d8+1] (Damage: ${damageRoll}) The enemy takes ${damageRoll} damage and collapses! [COMBAT_END]`;
+        } else {
+          combatEnhancement = ` [DICE:1d20] (Attack Roll: ${attackRoll}) You ${hit ? 'hit' : 'miss'}! ${hit ? `[DICE:1d8+1] (Damage: ${damageRoll}) The enemy takes ${damageRoll} damage!` : 'Your attack misses!'} [TURN:enemy]`;
+        }
+      } else if (userInput.toLowerCase().includes('i cast')) {
+        const spellRoll = Math.floor(Math.random() * 20) + 1;
+        const spellDamage = Math.floor(Math.random() * 6) + 1;
+        const hit = spellRoll >= 12;
+        const enemyDies = hit && Math.random() < 0.4;
+        
+        if (enemyDies) {
+          combatEnhancement = ` [DICE:1d20] (Spell Attack: ${spellRoll}) Your spell hits! [DICE:1d6] (Spell Damage: ${spellDamage}) The enemy takes ${spellDamage} damage and is defeated! [COMBAT_END]`;
+        } else {
+          combatEnhancement = ` [DICE:1d20] (Spell Attack: ${spellRoll}) Your spell ${hit ? 'hits' : 'misses'}! ${hit ? `[DICE:1d6] (Spell Damage: ${spellDamage}) The enemy takes ${spellDamage} damage!` : 'Your spell fizzles!'} [TURN:enemy]`;
+        }
+      } else if (userInput.toLowerCase().includes('i dodge')) {
+        combatEnhancement = ` You prepare to dodge the enemy's next attack, increasing your defense! [TURN:enemy]`;
+      } else if (userInput.toLowerCase().includes('enemy turn')) {
+        const enemyAttackRoll = Math.floor(Math.random() * 20) + 1;
+        const enemyDamageRoll = Math.floor(Math.random() * 6) + 1;
+        const enemyHit = enemyAttackRoll >= 12;
+        const playerDies = enemyHit && Math.random() < 0.2; // 20% chance to kill player
+        
+        if (playerDies) {
+          combatEnhancement = ` [DICE:1d20] (Enemy Attack: ${enemyAttackRoll}) The enemy hits! [DICE:1d6] (Enemy Damage: ${enemyDamageRoll}) You take ${enemyDamageRoll} damage and are defeated! [COMBAT_END]`;
+        } else {
+          combatEnhancement = ` [DICE:1d20] (Enemy Attack: ${enemyAttackRoll}) The enemy ${enemyHit ? 'hits' : 'misses'}! ${enemyHit ? `[DICE:1d6] (Enemy Damage: ${enemyDamageRoll}) You take ${enemyDamageRoll} damage!` : 'The enemy\'s attack misses!'} [TURN:player]`;
+        }
+      }
+    } else if (isCombatInput) {
       // Generate enemy data for combat scenarios
       if (userInput.toLowerCase().includes('goblin')) {
         combatEnhancement = ` [ENEMY:{"name":"Goblin","hp":7,"ac":15,"damage":"1d4+2","description":"A small but cunning goblin","xp":50}]`;

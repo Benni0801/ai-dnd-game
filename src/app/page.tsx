@@ -646,48 +646,6 @@ export default function Home() {
     setCombatLog([`Combat begins! You encounter a ${enemy.name}!`]);
   };
 
-  const endCombat = (victory: boolean) => {
-    console.log('endCombat called:', { victory });
-    setIsInCombat(false);
-    setEnemyStats(null);
-    setCombatActions([]);
-    setCombatLog([]);
-
-    if (victory) {
-      setCharacterStats(prev => ({
-        ...prev,
-        xp: (prev.xp || 0) + 100
-      }));
-      addActionLogEntry('xp', 'Combat victory: +100 XP', '⭐');
-      
-      // Notify AI that combat ended
-      const combatEndMessage: Message = {
-        id: Date.now().toString(),
-        role: 'user',
-        content: `I have defeated the enemy in combat.`,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, combatEndMessage]);
-      
-      // Send message to AI to continue the story
-      setTimeout(() => {
-        handleSendMessage(`I have defeated the enemy in combat.`);
-      }, 500);
-    } else {
-      // Notify AI that player was defeated
-      const defeatMessage: Message = {
-        id: Date.now().toString(),
-        role: 'user',
-        content: `I have been defeated in combat.`,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, defeatMessage]);
-      
-      setTimeout(() => {
-        handleSendMessage(`I have been defeated in combat.`);
-      }, 500);
-    }
-  };
 
   const rollDamage = (damageDice: string) => {
     // Parse dice notation like "1d4", "2d6+1", "1d8+2"
@@ -1506,6 +1464,16 @@ export default function Home() {
             const enemyData = JSON.parse(enemyMatch[1]);
             console.log('Enemy data parsed:', enemyData);
             
+            // Roll initiative
+            const playerInit = Math.floor(Math.random() * 20) + 1;
+            const enemyInit = Math.floor(Math.random() * 20) + 1;
+            
+            setPlayerInitiative(playerInit);
+            setEnemyInitiative(enemyInit);
+            
+            // Determine turn order
+            const playerGoesFirst = playerInit >= enemyInit;
+            
             // Set up combat
             setIsInCombat(true);
             setEnemyStats({
@@ -1513,12 +1481,23 @@ export default function Home() {
               maxHp: enemyData.hp,
               currentHp: enemyData.hp
             });
-            setCombatTurn('player');
+            setCombatTurn(playerGoesFirst ? 'player' : 'enemy');
             setCombatActions(['Attack', 'Cast Spell', 'Dodge', 'Use Item']);
-            setCombatLog(prev => [...prev, `Combat begins! You encounter a ${enemyData.name}.`]);
+            setCombatLog(prev => [...prev, 
+              `Combat begins! You encounter a ${enemyData.name}.`,
+              `Initiative: You rolled ${playerInit}, ${enemyData.name} rolled ${enemyInit}.`,
+              `${playerGoesFirst ? 'You' : enemyData.name} goes first!`
+            ]);
             
             // Switch to combat tab
             setActiveTab('combat');
+            
+            // If enemy goes first, trigger their turn
+            if (!playerGoesFirst) {
+              setTimeout(() => {
+                triggerEnemyTurn();
+              }, 2000);
+            }
           }
         } catch (error) {
           console.error('Error parsing enemy data:', error);
@@ -3632,9 +3611,26 @@ export default function Home() {
                       padding: '1rem',
                       marginBottom: '1rem'
                     }}>
-                      <h3 style={{ color: '#8b5cf6', marginBottom: '1rem', textAlign: 'center' }}>
-                        Combat in Progress
-                      </h3>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h3 style={{ color: '#8b5cf6', margin: 0 }}>
+                          Combat in Progress
+                        </h3>
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                          <span style={{ color: '#e2e8f0', fontSize: '14px' }}>
+                            Round {combatRound}
+                          </span>
+                          <div style={{
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            background: combatTurn === 'player' ? '#10b981' : '#ef4444',
+                            color: 'white',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                          }}>
+                            {combatTurn === 'player' ? 'Your Turn' : `${enemyStats.name}'s Turn`}
+                          </div>
+                        </div>
+                      </div>
                       
                       {/* Player Health Bar */}
                       <div style={{ marginBottom: '1rem' }}>
@@ -3693,39 +3689,37 @@ export default function Home() {
                         {combatActions.map((action, index) => (
                           <button
                             key={index}
-                            onClick={() => {
-                              // Send combat action to AI
-                              const userMessage: Message = {
-                                id: Date.now().toString(),
-                                role: 'user',
-                                content: `I ${action.toLowerCase()}`,
-                                timestamp: new Date()
-                              };
-                              setMessages(prev => [...prev, userMessage]);
-                              // Trigger AI response
-                              handleSendMessage(`I ${action.toLowerCase()}`);
-                            }}
+                            onClick={() => handleCombatAction(action)}
+                            disabled={combatTurn !== 'player' || waitingForEnemyTurn}
                             style={{
-                              background: 'rgba(139, 92, 246, 0.8)',
+                              background: combatTurn === 'player' && !waitingForEnemyTurn 
+                                ? 'rgba(139, 92, 246, 0.8)' 
+                                : 'rgba(100, 100, 100, 0.5)',
                               border: '1px solid rgba(139, 92, 246, 0.6)',
                               borderRadius: '6px',
                               padding: '8px 12px',
-                              color: '#ffffff',
+                              color: combatTurn === 'player' && !waitingForEnemyTurn ? '#ffffff' : '#888888',
                               fontSize: '12px',
-                              cursor: 'pointer',
+                              cursor: combatTurn === 'player' && !waitingForEnemyTurn ? 'pointer' : 'not-allowed',
                               fontWeight: '500',
-                              transition: 'all 0.2s ease'
+                              transition: 'all 0.2s ease',
+                              opacity: combatTurn === 'player' && !waitingForEnemyTurn ? 1 : 0.6
                             }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.background = 'rgba(139, 92, 246, 1)';
-                              e.currentTarget.style.transform = 'translateY(-1px)';
+                              if (combatTurn === 'player' && !waitingForEnemyTurn) {
+                                e.currentTarget.style.background = 'rgba(139, 92, 246, 1)';
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                              }
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.background = 'rgba(139, 92, 246, 0.8)';
-                              e.currentTarget.style.transform = 'translateY(0)';
+                              if (combatTurn === 'player' && !waitingForEnemyTurn) {
+                                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.8)';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                              }
                             }}
                           >
                             {action}
+                            {waitingForEnemyTurn && ' (Processing...)'}
                           </button>
                         ))}
                       </div>
