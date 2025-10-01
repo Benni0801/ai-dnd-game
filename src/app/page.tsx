@@ -6,6 +6,7 @@ import AdvancedDiceRoller from '../components/AdvancedDiceRoller';
 import InventorySystem, { InventorySystemRef } from '../components/InventorySystem';
 import ActionLog from '../components/ActionLog';
 import DiceRoller from '../components/DiceRoller';
+import DiceRoller3D from '../components/DiceRoller3D';
 
 interface ActionLogEntry {
   id: string;
@@ -34,13 +35,215 @@ export default function Home() {
   // Dice rolling state
   const [diceRolling, setDiceRolling] = useState(false);
   const [currentDice, setCurrentDice] = useState('');
+  const [showDiceResult, setShowDiceResult] = useState(false);
+  const [diceResult, setDiceResult] = useState<{result: number, rolls: number[]} | null>(null);
   
   // Handle dice roll completion
   const handleDiceRollComplete = (result: number, rolls: number[]) => {
     setDiceRolling(false);
-    setCurrentDice('');
+    setDiceResult({result, rolls});
+    setShowDiceResult(true);
     // Add dice roll result to action log
     addActionLogEntry('stat', `Dice Roll: ${currentDice} = ${result} (${rolls.join(', ')})`, '🎲');
+  };
+
+  // Handle dice roller close
+  const handleDiceClose = () => {
+    setDiceRolling(false);
+    setShowDiceResult(false);
+    setCurrentDice('');
+    setDiceResult(null);
+  };
+
+  // Handle combat action
+  const handleCombatAction = async (action: string) => {
+    if (combatTurn !== 'player' || waitingForEnemyTurn) return;
+    
+    // Add action to combat log
+    setCombatLog(prev => [...prev, `You ${action.toLowerCase()}.`]);
+    
+    // Send action to AI
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: `I ${action.toLowerCase()}`,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, userMessage]);
+    
+    // Set waiting state
+    setWaitingForEnemyTurn(true);
+    
+    // Call AI
+    try {
+      const response = await fetch('/api/ai-dnd', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage],
+          characterStats,
+          inventory,
+          isInCombat: true,
+          combatTurn: 'player'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      // Process AI response
+      const responseText = data.response || data.message || '';
+      
+      // Add AI response to messages
+      const aiMessage: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: responseText,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      
+      // Check for dice rolls
+      if (responseText.includes('[DICE:')) {
+        try {
+          const diceMatch = responseText.match(/\[DICE:([^\]]+)\]/);
+          if (diceMatch && diceMatch[1]) {
+            const diceString = diceMatch[1];
+            setCurrentDice(diceString);
+            setDiceRolling(true);
+          }
+        } catch (error) {
+          console.error('Error parsing dice data:', error);
+        }
+      }
+      
+      // Check for turn change
+      if (responseText.includes('[TURN:enemy]')) {
+        setCombatTurn('enemy');
+        setWaitingForEnemyTurn(false);
+        // Trigger enemy turn after a short delay
+        setTimeout(() => {
+          triggerEnemyTurn();
+        }, 2000);
+      } else if (responseText.includes('[TURN:player]')) {
+        setCombatTurn('player');
+        setWaitingForEnemyTurn(false);
+      }
+      
+      // Check for combat end
+      if (responseText.includes('[COMBAT_END]')) {
+        endCombat(true);
+      }
+      
+    } catch (error) {
+      console.error('Error in combat action:', error);
+      setWaitingForEnemyTurn(false);
+    }
+  };
+
+  // Trigger enemy turn
+  const triggerEnemyTurn = async () => {
+    if (combatTurn !== 'enemy') return;
+    
+    setCombatLog(prev => [...prev, `${enemyStats.name} takes their turn...`]);
+    
+    try {
+      const response = await fetch('/api/ai-dnd', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: 'enemy turn' }],
+          characterStats,
+          inventory,
+          isInCombat: true,
+          combatTurn: 'enemy',
+          enemyStats
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      const responseText = data.response || data.message || '';
+      
+      // Add AI response to messages
+      const aiMessage: Message = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: responseText,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      
+      // Check for dice rolls
+      if (responseText.includes('[DICE:')) {
+        try {
+          const diceMatch = responseText.match(/\[DICE:([^\]]+)\]/);
+          if (diceMatch && diceMatch[1]) {
+            const diceString = diceMatch[1];
+            setCurrentDice(diceString);
+            setDiceRolling(true);
+          }
+        } catch (error) {
+          console.error('Error parsing dice data:', error);
+        }
+      }
+      
+      // Check for turn change back to player
+      if (responseText.includes('[TURN:player]')) {
+        setCombatTurn('player');
+        setCombatRound(prev => prev + 1);
+      }
+      
+      // Check for combat end
+      if (responseText.includes('[COMBAT_END]')) {
+        endCombat(true);
+      }
+      
+    } catch (error) {
+      console.error('Error in enemy turn:', error);
+      // Fallback: switch back to player turn
+      setCombatTurn('player');
+    }
+  };
+
+  // End combat
+  const endCombat = (victory: boolean) => {
+    setIsInCombat(false);
+    setEnemyStats(null);
+    setCombatTurn('player');
+    setCombatLog([]);
+    setCombatRound(1);
+    setWaitingForEnemyTurn(false);
+    setActiveTab('chat');
+    
+    const combatMessage: Message = {
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: victory 
+        ? `🎉 Victory! You have defeated your enemy!`
+        : `💀 Defeat! You have been defeated in combat.`,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, combatMessage]);
   };
 
   // Add global styles to prevent overflow
@@ -261,6 +464,10 @@ export default function Home() {
   const [enemyStats, setEnemyStats] = useState<any>(null);
   const [combatActions, setCombatActions] = useState<string[]>([]);
   const [combatLog, setCombatLog] = useState<string[]>([]);
+  const [playerInitiative, setPlayerInitiative] = useState<number>(0);
+  const [enemyInitiative, setEnemyInitiative] = useState<number>(0);
+  const [combatRound, setCombatRound] = useState<number>(1);
+  const [waitingForEnemyTurn, setWaitingForEnemyTurn] = useState(false);
   
   // Refs for auto-scrolling and inventory
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -1288,6 +1495,33 @@ export default function Home() {
           }
         } catch (error) {
           console.error('Error parsing dice data:', error);
+        }
+      }
+
+      // Check for enemy data in AI response
+      if (responseText.includes('[ENEMY:')) {
+        try {
+          const enemyMatch = responseText.match(/\[ENEMY:(\{.*?\})\]/);
+          if (enemyMatch && enemyMatch[1]) {
+            const enemyData = JSON.parse(enemyMatch[1]);
+            console.log('Enemy data parsed:', enemyData);
+            
+            // Set up combat
+            setIsInCombat(true);
+            setEnemyStats({
+              ...enemyData,
+              maxHp: enemyData.hp,
+              currentHp: enemyData.hp
+            });
+            setCombatTurn('player');
+            setCombatActions(['Attack', 'Cast Spell', 'Dodge', 'Use Item']);
+            setCombatLog(prev => [...prev, `Combat begins! You encounter a ${enemyData.name}.`]);
+            
+            // Switch to combat tab
+            setActiveTab('combat');
+          }
+        } catch (error) {
+          console.error('Error parsing enemy data:', error);
         }
       }
 
@@ -3389,6 +3623,133 @@ export default function Home() {
                   padding: '1.5rem',
                   marginBottom: '1rem'
                 }}>
+                  {/* Combat Overlay */}
+                  {isInCombat && enemyStats && (
+                    <div style={{
+                      background: 'rgba(0, 0, 0, 0.7)',
+                      border: '2px solid #8b5cf6',
+                      borderRadius: '12px',
+                      padding: '1rem',
+                      marginBottom: '1rem'
+                    }}>
+                      <h3 style={{ color: '#8b5cf6', marginBottom: '1rem', textAlign: 'center' }}>
+                        Combat in Progress
+                      </h3>
+                      
+                      {/* Player Health Bar */}
+                      <div style={{ marginBottom: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                          <span style={{ color: '#10b981', fontWeight: 'bold' }}>
+                            {characterStats.name || 'Player'}
+                          </span>
+                          <span style={{ color: '#10b981' }}>
+                            {characterStats.hp || 10}/{characterStats.maxHp || 10} HP
+                          </span>
+                        </div>
+                        <div style={{
+                          width: '100%',
+                          height: '20px',
+                          background: 'rgba(0, 0, 0, 0.3)',
+                          borderRadius: '10px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${((characterStats.hp || 10) / (characterStats.maxHp || 10)) * 100}%`,
+                            height: '100%',
+                            background: 'linear-gradient(90deg, #10b981, #34d399)',
+                            transition: 'width 0.3s ease'
+                          }} />
+                        </div>
+                      </div>
+
+                      {/* Enemy Health Bar */}
+                      <div style={{ marginBottom: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                          <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
+                            {enemyStats.name}
+                          </span>
+                          <span style={{ color: '#ef4444' }}>
+                            {enemyStats.currentHp || enemyStats.hp}/{enemyStats.maxHp || enemyStats.hp} HP
+                          </span>
+                        </div>
+                        <div style={{
+                          width: '100%',
+                          height: '20px',
+                          background: 'rgba(0, 0, 0, 0.3)',
+                          borderRadius: '10px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${((enemyStats.currentHp || enemyStats.hp) / (enemyStats.maxHp || enemyStats.hp)) * 100}%`,
+                            height: '100%',
+                            background: 'linear-gradient(90deg, #ef4444, #f87171)',
+                            transition: 'width 0.3s ease'
+                          }} />
+                        </div>
+                      </div>
+
+                      {/* Combat Actions */}
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                        {combatActions.map((action, index) => (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              // Send combat action to AI
+                              const userMessage: Message = {
+                                id: Date.now().toString(),
+                                role: 'user',
+                                content: `I ${action.toLowerCase()}`,
+                                timestamp: new Date()
+                              };
+                              setMessages(prev => [...prev, userMessage]);
+                              // Trigger AI response
+                              handleSendMessage(`I ${action.toLowerCase()}`);
+                            }}
+                            style={{
+                              background: 'rgba(139, 92, 246, 0.8)',
+                              border: '1px solid rgba(139, 92, 246, 0.6)',
+                              borderRadius: '6px',
+                              padding: '8px 12px',
+                              color: '#ffffff',
+                              fontSize: '12px',
+                              cursor: 'pointer',
+                              fontWeight: '500',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'rgba(139, 92, 246, 1)';
+                              e.currentTarget.style.transform = 'translateY(-1px)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'rgba(139, 92, 246, 0.8)';
+                              e.currentTarget.style.transform = 'translateY(0)';
+                            }}
+                          >
+                            {action}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Combat Log */}
+                      {combatLog.length > 0 && (
+                        <div style={{
+                          marginTop: '1rem',
+                          maxHeight: '100px',
+                          overflowY: 'auto',
+                          background: 'rgba(0, 0, 0, 0.3)',
+                          padding: '0.5rem',
+                          borderRadius: '6px'
+                        }}>
+                          {combatLog.map((log, index) => (
+                            <div key={index} style={{ color: '#e2e8f0', fontSize: '12px', marginBottom: '0.25rem' }}>
+                              {log}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <CombatSystem
                     characterStats={characterStats}
                     onCombatEnd={handleCombatEnd}
@@ -4276,12 +4637,17 @@ export default function Home() {
         </div>
       )}
       
-      {/* Dice Roller Component */}
-      <DiceRoller 
-        dice={currentDice}
-        onRollComplete={handleDiceRollComplete}
-        isRolling={diceRolling}
-      />
+      {/* 3D Dice Roller Component */}
+      {(diceRolling || showDiceResult) && (
+        <DiceRoller3D 
+          dice={currentDice}
+          onRollComplete={handleDiceRollComplete}
+          isRolling={diceRolling}
+          onClose={handleDiceClose}
+          playerName={characterStats.name || "Player"}
+          enemyName={enemyStats?.name || "Enemy"}
+        />
+      )}
     </div>
   );
 }
