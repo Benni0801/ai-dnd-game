@@ -223,10 +223,14 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
         })
       })
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
       const data = await response.json()
 
-      if (data.error) {
-        throw new Error(data.message || data.error)
+      if (!data || data.error) {
+        throw new Error(data?.message || data?.error || 'Unknown API error')
       }
 
       const aiMessage: Message = {
@@ -245,7 +249,7 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
       if (responseText.includes('[ENEMY:')) {
         try {
           const enemyMatch = responseText.match(/\[ENEMY:({.*?})\]/)
-          if (enemyMatch) {
+          if (enemyMatch && enemyMatch[1]) {
             const enemyData = JSON.parse(enemyMatch[1])
             setEnemyStats({
               name: enemyData.name,
@@ -267,7 +271,7 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
       // Handle turn progression from AI responses
       if (responseText.includes('[TURN:')) {
         const turnMatch = responseText.match(/\[TURN:(player|enemy)\]/)
-        if (turnMatch) {
+        if (turnMatch && turnMatch[1]) {
           const newTurn = turnMatch[1] as 'player' | 'enemy'
           setCombatTurn(newTurn)
           
@@ -309,10 +313,14 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
         })
       })
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
       const data = await response.json()
 
-      if (data.error) {
-        throw new Error(data.message || data.error)
+      if (!data || data.error) {
+        throw new Error(data?.message || data?.error || 'Unknown API error')
       }
 
       const aiMessage: Message = {
@@ -368,10 +376,14 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
         })
       })
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
       const data = await response.json()
 
-      if (data.error) {
-        throw new Error(data.message || data.error)
+      if (!data || data.error) {
+        throw new Error(data?.message || data?.error || 'Unknown API error')
       }
 
       // Check if AI wants to roll dice
@@ -395,7 +407,7 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
       if (responseText.includes('[ENEMY:')) {
         try {
           const enemyMatch = responseText.match(/\[ENEMY:({.*?})\]/)
-          if (enemyMatch) {
+          if (enemyMatch && enemyMatch[1]) {
             const enemyData = JSON.parse(enemyMatch[1])
             setEnemyStats({
               name: enemyData.name,
@@ -417,7 +429,7 @@ export default function SinglePlayerGame({ character, onBack }: SinglePlayerGame
       // Handle turn progression from AI responses
       if (responseText.includes('[TURN:')) {
         const turnMatch = responseText.match(/\[TURN:(player|enemy)\]/)
-        if (turnMatch) {
+        if (turnMatch && turnMatch[1]) {
           const newTurn = turnMatch[1] as 'player' | 'enemy'
           setCombatTurn(newTurn)
           

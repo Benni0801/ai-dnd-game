@@ -4,18 +4,24 @@ export async function POST(request: Request) {
   try {
     const { messages, character, onDiceRoll, isInCombat } = await request.json()
     
-    console.log('AI D&D Game API called')
-    console.log('Messages:', messages)
-    console.log('Character:', character)
-    console.log('Dice rolling available:', !!onDiceRoll)
+    // Debug logging (remove in production)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('AI D&D Game API called')
+      console.log('Messages:', messages)
+      console.log('Character:', character)
+      console.log('Dice rolling available:', !!onDiceRoll)
+    }
     
     // Intelligent fallback for D&D game responses (works with or without API key)
     const lastUserMessage = messages[messages.length - 1]
     const userInput = lastUserMessage?.content?.trim() || ''
     
-    console.log('AI Route - User Input:', userInput)
-    console.log('AI Route - Is In Combat:', isInCombat)
-    console.log('AI Route - Full Messages:', JSON.stringify(messages, null, 2))
+    // Debug logging (remove in production)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('AI Route - User Input:', userInput)
+      console.log('AI Route - Is In Combat:', isInCombat)
+      console.log('AI Route - Full Messages:', JSON.stringify(messages, null, 2))
+    }
     
     let aiResponse = ''
     let diceRoll = null
@@ -247,7 +253,6 @@ export async function POST(request: Request) {
           orc: {name: "Orc Warrior", hp: 15, ac: 13, damage: "1d12+3", desc: "A fierce orc warrior with a crude weapon"},
           skeleton: {name: "Skeleton Warrior", hp: 13, ac: 13, damage: "1d6+1", desc: "An animated skeleton with a rusty sword"},
           spider: {name: "Giant Spider", hp: 8, ac: 13, damage: "1d6", desc: "A large spider with venomous fangs"},
-          wolf: {name: "Wolf", hp: 11, ac: 13, damage: "2d4", desc: "A fierce wolf with sharp claws and teeth"},
           rat: {name: "Giant Rat", hp: 5, ac: 12, damage: "1d4", desc: "A large, aggressive rat with sharp teeth"},
           bandit: {name: "Bandit", hp: 11, ac: 12, damage: "1d6+1", desc: "A desperate bandit with a shortsword"},
           zombie: {name: "Zombie", hp: 22, ac: 8, damage: "1d6+1", desc: "A shambling undead creature"},
@@ -452,8 +457,11 @@ export async function POST(request: Request) {
       }
       
     // Return the response (works for both API key and no API key cases)
-    console.log('AI Route - Generated Response:', aiResponse)
-    const response: any = {
+    // Debug logging (remove in production)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('AI Route - Generated Response:', aiResponse)
+    }
+    const response: { message: string; diceRoll?: any } = {
       message: aiResponse
     };
     
