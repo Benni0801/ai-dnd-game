@@ -45,6 +45,129 @@ export async function POST(request: NextRequest) {
     });
     const { messages, characterStats, inventory, onDiceRoll } = body || {};
 
+    // MODULAR COMBAT SYSTEM - Enhance AI responses with combat data
+    const lastUserMessage = messages?.[messages.length - 1];
+    const userInput = lastUserMessage?.content?.trim() || '';
+    
+    // Check if this is a combat scenario that needs enhancement
+    const combatKeywords = [
+      'fight', 'attack', 'battle', 'encounter', 'monster', 'enemy', 'combat',
+      'goblin', 'worg', 'dragon', 'troll', 'orc', 'skeleton', 'spider', 'wolf', 'rat', 'bandit', 'zombie', 'kobold', 'imp',
+      'bear', 'boar', 'crocodile', 'eagle', 'hyena', 'lion', 'panther', 'shark', 'tiger',
+      'ghoul', 'ghost', 'lich', 'mummy', 'vampire', 'wraith',
+      'demon', 'devil', 'succubus', 'balor',
+      'wyvern', 'drake', 'elemental', 'earth', 'water', 'air',
+      'giant', 'ogre', 'beholder', 'mind', 'aboleth',
+      'golem', 'animated', 'fairy', 'dryad', 'satyr',
+      'knight', 'mage', 'assassin', 'cultist', 'pirate', 'gladiator',
+      'chimera', 'griffon', 'hydra', 'medusa', 'minotaur', 'sphinx',
+      'ooze', 'slime', 'treant', 'shambler', 'angel', 'unicorn',
+      'hellhound', 'nightmare', 'i attack', 'i cast', 'i dodge',
+      'enemy turn', 'enemy attacks', 'slash', 'strike', 'hit', 'swing',
+      'cast spell', 'dodge', 'flee', 'run away'
+    ];
+    
+    const isCombatInput = combatKeywords.some(keyword => 
+      userInput.toLowerCase().includes(keyword)
+    );
+    
+    // Combat enhancement data to append to AI response
+    let combatEnhancement = '';
+    
+    if (isCombatInput) {
+      // Generate enemy data for combat scenarios
+      if (userInput.toLowerCase().includes('goblin')) {
+        combatEnhancement = ` [ENEMY:{"name":"Goblin","hp":7,"ac":15,"damage":"1d4+2","description":"A small but cunning goblin","xp":50}]`;
+      } else if (userInput.toLowerCase().includes('rat')) {
+        combatEnhancement = ` [ENEMY:{"name":"Giant Rat","hp":5,"ac":12,"damage":"1d4","description":"A large, aggressive rat with sharp teeth","xp":25}]`;
+      } else if (userInput.toLowerCase().includes('worg')) {
+        combatEnhancement = ` [ENEMY:{"name":"Worg","hp":26,"ac":13,"damage":"2d6+3","description":"A massive wolf-like creature with supernatural intelligence","xp":200}]`;
+      } else if (userInput.toLowerCase().includes('dragon')) {
+        combatEnhancement = ` [ENEMY:{"name":"Young Red Dragon","hp":178,"ac":18,"damage":"2d10+4","description":"A young but deadly red dragon with fire breath","xp":3900}]`;
+      } else if (userInput.toLowerCase().includes('troll')) {
+        combatEnhancement = ` [ENEMY:{"name":"Troll","hp":84,"ac":15,"damage":"2d8+4","description":"A massive troll with regenerative abilities","xp":1800}]`;
+      } else if (userInput.toLowerCase().includes('orc')) {
+        combatEnhancement = ` [ENEMY:{"name":"Orc Warrior","hp":15,"ac":13,"damage":"1d12+3","description":"A battle-hardened orc warrior","xp":100}]`;
+      } else if (userInput.toLowerCase().includes('skeleton')) {
+        combatEnhancement = ` [ENEMY:{"name":"Skeleton Warrior","hp":13,"ac":13,"damage":"1d6+1","description":"An animated skeleton with a rusty sword","xp":50}]`;
+      } else if (userInput.toLowerCase().includes('spider')) {
+        combatEnhancement = ` [ENEMY:{"name":"Giant Spider","hp":8,"ac":13,"damage":"1d6","description":"A large spider with venomous fangs","xp":25}]`;
+      } else if (userInput.toLowerCase().includes('wolf')) {
+        combatEnhancement = ` [ENEMY:{"name":"Dire Wolf","hp":37,"ac":14,"damage":"2d6+3","description":"A massive dire wolf with glowing eyes","xp":200}]`;
+      } else if (userInput.toLowerCase().includes('bandit')) {
+        combatEnhancement = ` [ENEMY:{"name":"Bandit","hp":11,"ac":12,"damage":"1d6+1","description":"A desperate bandit with a shortsword","xp":50}]`;
+      } else if (userInput.toLowerCase().includes('zombie')) {
+        combatEnhancement = ` [ENEMY:{"name":"Zombie","hp":22,"ac":8,"damage":"1d6+1","description":"A shambling undead creature","xp":50}]`;
+      } else if (userInput.toLowerCase().includes('kobold')) {
+        combatEnhancement = ` [ENEMY:{"name":"Kobold","hp":5,"ac":12,"damage":"1d4","description":"A small reptilian humanoid with a spear","xp":25}]`;
+      } else if (userInput.toLowerCase().includes('bear')) {
+        combatEnhancement = ` [ENEMY:{"name":"Black Bear","hp":19,"ac":11,"damage":"2d4+2","description":"A massive black bear with powerful claws","xp":100}]`;
+      } else if (userInput.toLowerCase().includes('lion')) {
+        combatEnhancement = ` [ENEMY:{"name":"Lion","hp":26,"ac":12,"damage":"1d8+2","description":"A fierce lion with sharp claws and teeth","xp":150}]`;
+      } else if (userInput.toLowerCase().includes('tiger')) {
+        combatEnhancement = ` [ENEMY:{"name":"Tiger","hp":37,"ac":12,"damage":"1d10+2","description":"A powerful tiger with striped fur and claws","xp":200}]`;
+      } else if (userInput.toLowerCase().includes('ghoul')) {
+        combatEnhancement = ` [ENEMY:{"name":"Ghoul","hp":22,"ac":12,"damage":"2d4+2","description":"A ravenous undead creature with paralyzing claws","xp":100}]`;
+      } else if (userInput.toLowerCase().includes('ghost')) {
+        combatEnhancement = ` [ENEMY:{"name":"Ghost","hp":45,"ac":11,"damage":"4d6","description":"A spectral undead spirit that can phase through walls","xp":300}]`;
+      } else if (userInput.toLowerCase().includes('demon')) {
+        combatEnhancement = ` [ENEMY:{"name":"Demon","hp":45,"ac":15,"damage":"2d6+3","description":"A chaotic demon from the Abyss with infernal powers","xp":200}]`;
+      } else if (userInput.toLowerCase().includes('devil')) {
+        combatEnhancement = ` [ENEMY:{"name":"Devil","hp":52,"ac":16,"damage":"2d6+4","description":"A lawful evil devil from the Nine Hells","xp":250}]`;
+      } else if (userInput.toLowerCase().includes('elemental')) {
+        combatEnhancement = ` [ENEMY:{"name":"Fire Elemental","hp":102,"ac":13,"damage":"2d6+3","description":"A living flame that burns everything it touches","xp":500}]`;
+      } else if (userInput.toLowerCase().includes('giant')) {
+        combatEnhancement = ` [ENEMY:{"name":"Hill Giant","hp":105,"ac":13,"damage":"3d8+4","description":"A massive hill giant with a huge club","xp":800}]`;
+      } else if (userInput.toLowerCase().includes('ogre')) {
+        combatEnhancement = ` [ENEMY:{"name":"Ogre","hp":59,"ac":11,"damage":"2d8+4","description":"A large, brutish ogre with a greatclub","xp":400}]`;
+      } else if (userInput.toLowerCase().includes('beholder')) {
+        combatEnhancement = ` [ENEMY:{"name":"Beholder","hp":180,"ac":18,"damage":"3d6","description":"A floating eye with multiple eye stalks and deadly rays","xp":1000}]`;
+      } else if (userInput.toLowerCase().includes('golem')) {
+        combatEnhancement = ` [ENEMY:{"name":"Iron Golem","hp":210,"ac":20,"damage":"3d8+7","description":"A massive iron construct immune to most magic","xp":1200}]`;
+      } else if (userInput.toLowerCase().includes('knight')) {
+        combatEnhancement = ` [ENEMY:{"name":"Knight","hp":52,"ac":18,"damage":"1d8+3","description":"A heavily armored knight with a longsword","xp":300}]`;
+      } else if (userInput.toLowerCase().includes('mage')) {
+        combatEnhancement = ` [ENEMY:{"name":"Evil Mage","hp":40,"ac":12,"damage":"1d4+1","description":"A spellcasting wizard with arcane powers","xp":250}]`;
+      } else if (userInput.toLowerCase().includes('assassin')) {
+        combatEnhancement = ` [ENEMY:{"name":"Assassin","hp":78,"ac":15,"damage":"1d6+3","description":"A deadly assassin with poison and stealth","xp":400}]`;
+      } else if (userInput.toLowerCase().includes('cultist')) {
+        combatEnhancement = ` [ENEMY:{"name":"Cultist","hp":9,"ac":12,"damage":"1d6","description":"A fanatical cultist serving dark powers","xp":50}]`;
+      } else if (userInput.toLowerCase().includes('pirate')) {
+        combatEnhancement = ` [ENEMY:{"name":"Pirate","hp":11,"ac":12,"damage":"1d6+1","description":"A swashbuckling pirate with a cutlass","xp":75}]`;
+      } else if (userInput.toLowerCase().includes('gladiator')) {
+        combatEnhancement = ` [ENEMY:{"name":"Gladiator","hp":112,"ac":16,"damage":"2d6+3","description":"A skilled gladiator with combat experience","xp":600}]`;
+      } else if (userInput.toLowerCase().includes('chimera')) {
+        combatEnhancement = ` [ENEMY:{"name":"Chimera","hp":114,"ac":14,"damage":"2d6+4","description":"A creature with the head of a lion, goat, and dragon","xp":700}]`;
+      } else if (userInput.toLowerCase().includes('griffon')) {
+        combatEnhancement = ` [ENEMY:{"name":"Griffon","hp":59,"ac":12,"damage":"2d6+3","description":"A majestic creature with the body of a lion and head of an eagle","xp":400}]`;
+      } else if (userInput.toLowerCase().includes('hydra')) {
+        combatEnhancement = ` [ENEMY:{"name":"Hydra","hp":172,"ac":15,"damage":"1d10+5","description":"A multi-headed serpent that regrows heads when cut off","xp":900}]`;
+      } else if (userInput.toLowerCase().includes('medusa')) {
+        combatEnhancement = ` [ENEMY:{"name":"Medusa","hp":127,"ac":15,"damage":"2d6+3","description":"A creature with snakes for hair that can turn people to stone","xp":800}]`;
+      } else if (userInput.toLowerCase().includes('minotaur')) {
+        combatEnhancement = ` [ENEMY:{"name":"Minotaur","hp":76,"ac":14,"damage":"2d8+4","description":"A bull-headed humanoid with a massive axe","xp":500}]`;
+      } else if (userInput.toLowerCase().includes('sphinx')) {
+        combatEnhancement = ` [ENEMY:{"name":"Sphinx","hp":136,"ac":17,"damage":"2d8+4","description":"A mystical creature with the body of a lion and head of a human","xp":900}]`;
+      } else if (userInput.toLowerCase().includes('ooze')) {
+        combatEnhancement = ` [ENEMY:{"name":"Gelatinous Cube","hp":84,"ac":6,"damage":"2d6+2","description":"A transparent cube of acidic jelly","xp":400}]`;
+      } else if (userInput.toLowerCase().includes('slime')) {
+        combatEnhancement = ` [ENEMY:{"name":"Black Pudding","hp":85,"ac":7,"damage":"2d6+2","description":"A corrosive black ooze that dissolves metal","xp":400}]`;
+      } else if (userInput.toLowerCase().includes('treant')) {
+        combatEnhancement = ` [ENEMY:{"name":"Treant","hp":138,"ac":16,"damage":"3d6+6","description":"A massive tree that has gained sentience and mobility","xp":900}]`;
+      } else if (userInput.toLowerCase().includes('angel')) {
+        combatEnhancement = ` [ENEMY:{"name":"Angel","hp":114,"ac":17,"damage":"2d8+4","description":"A celestial being with divine powers and healing abilities","xp":800}]`;
+      } else if (userInput.toLowerCase().includes('unicorn')) {
+        combatEnhancement = ` [ENEMY:{"name":"Unicorn","hp":67,"ac":12,"damage":"2d6+3","description":"A pure white horse with a magical horn","xp":500}]`;
+      } else if (userInput.toLowerCase().includes('hellhound')) {
+        combatEnhancement = ` [ENEMY:{"name":"Hell Hound","hp":45,"ac":15,"damage":"1d8+2","description":"A demonic dog with fire breath and glowing red eyes","xp":300}]`;
+      } else if (userInput.toLowerCase().includes('nightmare')) {
+        combatEnhancement = ` [ENEMY:{"name":"Nightmare","hp":68,"ac":13,"damage":"2d6+3","description":"A demonic horse that can travel through shadows","xp":400}]`;
+      } else {
+        // Default combat enhancement for any other combat scenario
+        combatEnhancement = ` [ENEMY:{"name":"Mysterious Creature","hp":25,"ac":12,"damage":"1d8+2","description":"A strange creature whose nature is unclear","xp":100}]`;
+      }
+    }
+
     // Create simple game state without complex dependencies
     const gameState = {
       character: {
@@ -822,8 +945,11 @@ When running combat, you MUST:
       diceRoll: diceRoll || 'none'
     });
 
+    // Append combat enhancement to AI response if combat scenario detected
+    const enhancedResponse = aiResponse + combatEnhancement;
+    
     return NextResponse.json({
-      response: aiResponse,
+      response: enhancedResponse,
       items: items,
       statChanges: statChanges,
       ...(diceRoll && { diceRoll }),

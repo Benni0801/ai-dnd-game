@@ -5,6 +5,7 @@ import { CharacterStats, Message } from '../types/index';
 import AdvancedDiceRoller from '../components/AdvancedDiceRoller';
 import InventorySystem, { InventorySystemRef } from '../components/InventorySystem';
 import ActionLog from '../components/ActionLog';
+import DiceRoller from '../components/DiceRoller';
 
 interface ActionLogEntry {
   id: string;
@@ -29,6 +30,18 @@ import GameModeSelector from '../components/GameModeSelector';
 export default function Home() {
   // UI Update - Force refresh
   const [messages, setMessages] = useState<Message[]>([]);
+  
+  // Dice rolling state
+  const [diceRolling, setDiceRolling] = useState(false);
+  const [currentDice, setCurrentDice] = useState('');
+  
+  // Handle dice roll completion
+  const handleDiceRollComplete = (result: number, rolls: number[]) => {
+    setDiceRolling(false);
+    setCurrentDice('');
+    // Add dice roll result to action log
+    addActionLogEntry('stat', `Dice Roll: ${currentDice} = ${result} (${rolls.join(', ')})`, '🎲');
+  };
 
   // Add global styles to prevent overflow
   useEffect(() => {
@@ -158,7 +171,6 @@ export default function Home() {
   });
 
   const [activeTab, setActiveTab] = useState<'chat' | 'character' | 'inventory' | 'combat' | 'quests' | 'actions'>('chat');
-  const [diceRolling, setDiceRolling] = useState(false);
   const [inventory, setInventory] = useState<any[]>([
     {
       id: '1',
@@ -1264,6 +1276,21 @@ export default function Home() {
         throw new Error(data.error);
       }
 
+      // Check for dice rolls in AI response
+      const responseText = data.response || data.message || '';
+      if (responseText.includes('[DICE:')) {
+        try {
+          const diceMatch = responseText.match(/\[DICE:([^\]]+)\]/);
+          if (diceMatch && diceMatch[1]) {
+            const diceString = diceMatch[1];
+            setCurrentDice(diceString);
+            setDiceRolling(true);
+          }
+        } catch (error) {
+          console.error('Error parsing dice data:', error);
+        }
+      }
+
       // Handle items from AI response
       console.log('AI response data:', data);
       console.log('Items from AI:', data.items);
@@ -1424,9 +1451,9 @@ export default function Home() {
       console.log('AI message created:', aiMessage);
 
       // Parse quest offers from AI response BEFORE adding to messages
-      const responseText = data.response || data.message || '';
-      console.log('AI Response text for quest parsing:', responseText);
-      const questMatches = responseText.match(/\[QUEST:(\{.*?\})\]/g);
+      const questResponseText = data.response || data.message || '';
+      console.log('AI Response text for quest parsing:', questResponseText);
+      const questMatches = questResponseText.match(/\[QUEST:(\{.*?\})\]/g);
       console.log('Quest matches found:', questMatches);
       if (questMatches) {
         questMatches.forEach((questMatch: string) => {
@@ -4248,6 +4275,13 @@ export default function Home() {
           </div>
         </div>
       )}
+      
+      {/* Dice Roller Component */}
+      <DiceRoller 
+        dice={currentDice}
+        onRollComplete={handleDiceRollComplete}
+        isRolling={diceRolling}
+      />
     </div>
   );
 }
