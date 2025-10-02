@@ -1489,8 +1489,8 @@ export default function Home() {
               `${playerGoesFirst ? 'You' : enemyData.name} goes first!`
             ]);
             
-            // Switch to combat tab
-            setActiveTab('combat');
+            // Keep on chat tab - combat popup will show instead
+            // setActiveTab('combat'); // Removed - we want popup instead
             
             // If enemy goes first, trigger their turn
             if (!playerGoesFirst) {
@@ -3960,8 +3960,8 @@ export default function Home() {
                   type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder={isInCombat ? "Combat in progress - use the combat overlay above" : "What would you like to do, adventurer?"}
-                  disabled={isLoading || characterStats.isDead || isInCombat}
+                  placeholder={isInCombat ? "Type your combat action (e.g. 'I attack', 'I cast a spell')..." : "What would you like to do, adventurer?"}
+                  disabled={isLoading || characterStats.isDead}
                   style={{
                     flex: 1,
                     padding: '1.25rem 1.5rem',
@@ -4501,98 +4501,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Combat Suggestions Above Chat */}
-      {isInCombat && combatTurn === 'player' && (
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.9) 0%, rgba(185, 28, 28, 0.9) 100%)',
-          border: '2px solid rgba(239, 68, 68, 0.6)',
-          borderRadius: '12px',
-          padding: '15px',
-          marginBottom: '20px',
-          boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)'
-        }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '10px'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}>
-              <span style={{ fontSize: '18px' }}>⚔️</span>
-              <div>
-                <h3 style={{
-                  color: '#ffffff',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  margin: 0
-                }}>
-                  Combat in Progress
-                </h3>
-                <p style={{
-                  color: '#fecaca',
-                  fontSize: '12px',
-                  margin: 0
-                }}>
-                  Your Turn - {characterStats.name}: {characterStats.hp}/{characterStats.maxHp} HP | {enemyStats?.name}: {enemyStats?.hp || 0}/{enemyStats?.maxHp || 0} HP
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => endCombat(false)}
-              style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                borderRadius: '6px',
-                padding: '6px 10px',
-                color: '#ffffff',
-                fontSize: '11px',
-                cursor: 'pointer',
-                fontWeight: '600'
-              }}
-            >
-              Flee
-            </button>
-          </div>
-
-          <div style={{
-            display: 'flex',
-            gap: '8px',
-            flexWrap: 'wrap'
-          }}>
-            {combatActions.slice(0, 4).map((action, index) => (
-              <button
-                key={index}
-                onClick={() => performCombatAction(action)}
-                style={{
-                  background: 'rgba(59, 130, 246, 0.8)',
-                  border: '1px solid rgba(59, 130, 246, 0.6)',
-                  borderRadius: '6px',
-                  padding: '8px 12px',
-                  color: '#ffffff',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  fontWeight: '500',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(59, 130, 246, 1)';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(59, 130, 246, 0.8)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-              >
-                {action}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
       
       {/* 3D Dice Roller Component */}
       {(diceRolling || showDiceResult) && (
