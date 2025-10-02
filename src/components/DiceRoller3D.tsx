@@ -149,108 +149,200 @@ export default function DiceRoller3D({
         {isAnimating ? `Rolling ${dice}...` : `${dice} = ${finalResult}`}
       </h2>
 
-      {/* 3D D20 Dice */}
+      {/* Context Header */}
+      <div style={{
+        textAlign: 'center',
+        marginBottom: '1rem',
+        padding: '1rem',
+        background: 'rgba(0, 0, 0, 0.7)',
+        borderRadius: '12px',
+        border: '2px solid rgba(139, 92, 246, 0.5)'
+      }}>
+        <h3 style={{ 
+          color: '#8b5cf6', 
+          margin: '0 0 0.5rem 0',
+          fontSize: '1.2rem'
+        }}>
+          {isAnimating ? '🎲 Rolling Dice...' : '🎲 Dice Result'}
+        </h3>
+        <p style={{ 
+          color: '#e2e8f0', 
+          margin: 0,
+          fontSize: '0.9rem'
+        }}>
+          {isAnimating 
+            ? `Rolling ${dice} for ${playerName}${enemyName ? ` vs ${enemyName}` : ''}`
+            : `${playerName} rolled ${dice} = ${finalResult}`
+          }
+        </p>
+      </div>
+
+      {/* 3D Dice Container */}
       <div style={{
         margin: 'auto',
         position: 'relative',
-        width: '200px',
-        height: '200px',
-        perspective: '1000px'
+        width: '150px',
+        height: '150px',
+        perspective: '800px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}>
         <div
           ref={dieRef}
           className="die"
           style={{
+            position: 'relative',
+            width: '120px',
+            height: '120px',
+            transformStyle: 'preserve-3d',
+            transition: 'transform 0.5s ease-out',
+            transform: 'rotateX(-15deg) rotateY(15deg)'
+          }}
+        >
+          {/* Main dice face - only show the current result */}
+          <div
+            className="dice-face"
+            style={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              background: 'linear-gradient(145deg, #1e40af, #1e3a8a)',
+              border: '3px solid #1d4ed8',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '32px',
+              fontWeight: 'bold',
+              color: 'white',
+              textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+              boxShadow: '0 8px 16px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.1)',
+              transform: 'translateZ(20px)',
+              borderTop: '2px solid #3b82f6',
+              borderLeft: '2px solid #3b82f6'
+            }}
+          >
+            {showResult ? finalResult : (isAnimating ? rollingNumber : '?')}
+          </div>
+          
+          {/* Side faces for 3D effect */}
+          <div style={{
             position: 'absolute',
             width: '100%',
             height: '100%',
-            transformStyle: 'preserve-3d',
-            transition: 'transform 0.5s ease-out',
-            cursor: 'pointer',
-            transform: 'rotateX(-20deg) rotateY(20deg)'
-          }}
-        >
-          {/* D20 faces - creating an icosahedron shape */}
-          {Array.from({ length: 20 }, (_, i) => (
-            <div
-              key={i + 1}
-              className={`d20-face face-${i + 1}`}
-              style={{
-                position: 'absolute',
-                width: '100%',
-                height: '100%',
-                background: 'linear-gradient(135deg, #10b981, #059669)',
-                border: '2px solid #047857',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '36px',
-                fontWeight: 'bold',
-                color: 'white',
-                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-                clipPath: 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)'
-              }}
-            >
-              {i + 1}
-            </div>
-          ))}
+            background: 'linear-gradient(145deg, #1e3a8a, #1e40af)',
+            border: '3px solid #1d4ed8',
+            borderRadius: '8px',
+            transform: 'translateZ(-20px)',
+            borderBottom: '2px solid #1e40af',
+            borderRight: '2px solid #1e40af'
+          }} />
+          
+          <div style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            background: 'linear-gradient(145deg, #1d4ed8, #1e3a8a)',
+            border: '3px solid #1d4ed8',
+            borderRadius: '8px',
+            transform: 'rotateY(90deg) translateZ(20px)',
+            borderTop: '2px solid #3b82f6',
+            borderRight: '2px solid #3b82f6'
+          }} />
+          
+          <div style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            background: 'linear-gradient(145deg, #1e40af, #1d4ed8)',
+            border: '3px solid #1d4ed8',
+            borderRadius: '8px',
+            transform: 'rotateY(-90deg) translateZ(20px)',
+            borderBottom: '2px solid #1e40af',
+            borderLeft: '2px solid #1e40af'
+          }} />
         </div>
       </div>
 
       {/* Result display */}
       {showResult && (
         <div style={{
-          marginTop: '2rem',
+          marginTop: '1.5rem',
           textAlign: 'center',
-          fontSize: '1.2rem'
+          padding: '1rem',
+          background: 'rgba(0, 0, 0, 0.6)',
+          borderRadius: '12px',
+          border: '2px solid rgba(34, 197, 94, 0.5)'
         }}>
-          <div style={{ marginBottom: '1rem' }}>
-            <strong>Result: {finalResult}</strong>
+          <div style={{ 
+            marginBottom: '0.5rem',
+            fontSize: '1.4rem',
+            fontWeight: 'bold',
+            color: '#22c55e'
+          }}>
+            🎯 Final Result: {finalResult}
+          </div>
+          <div style={{ 
+            color: '#e2e8f0',
+            fontSize: '0.9rem',
+            marginBottom: '0.5rem'
+          }}>
+            {dice} = {finalResult}
           </div>
           {rolls.length > 1 && (
-            <div style={{ color: '#ccc' }}>
+            <div style={{ 
+              color: '#94a3b8',
+              fontSize: '0.8rem'
+            }}>
               Individual rolls: ({rolls.join(', ')}) + {dice.includes('+') ? dice.split('+')[1] : dice.includes('-') ? dice.split('-')[1] : '0'}
             </div>
           )}
+          <div style={{
+            marginTop: '0.5rem',
+            fontSize: '0.8rem',
+            color: '#64748b'
+          }}>
+            Click the × to close
+          </div>
         </div>
       )}
 
-      {/* CSS for 3D d20 animation */}
+      {/* CSS for 3D dice animation */}
       <style jsx>{`
         @keyframes diceRoll {
           0% { 
-            transform: rotateX(-20deg) rotateY(20deg) rotateZ(0deg) scale(1);
+            transform: rotateX(-15deg) rotateY(15deg) rotateZ(0deg) scale(1);
           }
           10% { 
-            transform: rotateX(160deg) rotateY(200deg) rotateZ(90deg) scale(1.1);
+            transform: rotateX(165deg) rotateY(195deg) rotateZ(90deg) scale(1.1);
           }
           20% { 
-            transform: rotateX(340deg) rotateY(380deg) rotateZ(180deg) scale(0.9);
+            transform: rotateX(345deg) rotateY(375deg) rotateZ(180deg) scale(0.9);
           }
           30% { 
-            transform: rotateX(520deg) rotateY(560deg) rotateZ(270deg) scale(1.1);
+            transform: rotateX(525deg) rotateY(555deg) rotateZ(270deg) scale(1.1);
           }
           40% { 
-            transform: rotateX(700deg) rotateY(740deg) rotateZ(360deg) scale(0.9);
+            transform: rotateX(705deg) rotateY(735deg) rotateZ(360deg) scale(0.9);
           }
           50% { 
-            transform: rotateX(880deg) rotateY(920deg) rotateZ(450deg) scale(1.1);
+            transform: rotateX(885deg) rotateY(915deg) rotateZ(450deg) scale(1.1);
           }
           60% { 
-            transform: rotateX(1060deg) rotateY(1100deg) rotateZ(540deg) scale(0.9);
+            transform: rotateX(1065deg) rotateY(1095deg) rotateZ(540deg) scale(0.9);
           }
           70% { 
-            transform: rotateX(1240deg) rotateY(1280deg) rotateZ(630deg) scale(1.1);
+            transform: rotateX(1245deg) rotateY(1275deg) rotateZ(630deg) scale(1.1);
           }
           80% { 
-            transform: rotateX(1420deg) rotateY(1460deg) rotateZ(720deg) scale(0.9);
+            transform: rotateX(1425deg) rotateY(1455deg) rotateZ(720deg) scale(0.9);
           }
           90% { 
-            transform: rotateX(1600deg) rotateY(1640deg) rotateZ(810deg) scale(1.1);
+            transform: rotateX(1605deg) rotateY(1635deg) rotateZ(810deg) scale(1.1);
           }
           100% { 
-            transform: rotateX(1780deg) rotateY(1820deg) rotateZ(900deg) scale(1);
+            transform: rotateX(1785deg) rotateY(1815deg) rotateZ(900deg) scale(1);
           }
         }
         
@@ -258,35 +350,19 @@ export default function DiceRoller3D({
           animation: diceRoll 3s ease-out;
         }
         
-        .d20-face {
+        .dice-face {
           transition: all 0.3s ease;
-          opacity: 0.1;
         }
         
-        .d20-face:first-child {
-          opacity: 1;
+        .die.rolling .dice-face {
+          animation: numberChange 0.1s infinite;
         }
         
-        .die[data-face="1"] .face-1 { opacity: 1; }
-        .die[data-face="2"] .face-2 { opacity: 1; }
-        .die[data-face="3"] .face-3 { opacity: 1; }
-        .die[data-face="4"] .face-4 { opacity: 1; }
-        .die[data-face="5"] .face-5 { opacity: 1; }
-        .die[data-face="6"] .face-6 { opacity: 1; }
-        .die[data-face="7"] .face-7 { opacity: 1; }
-        .die[data-face="8"] .face-8 { opacity: 1; }
-        .die[data-face="9"] .face-9 { opacity: 1; }
-        .die[data-face="10"] .face-10 { opacity: 1; }
-        .die[data-face="11"] .face-11 { opacity: 1; }
-        .die[data-face="12"] .face-12 { opacity: 1; }
-        .die[data-face="13"] .face-13 { opacity: 1; }
-        .die[data-face="14"] .face-14 { opacity: 1; }
-        .die[data-face="15"] .face-15 { opacity: 1; }
-        .die[data-face="16"] .face-16 { opacity: 1; }
-        .die[data-face="17"] .face-17 { opacity: 1; }
-        .die[data-face="18"] .face-18 { opacity: 1; }
-        .die[data-face="19"] .face-19 { opacity: 1; }
-        .die[data-face="20"] .face-20 { opacity: 1; }
+        @keyframes numberChange {
+          0% { transform: translateZ(20px) scale(1); }
+          50% { transform: translateZ(20px) scale(1.05); }
+          100% { transform: translateZ(20px) scale(1); }
+        }
       `}</style>
     </div>
   )
