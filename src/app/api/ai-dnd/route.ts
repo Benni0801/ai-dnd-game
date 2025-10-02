@@ -75,48 +75,118 @@ export async function POST(request: NextRequest) {
     // Combat enhancement data to append to AI response
     let combatEnhancement = '';
     
-    // Check for turn-based combat actions
+    // Check for turn-based combat actions - expanded detection
     const isCombatAction = userInput.toLowerCase().includes('i attack') || 
                           userInput.toLowerCase().includes('i cast') || 
                           userInput.toLowerCase().includes('i dodge') ||
-                          userInput.toLowerCase().includes('enemy turn');
+                          userInput.toLowerCase().includes('enemy turn') ||
+                          userInput.toLowerCase().includes('attack') ||
+                          userInput.toLowerCase().includes('spell') ||
+                          userInput.toLowerCase().includes('strike') ||
+                          userInput.toLowerCase().includes('hit') ||
+                          userInput.toLowerCase().includes('fight') ||
+                          userInput.toLowerCase().includes('combat');
     
-    // Handle turn-based combat actions first
-    if (isCombatAction && body.isInCombat) {
-      if (userInput.toLowerCase().includes('i attack')) {
-        const attackRoll = Math.floor(Math.random() * 20) + 1;
-        const damageRoll = Math.floor(Math.random() * 8) + 1;
-        const hit = attackRoll >= 15; // Simple hit calculation
-        const enemyDies = hit && Math.random() < 0.3; // 30% chance to kill enemy
-        
-        if (enemyDies) {
-          combatEnhancement = ` [DICE:1d20] (Attack Roll: ${attackRoll}) You hit! [DICE:1d8+1] (Damage: ${damageRoll}) The enemy takes ${damageRoll} damage and collapses! [COMBAT_END]`;
+    // Handle turn-based combat actions first - FORCE OVERRIDE
+    if (isCombatAction || body.isInCombat) {
+      // If already in combat, handle any action as a combat action
+      if (body.isInCombat) {
+        if (userInput.toLowerCase().includes('attack') || userInput.toLowerCase().includes('strike') || userInput.toLowerCase().includes('hit')) {
+          const attackRoll = Math.floor(Math.random() * 20) + 1;
+          const damageRoll = Math.floor(Math.random() * 8) + 1;
+          const hit = attackRoll >= 12; // Easier hit chance
+          const enemyDies = hit && Math.random() < 0.4; // 40% chance to kill enemy
+          
+          if (enemyDies) {
+            combatEnhancement = `You swing your weapon at the enemy! [DICE:1d20] (Attack Roll: ${attackRoll}) You hit! [DICE:1d8+1] (Damage: ${damageRoll}) The enemy takes ${damageRoll} damage and collapses! You have won the battle! [XP:50] [COMBAT_END]`;
+            return NextResponse.json({
+              response: combatEnhancement,
+              items: [],
+              statChanges: {},
+              usage: { total_tokens: 0 },
+              debug: 'Combat system override - victory'
+            });
+          } else {
+            combatEnhancement = `You attack the enemy! [DICE:1d20] (Attack Roll: ${attackRoll}) You ${hit ? 'strike true' : 'miss'}! ${hit ? `[DICE:1d8+1] (Damage: ${damageRoll}) The enemy takes ${damageRoll} damage and staggers back!` : 'Your attack misses completely!'} [TURN:enemy]`;
+            return NextResponse.json({
+              response: combatEnhancement,
+              items: [],
+              statChanges: {},
+              usage: { total_tokens: 0 },
+              debug: 'Combat system override - attack'
+            });
+          }
+        } else if (userInput.toLowerCase().includes('cast') || userInput.toLowerCase().includes('spell') || userInput.toLowerCase().includes('magic')) {
+          const spellRoll = Math.floor(Math.random() * 20) + 1;
+          const spellDamage = Math.floor(Math.random() * 6) + 1;
+          const hit = spellRoll >= 10; // Easier spell hit
+          const enemyDies = hit && Math.random() < 0.5; // 50% chance to kill with magic
+          
+          if (enemyDies) {
+            combatEnhancement = `You channel magical energy! [DICE:1d20] (Spell Attack: ${spellRoll}) Your spell strikes true! [DICE:1d6] (Magic Damage: ${spellDamage}) The enemy is consumed by magical energy and falls! Victory is yours! [XP:50] [COMBAT_END]`;
+            return NextResponse.json({
+              response: combatEnhancement,
+              items: [],
+              statChanges: {},
+              usage: { total_tokens: 0 },
+              debug: 'Combat system override - spell victory'
+            });
+          } else {
+            combatEnhancement = `You cast a spell at the enemy! [DICE:1d20] (Spell Attack: ${spellRoll}) Your magic ${hit ? 'hits' : 'misses'}! ${hit ? `[DICE:1d6] (Magic Damage: ${spellDamage}) The enemy takes ${spellDamage} magical damage!` : 'Your spell fizzles out harmlessly!'} [TURN:enemy]`;
+            return NextResponse.json({
+              response: combatEnhancement,
+              items: [],
+              statChanges: {},
+              usage: { total_tokens: 0 },
+              debug: 'Combat system override - spell'
+            });
+          }
+        } else if (userInput.toLowerCase().includes('dodge') || userInput.toLowerCase().includes('defend') || userInput.toLowerCase().includes('block')) {
+          combatEnhancement = `You take a defensive stance, ready to dodge the enemy's next attack! Your defense is increased for this round. [TURN:enemy]`;
+          return NextResponse.json({
+            response: combatEnhancement,
+            items: [],
+            statChanges: {},
+            usage: { total_tokens: 0 },
+            debug: 'Combat system override - dodge'
+          });
+        } else if (userInput.toLowerCase().includes('enemy turn')) {
+          const enemyAttackRoll = Math.floor(Math.random() * 20) + 1;
+          const enemyDamageRoll = Math.floor(Math.random() * 6) + 1;
+          const enemyHit = enemyAttackRoll >= 12;
+          const playerDies = enemyHit && Math.random() < 0.15; // 15% chance to kill player
+          
+          if (playerDies) {
+            combatEnhancement = `The enemy attacks you! [DICE:1d20] (Enemy Attack: ${enemyAttackRoll}) The enemy hits! [DICE:1d6] (Enemy Damage: ${enemyDamageRoll}) You take ${enemyDamageRoll} damage and are defeated! [COMBAT_END]`;
+          } else {
+            combatEnhancement = `The enemy's turn! [DICE:1d20] (Enemy Attack: ${enemyAttackRoll}) The enemy ${enemyHit ? 'hits you' : 'misses'}! ${enemyHit ? `[DICE:1d6] (Enemy Damage: ${enemyDamageRoll}) You take ${enemyDamageRoll} damage!` : 'The enemy\'s attack misses you completely!'} [TURN:player]`;
+          }
+          return NextResponse.json({
+            response: combatEnhancement,
+            items: [],
+            statChanges: {},
+            usage: { total_tokens: 0 },
+            debug: 'Combat system override - enemy turn'
+          });
         } else {
-          combatEnhancement = ` [DICE:1d20] (Attack Roll: ${attackRoll}) You ${hit ? 'hit' : 'miss'}! ${hit ? `[DICE:1d8+1] (Damage: ${damageRoll}) The enemy takes ${damageRoll} damage!` : 'Your attack misses!'} [TURN:enemy]`;
-        }
-      } else if (userInput.toLowerCase().includes('i cast')) {
-        const spellRoll = Math.floor(Math.random() * 20) + 1;
-        const spellDamage = Math.floor(Math.random() * 6) + 1;
-        const hit = spellRoll >= 12;
-        const enemyDies = hit && Math.random() < 0.4;
-        
-        if (enemyDies) {
-          combatEnhancement = ` [DICE:1d20] (Spell Attack: ${spellRoll}) Your spell hits! [DICE:1d6] (Spell Damage: ${spellDamage}) The enemy takes ${spellDamage} damage and is defeated! [COMBAT_END]`;
-        } else {
-          combatEnhancement = ` [DICE:1d20] (Spell Attack: ${spellRoll}) Your spell ${hit ? 'hits' : 'misses'}! ${hit ? `[DICE:1d6] (Spell Damage: ${spellDamage}) The enemy takes ${spellDamage} damage!` : 'Your spell fizzles!'} [TURN:enemy]`;
-        }
-      } else if (userInput.toLowerCase().includes('i dodge')) {
-        combatEnhancement = ` You prepare to dodge the enemy's next attack, increasing your defense! [TURN:enemy]`;
-      } else if (userInput.toLowerCase().includes('enemy turn')) {
-        const enemyAttackRoll = Math.floor(Math.random() * 20) + 1;
-        const enemyDamageRoll = Math.floor(Math.random() * 6) + 1;
-        const enemyHit = enemyAttackRoll >= 12;
-        const playerDies = enemyHit && Math.random() < 0.2; // 20% chance to kill player
-        
-        if (playerDies) {
-          combatEnhancement = ` [DICE:1d20] (Enemy Attack: ${enemyAttackRoll}) The enemy hits! [DICE:1d6] (Enemy Damage: ${enemyDamageRoll}) You take ${enemyDamageRoll} damage and are defeated! [COMBAT_END]`;
-        } else {
-          combatEnhancement = ` [DICE:1d20] (Enemy Attack: ${enemyAttackRoll}) The enemy ${enemyHit ? 'hits' : 'misses'}! ${enemyHit ? `[DICE:1d6] (Enemy Damage: ${enemyDamageRoll}) You take ${enemyDamageRoll} damage!` : 'The enemy\'s attack misses!'} [TURN:player]`;
+          // Default combat action for any other input during combat
+          const actionRoll = Math.floor(Math.random() * 20) + 1;
+          const damage = Math.floor(Math.random() * 6) + 1;
+          const success = actionRoll >= 13;
+          const enemyDies = success && Math.random() < 0.3;
+          
+          if (enemyDies) {
+            combatEnhancement = `You attempt your action! [DICE:1d20] (Action Roll: ${actionRoll}) ${success ? 'Success!' : 'You struggle!'} ${success ? `[DICE:1d6] (Damage: ${damage}) Your action deals ${damage} damage and defeats the enemy!` : 'Your action has no effect!'} ${success ? '[XP:50] [COMBAT_END]' : '[TURN:enemy]'}`;
+          } else {
+            combatEnhancement = `You try to act! [DICE:1d20] (Action Roll: ${actionRoll}) ${success ? 'Success!' : 'You struggle!'} ${success ? `[DICE:1d6] (Damage: ${damage}) Your action deals ${damage} damage!` : 'Your action has no effect!'} [TURN:enemy]`;
+          }
+          return NextResponse.json({
+            response: combatEnhancement,
+            items: [],
+            statChanges: {},
+            usage: { total_tokens: 0 },
+            debug: 'Combat system override - general action'
+          });
         }
       }
     } else if (isCombatInput) {
