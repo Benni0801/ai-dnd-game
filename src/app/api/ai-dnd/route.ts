@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
           const enemyDies = hit && Math.random() < 0.4; // 40% chance to kill enemy
           
           if (enemyDies) {
-            combatEnhancement = `You swing your weapon at the enemy! [DICE:1d20] (Attack Roll: ${attackRoll}) You hit! [DICE:1d8+1] (Damage: ${damageRoll}) The enemy takes ${damageRoll} damage and collapses! You have won the battle! [XP:50] [COMBAT_END]`;
+            combatEnhancement = `You swing your weapon at the enemy! The dice roll shows ${attackRoll}! You hit! The damage roll shows ${damageRoll}! The enemy takes ${damageRoll} damage and collapses! You have won the battle! [XP:50] [COMBAT_END]`;
             return NextResponse.json({
               response: combatEnhancement,
               items: [],
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
             const currentEnemyHp = body.enemyStats?.currentHp || body.enemyStats?.hp || 25;
             const newEnemyHp = Math.max(0, currentEnemyHp - (hit ? damageRoll : 0));
             
-            combatEnhancement = `You attack the enemy! [DICE:1d20] (Attack Roll: ${attackRoll}) You ${hit ? 'strike true' : 'miss'}! ${hit ? `[DICE:1d8+1] (Damage: ${damageRoll}) The enemy takes ${damageRoll} damage and staggers back!` : 'Your attack misses completely!'} [TURN:enemy]`;
+            combatEnhancement = `You attack the enemy! The dice roll shows ${attackRoll}! You ${hit ? 'strike true' : 'miss'}! ${hit ? `The damage roll shows ${damageRoll}! The enemy takes ${damageRoll} damage and staggers back!` : 'Your attack misses completely!'} [TURN:enemy]`;
             return NextResponse.json({
               response: combatEnhancement,
               items: [],
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
           const enemyDies = hit && Math.random() < 0.5; // 50% chance to kill with magic
           
           if (enemyDies) {
-            combatEnhancement = `You channel magical energy! [DICE:1d20] (Spell Attack: ${spellRoll}) Your spell strikes true! [DICE:1d6] (Magic Damage: ${spellDamage}) The enemy is consumed by magical energy and falls! Victory is yours! [XP:50] [COMBAT_END]`;
+            combatEnhancement = `You channel magical energy! The spell attack roll shows ${spellRoll}! Your spell strikes true! The magic damage roll shows ${spellDamage}! The enemy is consumed by magical energy and falls! Victory is yours! [XP:50] [COMBAT_END]`;
             return NextResponse.json({
               response: combatEnhancement,
               items: [],
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
             const currentEnemyHp = body.enemyStats?.currentHp || body.enemyStats?.hp || 25;
             const newEnemyHp = Math.max(0, currentEnemyHp - (hit ? spellDamage : 0));
             
-            combatEnhancement = `You cast a spell at the enemy! [DICE:1d20] (Spell Attack: ${spellRoll}) Your magic ${hit ? 'hits' : 'misses'}! ${hit ? `[DICE:1d6] (Magic Damage: ${spellDamage}) The enemy takes ${spellDamage} magical damage!` : 'Your spell fizzles out harmlessly!'} [TURN:enemy]`;
+            combatEnhancement = `You cast a spell at the enemy! The spell attack roll shows ${spellRoll}! Your magic ${hit ? 'hits' : 'misses'}! ${hit ? `The magic damage roll shows ${spellDamage}! The enemy takes ${spellDamage} magical damage!` : 'Your spell fizzles out harmlessly!'} [TURN:enemy]`;
             return NextResponse.json({
               response: combatEnhancement,
               items: [],
@@ -173,9 +173,9 @@ export async function POST(request: NextRequest) {
           const playerDies = enemyHit && Math.random() < 0.15; // 15% chance to kill player
           
           if (playerDies) {
-            combatEnhancement = `The enemy attacks you! [DICE:1d20] (Enemy Attack: ${enemyAttackRoll}) The enemy hits! [DICE:1d6] (Enemy Damage: ${enemyDamageRoll}) You take ${enemyDamageRoll} damage and are defeated! [COMBAT_END]`;
+            combatEnhancement = `The enemy attacks you! The enemy attack roll shows ${enemyAttackRoll}! The enemy hits! The enemy damage roll shows ${enemyDamageRoll}! You take ${enemyDamageRoll} damage and are defeated! [COMBAT_END]`;
           } else {
-            combatEnhancement = `The enemy's turn! [DICE:1d20] (Enemy Attack: ${enemyAttackRoll}) The enemy ${enemyHit ? 'hits you' : 'misses'}! ${enemyHit ? `[DICE:1d6] (Enemy Damage: ${enemyDamageRoll}) You take ${enemyDamageRoll} damage!` : 'The enemy\'s attack misses you completely!'} [TURN:player]`;
+            combatEnhancement = `The enemy's turn! The enemy attack roll shows ${enemyAttackRoll}! The enemy ${enemyHit ? 'hits you' : 'misses'}! ${enemyHit ? `The enemy damage roll shows ${enemyDamageRoll}! You take ${enemyDamageRoll} damage!` : 'The enemy\'s attack misses you completely!'} [TURN:player]`;
           }
           return NextResponse.json({
             response: combatEnhancement,
@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
           const enemyDies = success && Math.random() < 0.3;
           
           if (enemyDies) {
-            combatEnhancement = `You attempt your action! [DICE:1d20] (Action Roll: ${actionRoll}) ${success ? 'Success!' : 'You struggle!'} ${success ? `[DICE:1d6] (Damage: ${damage}) Your action deals ${damage} damage and defeats the enemy!` : 'Your action has no effect!'} ${success ? '[XP:50] [COMBAT_END]' : '[TURN:enemy]'}`;
+            combatEnhancement = `You attempt your action! The action roll shows ${actionRoll}! ${success ? 'Success!' : 'You struggle!'} ${success ? `The damage roll shows ${damage}! Your action deals ${damage} damage and defeats the enemy!` : 'Your action has no effect!'} ${success ? '[XP:50] [COMBAT_END]' : '[TURN:enemy]'}`;
             return NextResponse.json({
               response: combatEnhancement,
               items: [],
@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
             const currentEnemyHp = body.enemyStats?.currentHp || body.enemyStats?.hp || 25;
             const newEnemyHp = Math.max(0, currentEnemyHp - (success ? damage : 0));
             
-            combatEnhancement = `You try to act! [DICE:1d20] (Action Roll: ${actionRoll}) ${success ? 'Success!' : 'You struggle!'} ${success ? `[DICE:1d6] (Damage: ${damage}) Your action deals ${damage} damage!` : 'Your action has no effect!'} [TURN:enemy]`;
+            combatEnhancement = `You try to act! The action roll shows ${actionRoll}! ${success ? 'Success!' : 'You struggle!'} ${success ? `The damage roll shows ${damage}! Your action deals ${damage} damage!` : 'Your action has no effect!'} [TURN:enemy]`;
             return NextResponse.json({
               response: combatEnhancement,
               items: [],
