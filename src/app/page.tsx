@@ -3593,164 +3593,127 @@ export default function Home() {
               )}
               
               {/* Show combat system when combat tab is selected */}
-              {activeTab === 'combat' && (
+        {activeTab === 'combat' && (
+          <div style={{
+            background: 'rgba(26, 26, 46, 0.8)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(139, 92, 246, 0.2)',
+            borderRadius: '16px',
+            padding: '1.5rem',
+            marginBottom: '1rem'
+          }}>
+            <CombatSystem
+              characterStats={characterStats}
+              onCombatEnd={handleCombatEnd}
+            />
+          </div>
+        )}
+              
+              {/* Combat Popup - shows above chat when in combat */}
+              {isInCombat && enemyStats && activeTab === 'chat' && (
                 <div style={{
-                  background: 'rgba(26, 26, 46, 0.8)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(139, 92, 246, 0.2)',
-                  borderRadius: '16px',
-                  padding: '1.5rem',
-                  marginBottom: '1rem'
+                  position: 'sticky',
+                  top: '0',
+                  zIndex: 10,
+                  background: 'rgba(0, 0, 0, 0.9)',
+                  border: '2px solid #8b5cf6',
+                  borderRadius: '12px',
+                  padding: '1rem',
+                  marginBottom: '1rem',
+                  backdropFilter: 'blur(10px)'
                 }}>
-                  {/* Combat Overlay */}
-                  {isInCombat && enemyStats && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ color: '#8b5cf6', margin: 0, fontSize: '16px' }}>
+                      ⚔️ Combat in Progress
+                    </h3>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                      <span style={{ color: '#e2e8f0', fontSize: '12px' }}>
+                        Round {combatRound}
+                      </span>
+                      <div style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        background: combatTurn === 'player' ? '#10b981' : '#ef4444',
+                        color: 'white',
+                        fontSize: '11px',
+                        fontWeight: 'bold'
+                      }}>
+                        {combatTurn === 'player' ? 'Your Turn' : `${enemyStats.name}'s Turn`}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Player Health Bar */}
+                  <div style={{ marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                      <span style={{ color: '#10b981', fontWeight: 'bold', fontSize: '12px' }}>
+                        {characterStats.name || 'Player'}
+                      </span>
+                      <span style={{ color: '#10b981', fontSize: '12px' }}>
+                        {characterStats.hp || 10}/{characterStats.maxHp || 10} HP
+                      </span>
+                    </div>
                     <div style={{
-                      background: 'rgba(0, 0, 0, 0.7)',
-                      border: '2px solid #8b5cf6',
-                      borderRadius: '12px',
-                      padding: '1rem',
-                      marginBottom: '1rem'
+                      width: '100%',
+                      height: '12px',
+                      background: 'rgba(0, 0, 0, 0.3)',
+                      borderRadius: '6px',
+                      overflow: 'hidden'
                     }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                        <h3 style={{ color: '#8b5cf6', margin: 0 }}>
-                          Combat in Progress
-                        </h3>
-                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                          <span style={{ color: '#e2e8f0', fontSize: '14px' }}>
-                            Round {combatRound}
-                          </span>
-                          <div style={{
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            background: combatTurn === 'player' ? '#10b981' : '#ef4444',
-                            color: 'white',
-                            fontSize: '12px',
-                            fontWeight: 'bold'
-                          }}>
-                            {combatTurn === 'player' ? 'Your Turn' : `${enemyStats.name}'s Turn`}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Player Health Bar */}
-                      <div style={{ marginBottom: '1rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                          <span style={{ color: '#10b981', fontWeight: 'bold' }}>
-                            {characterStats.name || 'Player'}
-                          </span>
-                          <span style={{ color: '#10b981' }}>
-                            {characterStats.hp || 10}/{characterStats.maxHp || 10} HP
-                          </span>
-                        </div>
-                        <div style={{
-                          width: '100%',
-                          height: '20px',
-                          background: 'rgba(0, 0, 0, 0.3)',
-                          borderRadius: '10px',
-                          overflow: 'hidden'
-                        }}>
-                          <div style={{
-                            width: `${((characterStats.hp || 10) / (characterStats.maxHp || 10)) * 100}%`,
-                            height: '100%',
-                            background: 'linear-gradient(90deg, #10b981, #34d399)',
-                            transition: 'width 0.3s ease'
-                          }} />
-                        </div>
-                      </div>
+                      <div style={{
+                        width: `${((characterStats.hp || 10) / (characterStats.maxHp || 10)) * 100}%`,
+                        height: '100%',
+                        background: 'linear-gradient(90deg, #10b981, #34d399)',
+                        transition: 'width 0.3s ease'
+                      }} />
+                    </div>
+                  </div>
 
-                      {/* Enemy Health Bar */}
-                      <div style={{ marginBottom: '1rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                          <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
-                            {enemyStats.name}
-                          </span>
-                          <span style={{ color: '#ef4444' }}>
-                            {enemyStats.currentHp || enemyStats.hp}/{enemyStats.maxHp || enemyStats.hp} HP
-                          </span>
-                        </div>
-                        <div style={{
-                          width: '100%',
-                          height: '20px',
-                          background: 'rgba(0, 0, 0, 0.3)',
-                          borderRadius: '10px',
-                          overflow: 'hidden'
-                        }}>
-                          <div style={{
-                            width: `${((enemyStats.currentHp || enemyStats.hp) / (enemyStats.maxHp || enemyStats.hp)) * 100}%`,
-                            height: '100%',
-                            background: 'linear-gradient(90deg, #ef4444, #f87171)',
-                            transition: 'width 0.3s ease'
-                          }} />
-                        </div>
-                      </div>
+                  {/* Enemy Health Bar */}
+                  <div style={{ marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                      <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '12px' }}>
+                        {enemyStats.name}
+                      </span>
+                      <span style={{ color: '#ef4444', fontSize: '12px' }}>
+                        {enemyStats.currentHp || enemyStats.hp}/{enemyStats.maxHp || enemyStats.hp} HP
+                      </span>
+                    </div>
+                    <div style={{
+                      width: '100%',
+                      height: '12px',
+                      background: 'rgba(0, 0, 0, 0.3)',
+                      borderRadius: '6px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        width: `${((enemyStats.currentHp || enemyStats.hp) / (enemyStats.maxHp || enemyStats.hp)) * 100}%`,
+                        height: '100%',
+                        background: 'linear-gradient(90deg, #ef4444, #f87171)',
+                        transition: 'width 0.3s ease'
+                      }} />
+                    </div>
+                  </div>
 
-                      {/* Combat Actions */}
-                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-                        {combatActions.map((action, index) => (
-                          <button
-                            key={index}
-                            onClick={() => handleCombatAction(action)}
-                            disabled={combatTurn !== 'player' || waitingForEnemyTurn}
-                            style={{
-                              background: combatTurn === 'player' && !waitingForEnemyTurn 
-                                ? 'rgba(139, 92, 246, 0.8)' 
-                                : 'rgba(100, 100, 100, 0.5)',
-                              border: '1px solid rgba(139, 92, 246, 0.6)',
-                              borderRadius: '6px',
-                              padding: '8px 12px',
-                              color: combatTurn === 'player' && !waitingForEnemyTurn ? '#ffffff' : '#888888',
-                              fontSize: '12px',
-                              cursor: combatTurn === 'player' && !waitingForEnemyTurn ? 'pointer' : 'not-allowed',
-                              fontWeight: '500',
-                              transition: 'all 0.2s ease',
-                              opacity: combatTurn === 'player' && !waitingForEnemyTurn ? 1 : 0.6
-                            }}
-                            onMouseEnter={(e) => {
-                              if (combatTurn === 'player' && !waitingForEnemyTurn) {
-                                e.currentTarget.style.background = 'rgba(139, 92, 246, 1)';
-                                e.currentTarget.style.transform = 'translateY(-1px)';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (combatTurn === 'player' && !waitingForEnemyTurn) {
-                                e.currentTarget.style.background = 'rgba(139, 92, 246, 0.8)';
-                                e.currentTarget.style.transform = 'translateY(0)';
-                              }
-                            }}
-                          >
-                            {action}
-                            {waitingForEnemyTurn && ' (Processing...)'}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Combat Log */}
-                      {combatLog.length > 0 && (
-                        <div style={{
-                          marginTop: '1rem',
-                          maxHeight: '100px',
-                          overflowY: 'auto',
-                          background: 'rgba(0, 0, 0, 0.3)',
-                          padding: '0.5rem',
-                          borderRadius: '6px'
-                        }}>
-                          {combatLog.map((log, index) => (
-                            <div key={index} style={{ color: '#e2e8f0', fontSize: '12px', marginBottom: '0.25rem' }}>
-                              {log}
-                            </div>
-                          ))}
+                  {/* Combat Log */}
+                  {combatLog.length > 0 && (
+                    <div style={{
+                      maxHeight: '60px',
+                      overflowY: 'auto',
+                      background: 'rgba(0, 0, 0, 0.3)',
+                      padding: '0.5rem',
+                      borderRadius: '6px'
+                    }}>
+                      {combatLog.slice(-3).map((log, index) => (
+                        <div key={index} style={{ color: '#e2e8f0', fontSize: '11px', marginBottom: '0.25rem' }}>
+                          {log}
                         </div>
-                      )}
+                      ))}
                     </div>
                   )}
-
-                  <CombatSystem
-                    characterStats={characterStats}
-                    onCombatEnd={handleCombatEnd}
-                  />
                 </div>
               )}
-              
+
               {/* Show chat messages when chat tab is selected */}
               {activeTab === 'chat' && messages.map((message) => (
                 <div

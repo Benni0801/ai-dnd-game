@@ -77,6 +77,7 @@ export default function DiceRoller3D({
         // Remove rolling class and show result
         if (dieRef.current) {
           dieRef.current.classList.remove('rolling')
+          dieRef.current.setAttribute('data-face', newRolls[0].toString())
         }
         
         setIsAnimating(false)
@@ -148,7 +149,7 @@ export default function DiceRoller3D({
         {isAnimating ? `Rolling ${dice}...` : `${dice} = ${finalResult}`}
       </h2>
 
-      {/* 3D Dice */}
+      {/* 3D D20 Dice */}
       <div style={{
         margin: 'auto',
         position: 'relative',
@@ -166,32 +167,34 @@ export default function DiceRoller3D({
             transformStyle: 'preserve-3d',
             transition: 'transform 0.5s ease-out',
             cursor: 'pointer',
-            transform: 'rotateX(0deg) rotateY(0deg)'
+            transform: 'rotateX(-20deg) rotateY(20deg)'
           }}
         >
-          {/* Simple cube faces for d20 - showing only the current result */}
-          <div
-            className="dice-face"
-            style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              background: 'linear-gradient(135deg, #10b981, #059669)',
-              border: '3px solid #047857',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '48px',
-              fontWeight: 'bold',
-              color: 'white',
-              textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-              boxShadow: '0 8px 16px rgba(0,0,0,0.3)',
-              transform: 'translateZ(50px)'
-            }}
-          >
-            {showResult ? finalResult : (isAnimating ? rollingNumber : '1')}
-          </div>
+          {/* D20 faces - creating an icosahedron shape */}
+          {Array.from({ length: 20 }, (_, i) => (
+            <div
+              key={i + 1}
+              className={`d20-face face-${i + 1}`}
+              style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                background: 'linear-gradient(135deg, #10b981, #059669)',
+                border: '2px solid #047857',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '36px',
+                fontWeight: 'bold',
+                color: 'white',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+                clipPath: 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)'
+              }}
+            >
+              {i + 1}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -213,41 +216,41 @@ export default function DiceRoller3D({
         </div>
       )}
 
-      {/* CSS for 3D dice animation */}
+      {/* CSS for 3D d20 animation */}
       <style jsx>{`
         @keyframes diceRoll {
           0% { 
-            transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1);
+            transform: rotateX(-20deg) rotateY(20deg) rotateZ(0deg) scale(1);
           }
           10% { 
-            transform: rotateX(180deg) rotateY(180deg) rotateZ(90deg) scale(1.1);
+            transform: rotateX(160deg) rotateY(200deg) rotateZ(90deg) scale(1.1);
           }
           20% { 
-            transform: rotateX(360deg) rotateY(360deg) rotateZ(180deg) scale(0.9);
+            transform: rotateX(340deg) rotateY(380deg) rotateZ(180deg) scale(0.9);
           }
           30% { 
-            transform: rotateX(540deg) rotateY(540deg) rotateZ(270deg) scale(1.1);
+            transform: rotateX(520deg) rotateY(560deg) rotateZ(270deg) scale(1.1);
           }
           40% { 
-            transform: rotateX(720deg) rotateY(720deg) rotateZ(360deg) scale(0.9);
+            transform: rotateX(700deg) rotateY(740deg) rotateZ(360deg) scale(0.9);
           }
           50% { 
-            transform: rotateX(900deg) rotateY(900deg) rotateZ(450deg) scale(1.1);
+            transform: rotateX(880deg) rotateY(920deg) rotateZ(450deg) scale(1.1);
           }
           60% { 
-            transform: rotateX(1080deg) rotateY(1080deg) rotateZ(540deg) scale(0.9);
+            transform: rotateX(1060deg) rotateY(1100deg) rotateZ(540deg) scale(0.9);
           }
           70% { 
-            transform: rotateX(1260deg) rotateY(1260deg) rotateZ(630deg) scale(1.1);
+            transform: rotateX(1240deg) rotateY(1280deg) rotateZ(630deg) scale(1.1);
           }
           80% { 
-            transform: rotateX(1440deg) rotateY(1440deg) rotateZ(720deg) scale(0.9);
+            transform: rotateX(1420deg) rotateY(1460deg) rotateZ(720deg) scale(0.9);
           }
           90% { 
-            transform: rotateX(1620deg) rotateY(1620deg) rotateZ(810deg) scale(1.1);
+            transform: rotateX(1600deg) rotateY(1640deg) rotateZ(810deg) scale(1.1);
           }
           100% { 
-            transform: rotateX(1800deg) rotateY(1800deg) rotateZ(900deg) scale(1);
+            transform: rotateX(1780deg) rotateY(1820deg) rotateZ(900deg) scale(1);
           }
         }
         
@@ -255,9 +258,35 @@ export default function DiceRoller3D({
           animation: diceRoll 3s ease-out;
         }
         
-        .dice-face {
+        .d20-face {
           transition: all 0.3s ease;
+          opacity: 0.1;
         }
+        
+        .d20-face:first-child {
+          opacity: 1;
+        }
+        
+        .die[data-face="1"] .face-1 { opacity: 1; }
+        .die[data-face="2"] .face-2 { opacity: 1; }
+        .die[data-face="3"] .face-3 { opacity: 1; }
+        .die[data-face="4"] .face-4 { opacity: 1; }
+        .die[data-face="5"] .face-5 { opacity: 1; }
+        .die[data-face="6"] .face-6 { opacity: 1; }
+        .die[data-face="7"] .face-7 { opacity: 1; }
+        .die[data-face="8"] .face-8 { opacity: 1; }
+        .die[data-face="9"] .face-9 { opacity: 1; }
+        .die[data-face="10"] .face-10 { opacity: 1; }
+        .die[data-face="11"] .face-11 { opacity: 1; }
+        .die[data-face="12"] .face-12 { opacity: 1; }
+        .die[data-face="13"] .face-13 { opacity: 1; }
+        .die[data-face="14"] .face-14 { opacity: 1; }
+        .die[data-face="15"] .face-15 { opacity: 1; }
+        .die[data-face="16"] .face-16 { opacity: 1; }
+        .die[data-face="17"] .face-17 { opacity: 1; }
+        .die[data-face="18"] .face-18 { opacity: 1; }
+        .die[data-face="19"] .face-19 { opacity: 1; }
+        .die[data-face="20"] .face-20 { opacity: 1; }
       `}</style>
     </div>
   )
