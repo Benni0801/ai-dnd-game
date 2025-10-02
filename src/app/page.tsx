@@ -86,7 +86,8 @@ export default function Home() {
           characterStats,
           inventory,
           isInCombat: true,
-          combatTurn: 'player'
+          combatTurn: 'player',
+          enemyStats
         }),
       });
 
@@ -1454,6 +1455,15 @@ export default function Home() {
         } catch (error) {
           console.error('Error parsing dice data:', error);
         }
+      }
+
+      // Update enemy stats if provided in response
+      if (data.enemyStats && isInCombat) {
+        console.log('Updating enemy stats:', data.enemyStats);
+        setEnemyStats((prev: any) => ({
+          ...prev,
+          ...data.enemyStats
+        }));
       }
 
       // Check for enemy data in AI response

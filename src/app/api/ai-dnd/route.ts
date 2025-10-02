@@ -107,11 +107,19 @@ export async function POST(request: NextRequest) {
               debug: 'Combat system override - victory'
             });
           } else {
+            // Calculate new enemy HP
+            const currentEnemyHp = body.enemyStats?.currentHp || body.enemyStats?.hp || 25;
+            const newEnemyHp = Math.max(0, currentEnemyHp - (hit ? damageRoll : 0));
+            
             combatEnhancement = `You attack the enemy! [DICE:1d20] (Attack Roll: ${attackRoll}) You ${hit ? 'strike true' : 'miss'}! ${hit ? `[DICE:1d8+1] (Damage: ${damageRoll}) The enemy takes ${damageRoll} damage and staggers back!` : 'Your attack misses completely!'} [TURN:enemy]`;
             return NextResponse.json({
               response: combatEnhancement,
               items: [],
               statChanges: {},
+              enemyStats: {
+                ...body.enemyStats,
+                currentHp: newEnemyHp
+              },
               usage: { total_tokens: 0 },
               debug: 'Combat system override - attack'
             });
@@ -132,11 +140,19 @@ export async function POST(request: NextRequest) {
               debug: 'Combat system override - spell victory'
             });
           } else {
+            // Calculate new enemy HP
+            const currentEnemyHp = body.enemyStats?.currentHp || body.enemyStats?.hp || 25;
+            const newEnemyHp = Math.max(0, currentEnemyHp - (hit ? spellDamage : 0));
+            
             combatEnhancement = `You cast a spell at the enemy! [DICE:1d20] (Spell Attack: ${spellRoll}) Your magic ${hit ? 'hits' : 'misses'}! ${hit ? `[DICE:1d6] (Magic Damage: ${spellDamage}) The enemy takes ${spellDamage} magical damage!` : 'Your spell fizzles out harmlessly!'} [TURN:enemy]`;
             return NextResponse.json({
               response: combatEnhancement,
               items: [],
               statChanges: {},
+              enemyStats: {
+                ...body.enemyStats,
+                currentHp: newEnemyHp
+              },
               usage: { total_tokens: 0 },
               debug: 'Combat system override - spell'
             });
@@ -177,16 +193,31 @@ export async function POST(request: NextRequest) {
           
           if (enemyDies) {
             combatEnhancement = `You attempt your action! [DICE:1d20] (Action Roll: ${actionRoll}) ${success ? 'Success!' : 'You struggle!'} ${success ? `[DICE:1d6] (Damage: ${damage}) Your action deals ${damage} damage and defeats the enemy!` : 'Your action has no effect!'} ${success ? '[XP:50] [COMBAT_END]' : '[TURN:enemy]'}`;
+            return NextResponse.json({
+              response: combatEnhancement,
+              items: [],
+              statChanges: {},
+              usage: { total_tokens: 0 },
+              debug: 'Combat system override - general action victory'
+            });
           } else {
+            // Calculate new enemy HP
+            const currentEnemyHp = body.enemyStats?.currentHp || body.enemyStats?.hp || 25;
+            const newEnemyHp = Math.max(0, currentEnemyHp - (success ? damage : 0));
+            
             combatEnhancement = `You try to act! [DICE:1d20] (Action Roll: ${actionRoll}) ${success ? 'Success!' : 'You struggle!'} ${success ? `[DICE:1d6] (Damage: ${damage}) Your action deals ${damage} damage!` : 'Your action has no effect!'} [TURN:enemy]`;
+            return NextResponse.json({
+              response: combatEnhancement,
+              items: [],
+              statChanges: {},
+              enemyStats: {
+                ...body.enemyStats,
+                currentHp: newEnemyHp
+              },
+              usage: { total_tokens: 0 },
+              debug: 'Combat system override - general action'
+            });
           }
-          return NextResponse.json({
-            response: combatEnhancement,
-            items: [],
-            statChanges: {},
-            usage: { total_tokens: 0 },
-            debug: 'Combat system override - general action'
-          });
         }
       }
     } else if (isCombatInput) {
