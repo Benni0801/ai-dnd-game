@@ -467,7 +467,7 @@ export default function DiceRoller3D({
               color: '#94a3b8',
               fontSize: '0.8rem'
             }}>
-              Individual rolls: ({rolls.join(', ')}) + {dice.includes('+') ? dice.split('+')[1] : dice.includes('-') ? dice.split('-')[1] : '0'}
+              Individual rolls: ({rolls.join(', ')}) + {Array.isArray(dice) ? (dice[0].includes('+') ? dice[0].split('+')[1] : dice[0].includes('-') ? dice[0].split('-')[1] : '0') : (dice.includes('+') ? dice.split('+')[1] : dice.includes('-') ? dice.split('-')[1] : '0')}
             </div>
           )}
           <div style={{
