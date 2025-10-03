@@ -1125,21 +1125,37 @@ When running combat, you MUST:
       diceRoll: diceRoll || 'none'
     });
 
-    // Replace AI dice mentions with our actual dice rolls
+    // COMPLETELY OVERRIDE AI RESPONSE FOR COMBAT SCENARIOS
     let finalResponse = aiResponse + combatEnhancement;
     
-    // Replace AI-generated dice numbers with our actual rolls
-    if (diceRolls.length > 0) {
-      if (diceRolls.length === 2) {
-        // Two dice rolls (like initiative)
-        finalResponse = finalResponse.replace(/rolls? a \d+/gi, `rolls a ${diceRolls[0].result}`);
-        finalResponse = finalResponse.replace(/rolls? a \d+/gi, `rolls a ${diceRolls[1].result}`);
-        // Add dice tags for frontend
-        finalResponse += ` [DICE:${diceRolls[0].dice}] [DICE:${diceRolls[1].dice}]`;
-      } else if (diceRolls.length === 1) {
-        // Single dice roll
-        finalResponse = finalResponse.replace(/rolls? a \d+/gi, `rolls a ${diceRolls[0].result}`);
-        finalResponse += ` [DICE:${diceRolls[0].dice}]`;
+    // If this is a combat scenario, replace the entire AI response
+    if (isCombatInput || body.isInCombat) {
+      if (diceRolls.length > 0) {
+        if (diceRolls.length === 2) {
+          // Initiative combat start
+          finalResponse = `Combat begins! You encounter a ${body.enemyStats?.name || 'enemy'}. Initiative: You roll a ${diceRolls[0].result}, ${body.enemyStats?.name || 'enemy'} rolls a ${diceRolls[1].result}. ${diceRolls[0].result >= diceRolls[1].result ? 'You' : body.enemyStats?.name || 'enemy'} goes first! [DICE:${diceRolls[0].dice}] [DICE:${diceRolls[1].dice}]`;
+        } else if (diceRolls.length === 1) {
+          // Single combat action
+          finalResponse = `You take action! The dice roll shows ${diceRolls[0].result}! [DICE:${diceRolls[0].dice}]`;
+        }
+      } else {
+        // Combat without dice
+        finalResponse = `You are in combat with a ${body.enemyStats?.name || 'enemy'}. What do you do?`;
+      }
+    } else {
+      // Replace AI-generated dice numbers with our actual rolls for non-combat
+      if (diceRolls.length > 0) {
+        if (diceRolls.length === 2) {
+          // Two dice rolls (like initiative)
+          finalResponse = finalResponse.replace(/rolls? a \d+/gi, `rolls a ${diceRolls[0].result}`);
+          finalResponse = finalResponse.replace(/rolls? a \d+/gi, `rolls a ${diceRolls[1].result}`);
+          // Add dice tags for frontend
+          finalResponse += ` [DICE:${diceRolls[0].dice}] [DICE:${diceRolls[1].dice}]`;
+        } else if (diceRolls.length === 1) {
+          // Single dice roll
+          finalResponse = finalResponse.replace(/rolls? a \d+/gi, `rolls a ${diceRolls[0].result}`);
+          finalResponse += ` [DICE:${diceRolls[0].dice}]`;
+        }
       }
     }
     

@@ -1513,12 +1513,11 @@ export default function Home() {
             // Keep on chat tab - combat popup will show instead
             // setActiveTab('combat'); // Removed - we want popup instead
             
-            // If enemy goes first, trigger their turn
-            if (!playerGoesFirst) {
-              setTimeout(() => {
-                triggerEnemyTurn();
-              }, 2000);
-            }
+             // If enemy goes first, just set the turn - don't auto-attack
+             if (!playerGoesFirst) {
+               setCombatTurn('enemy');
+               setCombatLog(prev => [...prev, `The ${enemyData.name} goes first!`]);
+             }
           }
         } catch (error) {
           console.error('Error parsing enemy data:', error);
@@ -3982,7 +3981,7 @@ export default function Home() {
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   placeholder={isInCombat ? "Type your combat action (e.g. 'I attack', 'I cast a spell')..." : "What would you like to do, adventurer?"}
-                  disabled={isLoading || characterStats.isDead}
+                  disabled={isLoading}
                   style={{
                     flex: 1,
                     padding: '1.25rem 1.5rem',
@@ -4012,25 +4011,25 @@ export default function Home() {
                   />
                 <button
                   type="submit"
-                  disabled={!inputMessage.trim() || isLoading || characterStats.isDead}
+                  disabled={!inputMessage.trim() || isLoading}
                   style={{
                     padding: '1.25rem 1.75rem',
-                    background: (!inputMessage.trim() || isLoading || characterStats.isDead) 
+                    background: (!inputMessage.trim() || isLoading) 
                       ? 'rgba(55, 65, 81, 0.5)' 
                       : 'linear-gradient(135deg, #8b5cf6, #ec4899)',
                     border: 'none',
                     borderRadius: '20px',
                     color: 'white',
                     fontSize: '1.25rem',
-                    cursor: (!inputMessage.trim() || isLoading || characterStats.isDead) ? 'not-allowed' : 'pointer',
-                    opacity: (!inputMessage.trim() || isLoading || characterStats.isDead) ? 0.5 : 1,
+                    cursor: (!inputMessage.trim() || isLoading) ? 'not-allowed' : 'pointer',
+                    opacity: (!inputMessage.trim() || isLoading) ? 0.5 : 1,
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     minWidth: '70px',
                     minHeight: '56px',
-                    boxShadow: (!inputMessage.trim() || isLoading || characterStats.isDead) 
+                    boxShadow: (!inputMessage.trim() || isLoading) 
                       ? 'none' 
                       : '0 8px 25px rgba(139, 92, 246, 0.4), 0 4px 12px rgba(236, 72, 153, 0.3)',
                     WebkitAppearance: 'none',
@@ -4041,13 +4040,13 @@ export default function Home() {
                     overflow: 'hidden'
                   }}
       onMouseEnter={(e) => {
-        if (!(!inputMessage.trim() || isLoading || characterStats.isDead)) {
+        if (!(!inputMessage.trim() || isLoading)) {
           e.currentTarget.style.transform = 'translateY(-2px)';
           e.currentTarget.style.boxShadow = '0 12px 30px rgba(139, 92, 246, 0.5), 0 6px 15px rgba(236, 72, 153, 0.3)';
         }
       }}
       onMouseLeave={(e) => {
-        if (!(!inputMessage.trim() || isLoading || characterStats.isDead)) {
+        if (!(!inputMessage.trim() || isLoading)) {
           e.currentTarget.style.transform = 'translateY(0)';
           e.currentTarget.style.boxShadow = '0 8px 25px rgba(139, 92, 246, 0.4), 0 4px 12px rgba(236, 72, 153, 0.3)';
         }
