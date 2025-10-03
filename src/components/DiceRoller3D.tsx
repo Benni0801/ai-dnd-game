@@ -3,12 +3,13 @@
 import React, { useState, useEffect, useRef } from 'react'
 
 interface DiceRoller3DProps {
-  dice: string
+  dice: string | string[]
   onRollComplete: (result: number, rolls: number[]) => void
   isRolling: boolean
   onClose: () => void
   playerName?: string
   enemyName?: string
+  diceResults?: {dice: string, result: number, rolls: number[]}[]
 }
 
 export default function DiceRoller3D({ 
@@ -17,7 +18,8 @@ export default function DiceRoller3D({
   isRolling, 
   onClose,
   playerName = "Player",
-  enemyName = "Enemy"
+  enemyName = "Enemy",
+  diceResults = []
 }: DiceRoller3DProps) {
   const [currentRoll, setCurrentRoll] = useState<number>(1)
   const [isAnimating, setIsAnimating] = useState(false)
@@ -181,50 +183,175 @@ export default function DiceRoller3D({
       <div style={{
         margin: 'auto',
         position: 'relative',
-        width: '200px',
+        width: diceResults.length > 1 ? '400px' : '200px',
         height: '200px',
         perspective: '1000px',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        gap: '20px'
       }}>
-        <div
-          ref={dieRef}
-          className="die"
-          style={{
-            position: 'relative',
-            width: '100px',
-            height: '100px',
-            transformStyle: 'preserve-3d',
-            transition: 'transform 0.5s ease-out',
-            transform: 'rotateX(-20deg) rotateY(20deg)'
-          }}
-        >
-          {/* Front face */}
+        {diceResults.length > 0 ? (
+          // Show multiple dice with actual results
+          diceResults.map((diceResult, index) => (
+            <div
+              key={index}
+              className="die"
+              style={{
+                position: 'relative',
+                width: '100px',
+                height: '100px',
+                transformStyle: 'preserve-3d',
+                transition: 'transform 0.5s ease-out',
+                transform: 'rotateX(-20deg) rotateY(20deg)'
+              }}
+            >
+              {/* Front face */}
+              <div
+                className="dice-face front"
+                style={{
+                  position: 'absolute',
+                  width: '100px',
+                  height: '100px',
+                  background: 'linear-gradient(145deg, #ffffff, #f1f5f9)',
+                  border: '2px solid #cbd5e1',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '28px',
+                  fontWeight: 'bold',
+                  color: '#1e293b',
+                  textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                  transform: 'translateZ(50px)',
+                  borderTop: '3px solid #f8fafc',
+                  borderLeft: '3px solid #f8fafc'
+                }}
+              >
+                {diceResult.result}
+              </div>
+              
+              {/* Back face */}
+              <div
+                className="dice-face back"
+                style={{
+                  position: 'absolute',
+                  width: '100px',
+                  height: '100px',
+                  background: 'linear-gradient(145deg, #e2e8f0, #cbd5e1)',
+                  border: '2px solid #94a3b8',
+                  borderRadius: '12px',
+                  transform: 'translateZ(-50px) rotateY(180deg)',
+                  borderBottom: '3px solid #94a3b8',
+                  borderRight: '3px solid #94a3b8'
+                }}
+              />
+              
+              {/* Right face */}
+              <div
+                className="dice-face right"
+                style={{
+                  position: 'absolute',
+                  width: '100px',
+                  height: '100px',
+                  background: 'linear-gradient(145deg, #f1f5f9, #e2e8f0)',
+                  border: '2px solid #cbd5e1',
+                  borderRadius: '12px',
+                  transform: 'rotateY(90deg) translateZ(50px)',
+                  borderTop: '3px solid #f8fafc',
+                  borderRight: '3px solid #cbd5e1'
+                }}
+              />
+              
+              {/* Left face */}
+              <div
+                className="dice-face left"
+                style={{
+                  position: 'absolute',
+                  width: '100px',
+                  height: '100px',
+                  background: 'linear-gradient(145deg, #e2e8f0, #cbd5e1)',
+                  border: '2px solid #94a3b8',
+                  borderRadius: '12px',
+                  transform: 'rotateY(-90deg) translateZ(50px)',
+                  borderBottom: '3px solid #94a3b8',
+                  borderLeft: '3px solid #cbd5e1'
+                }}
+              />
+              
+              {/* Top face */}
+              <div
+                className="dice-face top"
+                style={{
+                  position: 'absolute',
+                  width: '100px',
+                  height: '100px',
+                  background: 'linear-gradient(145deg, #f8fafc, #f1f5f9)',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '12px',
+                  transform: 'rotateX(90deg) translateZ(50px)',
+                  borderTop: '3px solid #ffffff',
+                  borderLeft: '3px solid #f8fafc'
+                }}
+              />
+              
+              {/* Bottom face */}
+              <div
+                className="dice-face bottom"
+                style={{
+                  position: 'absolute',
+                  width: '100px',
+                  height: '100px',
+                  background: 'linear-gradient(145deg, #cbd5e1, #94a3b8)',
+                  border: '2px solid #64748b',
+                  borderRadius: '12px',
+                  transform: 'rotateX(-90deg) translateZ(50px)',
+                  borderBottom: '3px solid #64748b',
+                  borderRight: '3px solid #94a3b8'
+                }}
+              />
+            </div>
+          ))
+        ) : (
+          // Single dice animation
           <div
-            className="dice-face front"
+            ref={dieRef}
+            className="die"
             style={{
-              position: 'absolute',
+              position: 'relative',
               width: '100px',
               height: '100px',
-              background: 'linear-gradient(145deg, #ffffff, #f1f5f9)',
-              border: '2px solid #cbd5e1',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '28px',
-              fontWeight: 'bold',
-              color: '#1e293b',
-              textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
-              boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-              transform: 'translateZ(50px)',
-              borderTop: '3px solid #f8fafc',
-              borderLeft: '3px solid #f8fafc'
+              transformStyle: 'preserve-3d',
+              transition: 'transform 0.5s ease-out',
+              transform: 'rotateX(-20deg) rotateY(20deg)'
             }}
           >
-            {showResult ? finalResult : (isAnimating ? rollingNumber : '?')}
-          </div>
+            {/* Front face */}
+            <div
+              className="dice-face front"
+              style={{
+                position: 'absolute',
+                width: '100px',
+                height: '100px',
+                background: 'linear-gradient(145deg, #ffffff, #f1f5f9)',
+                border: '2px solid #cbd5e1',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '28px',
+                fontWeight: 'bold',
+                color: '#1e293b',
+                textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+                transform: 'translateZ(50px)',
+                borderTop: '3px solid #f8fafc',
+                borderLeft: '3px solid #f8fafc'
+              }}
+            >
+              {showResult ? finalResult : (isAnimating ? rollingNumber : '?')}
+            </div>
           
           {/* Back face */}
           <div
@@ -290,22 +417,23 @@ export default function DiceRoller3D({
             }}
           />
           
-          {/* Bottom face */}
-          <div
-            className="dice-face bottom"
-            style={{
-              position: 'absolute',
-              width: '100px',
-              height: '100px',
-              background: 'linear-gradient(145deg, #cbd5e1, #94a3b8)',
-              border: '2px solid #64748b',
-              borderRadius: '12px',
-              transform: 'rotateX(-90deg) translateZ(50px)',
-              borderBottom: '3px solid #64748b',
-              borderRight: '3px solid #94a3b8'
-            }}
-          />
-        </div>
+            {/* Bottom face */}
+            <div
+              className="dice-face bottom"
+              style={{
+                position: 'absolute',
+                width: '100px',
+                height: '100px',
+                background: 'linear-gradient(145deg, #cbd5e1, #94a3b8)',
+                border: '2px solid #64748b',
+                borderRadius: '12px',
+                transform: 'rotateX(-90deg) translateZ(50px)',
+                borderBottom: '3px solid #64748b',
+                borderRight: '3px solid #94a3b8'
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Result display */}

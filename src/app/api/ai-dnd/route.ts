@@ -87,6 +87,40 @@ export async function POST(request: NextRequest) {
                           userInput.toLowerCase().includes('fight') ||
                           userInput.toLowerCase().includes('combat');
     
+    // DICE ROLL INTERCEPTION - Generate dice rolls first, then use them in AI response
+    let diceRolls: {dice: string, result: number, rolls: number[]}[] = [];
+    
+    // Check if AI response contains dice roll requests
+    if (userInput.toLowerCase().includes('initiative') || 
+        userInput.toLowerCase().includes('roll') ||
+        userInput.toLowerCase().includes('dice') ||
+        userInput.toLowerCase().includes('attack') ||
+        userInput.toLowerCase().includes('damage')) {
+      
+      // Generate dice rolls based on context
+      if (userInput.toLowerCase().includes('initiative')) {
+        // Initiative rolls for both player and enemy
+        const playerInit = Math.floor(Math.random() * 20) + 1;
+        const enemyInit = Math.floor(Math.random() * 20) + 1;
+        diceRolls = [
+          {dice: '1d20', result: playerInit, rolls: [playerInit]},
+          {dice: '1d20', result: enemyInit, rolls: [enemyInit]}
+        ];
+      } else if (userInput.toLowerCase().includes('attack')) {
+        // Attack and damage rolls
+        const attackRoll = Math.floor(Math.random() * 20) + 1;
+        const damageRoll = Math.floor(Math.random() * 8) + 1;
+        diceRolls = [
+          {dice: '1d20', result: attackRoll, rolls: [attackRoll]},
+          {dice: '1d8+1', result: damageRoll, rolls: [damageRoll]}
+        ];
+      } else {
+        // Single roll
+        const roll = Math.floor(Math.random() * 20) + 1;
+        diceRolls = [{dice: '1d20', result: roll, rolls: [roll]}];
+      }
+    }
+
     // Handle turn-based combat actions first - FORCE OVERRIDE
     if (isCombatAction || body.isInCombat) {
       // If already in combat, handle any action as a combat action
@@ -1091,14 +1125,30 @@ When running combat, you MUST:
       diceRoll: diceRoll || 'none'
     });
 
-    // Append combat enhancement to AI response if combat scenario detected
-    const enhancedResponse = aiResponse + combatEnhancement;
+    // Replace AI dice mentions with our actual dice rolls
+    let finalResponse = aiResponse + combatEnhancement;
+    
+    // Replace AI-generated dice numbers with our actual rolls
+    if (diceRolls.length > 0) {
+      if (diceRolls.length === 2) {
+        // Two dice rolls (like initiative)
+        finalResponse = finalResponse.replace(/rolls? a \d+/gi, `rolls a ${diceRolls[0].result}`);
+        finalResponse = finalResponse.replace(/rolls? a \d+/gi, `rolls a ${diceRolls[1].result}`);
+        // Add dice tags for frontend
+        finalResponse += ` [DICE:${diceRolls[0].dice}] [DICE:${diceRolls[1].dice}]`;
+      } else if (diceRolls.length === 1) {
+        // Single dice roll
+        finalResponse = finalResponse.replace(/rolls? a \d+/gi, `rolls a ${diceRolls[0].result}`);
+        finalResponse += ` [DICE:${diceRolls[0].dice}]`;
+      }
+    }
     
     return NextResponse.json({
-      response: enhancedResponse,
+      response: finalResponse,
       items: items,
       statChanges: statChanges,
       ...(diceRoll && { diceRoll }),
+      diceRolls: diceRolls, // Send dice rolls to frontend
       usage: { total_tokens: 0 },
       debug: 'Successfully connected to Gemini API'
     });

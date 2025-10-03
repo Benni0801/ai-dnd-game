@@ -114,7 +114,18 @@ export default function Home() {
       setMessages(prev => [...prev, aiMessage]);
       
       // Check for dice rolls
-      if (responseText.includes('[DICE:')) {
+      if (data.diceRolls && data.diceRolls.length > 0) {
+        // Use the dice rolls from the API response
+        const diceRolls = data.diceRolls as {dice: string, result: number, rolls: number[]}[];
+        setCurrentDice(diceRolls.map(dr => dr.dice).join(', '));
+        setDiceRolling(true);
+        // Store the dice results for display
+        setDiceResult({
+          result: diceRolls.reduce((sum, dr) => sum + dr.result, 0),
+          rolls: diceRolls.flatMap(dr => dr.rolls)
+        });
+      } else if (responseText.includes('[DICE:')) {
+        // Fallback to parsing dice tags
         try {
           const diceMatch = responseText.match(/\[DICE:([^\]]+)\]/);
           if (diceMatch && diceMatch[1]) {
@@ -4521,6 +4532,7 @@ export default function Home() {
           onClose={handleDiceClose}
           playerName={characterStats.name || "Player"}
           enemyName={enemyStats?.name || "Enemy"}
+          diceResults={diceResult ? [{dice: currentDice, result: diceResult.result, rolls: diceResult.rolls}] : []}
         />
       )}
     </div>
