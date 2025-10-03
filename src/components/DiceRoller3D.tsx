@@ -37,7 +37,8 @@ export default function DiceRoller3D({
       setShowResult(false)
       
       // Parse dice string (e.g., "1d20", "2d6+3")
-      const match = dice.match(/(\d+)d(\d+)([+-]\d+)?/)
+      const diceString = Array.isArray(dice) ? dice[0] : dice
+      const match = diceString.match(/(\d+)d(\d+)([+-]\d+)?/)
       if (!match) return
       
       const numDice = parseInt(match[1])
