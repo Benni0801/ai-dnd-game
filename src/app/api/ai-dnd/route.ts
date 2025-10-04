@@ -85,7 +85,19 @@ export async function POST(request: NextRequest) {
                           userInput.toLowerCase().includes('strike') ||
                           userInput.toLowerCase().includes('hit') ||
                           userInput.toLowerCase().includes('fight') ||
-                          userInput.toLowerCase().includes('combat');
+                          userInput.toLowerCase().includes('combat') ||
+                          userInput.toLowerCase().includes('slash') ||
+                          userInput.toLowerCase().includes('swing') ||
+                          userInput.toLowerCase().includes('stab') ||
+                          userInput.toLowerCase().includes('punch') ||
+                          userInput.toLowerCase().includes('kick') ||
+                          userInput.toLowerCase().includes('shoot') ||
+                          userInput.toLowerCase().includes('fire') ||
+                          userInput.toLowerCase().includes('magic') ||
+                          userInput.toLowerCase().includes('cast') ||
+                          userInput.toLowerCase().includes('defend') ||
+                          userInput.toLowerCase().includes('block') ||
+                          userInput.toLowerCase().includes('dodge');
     
     // DICE ROLL INTERCEPTION - Generate dice rolls first, then use them in AI response
     let diceRolls: {dice: string, result: number, rolls: number[]}[] = [];
@@ -95,7 +107,19 @@ export async function POST(request: NextRequest) {
         userInput.toLowerCase().includes('roll') ||
         userInput.toLowerCase().includes('dice') ||
         userInput.toLowerCase().includes('attack') ||
-        userInput.toLowerCase().includes('damage')) {
+        userInput.toLowerCase().includes('damage') ||
+        userInput.toLowerCase().includes('slash') ||
+        userInput.toLowerCase().includes('swing') ||
+        userInput.toLowerCase().includes('stab') ||
+        userInput.toLowerCase().includes('punch') ||
+        userInput.toLowerCase().includes('kick') ||
+        userInput.toLowerCase().includes('shoot') ||
+        userInput.toLowerCase().includes('fire') ||
+        userInput.toLowerCase().includes('cast') ||
+        userInput.toLowerCase().includes('spell') ||
+        userInput.toLowerCase().includes('magic') ||
+        userInput.toLowerCase().includes('fight') ||
+        userInput.toLowerCase().includes('combat')) {
       
       // Generate dice rolls based on context
       if (userInput.toLowerCase().includes('initiative')) {
@@ -125,7 +149,7 @@ export async function POST(request: NextRequest) {
     if (isCombatAction || body.isInCombat) {
       // If already in combat, handle any action as a combat action
       if (body.isInCombat) {
-        if (userInput.toLowerCase().includes('attack') || userInput.toLowerCase().includes('strike') || userInput.toLowerCase().includes('hit')) {
+        if (userInput.toLowerCase().includes('attack') || userInput.toLowerCase().includes('strike') || userInput.toLowerCase().includes('hit') || userInput.toLowerCase().includes('slash') || userInput.toLowerCase().includes('swing') || userInput.toLowerCase().includes('stab') || userInput.toLowerCase().includes('punch') || userInput.toLowerCase().includes('kick') || userInput.toLowerCase().includes('shoot') || userInput.toLowerCase().includes('fire')) {
           const attackRoll = Math.floor(Math.random() * 20) + 1;
           const damageRoll = Math.floor(Math.random() * 8) + 1;
           const hit = attackRoll >= 12; // Easier hit chance
@@ -137,6 +161,10 @@ export async function POST(request: NextRequest) {
               response: combatEnhancement,
               items: [],
               statChanges: {},
+              diceRolls: [
+                {dice: '1d20', result: attackRoll, rolls: [attackRoll]},
+                {dice: '1d8+1', result: damageRoll, rolls: [damageRoll]}
+              ],
               usage: { total_tokens: 0 },
               debug: 'Combat system override - victory'
             });
@@ -154,6 +182,10 @@ export async function POST(request: NextRequest) {
                 ...body.enemyStats,
                 currentHp: newEnemyHp
               },
+              diceRolls: [
+                {dice: '1d20', result: attackRoll, rolls: [attackRoll]},
+                {dice: '1d8+1', result: damageRoll, rolls: [damageRoll]}
+              ],
               usage: { total_tokens: 0 },
               debug: 'Combat system override - attack'
             });
@@ -170,6 +202,10 @@ export async function POST(request: NextRequest) {
               response: combatEnhancement,
               items: [],
               statChanges: {},
+              diceRolls: [
+                {dice: '1d20', result: spellRoll, rolls: [spellRoll]},
+                {dice: '1d6', result: spellDamage, rolls: [spellDamage]}
+              ],
               usage: { total_tokens: 0 },
               debug: 'Combat system override - spell victory'
             });
@@ -187,6 +223,10 @@ export async function POST(request: NextRequest) {
                 ...body.enemyStats,
                 currentHp: newEnemyHp
               },
+              diceRolls: [
+                {dice: '1d20', result: spellRoll, rolls: [spellRoll]},
+                {dice: '1d6', result: spellDamage, rolls: [spellDamage]}
+              ],
               usage: { total_tokens: 0 },
               debug: 'Combat system override - spell'
             });
@@ -1128,19 +1168,16 @@ When running combat, you MUST:
     // COMPLETELY OVERRIDE AI RESPONSE FOR COMBAT SCENARIOS
     let finalResponse = aiResponse + combatEnhancement;
     
-    // If this is a combat scenario, replace the entire AI response
+    // If this is a combat scenario, enhance the AI response with dice rolls
     if (isCombatInput || body.isInCombat) {
       if (diceRolls.length > 0) {
         if (diceRolls.length === 2) {
-          // Initiative combat start
-          finalResponse = `Combat begins! You encounter a ${body.enemyStats?.name || 'enemy'}. Initiative: You roll a ${diceRolls[0].result}, ${body.enemyStats?.name || 'enemy'} rolls a ${diceRolls[1].result}. ${diceRolls[0].result >= diceRolls[1].result ? 'You' : body.enemyStats?.name || 'enemy'} goes first! [DICE:${diceRolls[0].dice}] [DICE:${diceRolls[1].dice}]`;
+          // Initiative combat start - add dice info to AI response
+          finalResponse += ` Initiative: You roll a ${diceRolls[0].result}, ${body.enemyStats?.name || 'enemy'} rolls a ${diceRolls[1].result}. ${diceRolls[0].result >= diceRolls[1].result ? 'You' : body.enemyStats?.name || 'enemy'} goes first! [DICE:${diceRolls[0].dice}] [DICE:${diceRolls[1].dice}]`;
         } else if (diceRolls.length === 1) {
-          // Single combat action
-          finalResponse = `You take action! The dice roll shows ${diceRolls[0].result}! [DICE:${diceRolls[0].dice}]`;
+          // Single combat action - add dice info to AI response
+          finalResponse += ` The dice roll shows ${diceRolls[0].result}! [DICE:${diceRolls[0].dice}]`;
         }
-      } else {
-        // Combat without dice
-        finalResponse = `You are in combat with a ${body.enemyStats?.name || 'enemy'}. What do you do?`;
       }
     } else {
       // Replace AI-generated dice numbers with our actual rolls for non-combat
