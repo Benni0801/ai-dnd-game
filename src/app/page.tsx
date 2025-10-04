@@ -4522,8 +4522,8 @@ export default function Home() {
       )}
 
       
-      {/* 3D Dice Roller Component */}
-      {(diceRolling || showDiceResult) && (
+      {/* 3D Dice Roller Component - DISABLED */}
+      {false && (diceRolling || showDiceResult) && (
         <DiceRoller3D 
           dice={currentDice}
           onRollComplete={handleDiceRollComplete}
@@ -4531,7 +4531,7 @@ export default function Home() {
           onClose={handleDiceClose}
           playerName={characterStats.name || "Player"}
           enemyName={enemyStats?.name || "Enemy"}
-          diceResults={diceResult ? [{dice: currentDice, result: diceResult.result, rolls: diceResult.rolls}] : []}
+          diceResults={[]}
         />
       )}
     </div>

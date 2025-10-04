@@ -156,15 +156,11 @@ export async function POST(request: NextRequest) {
           const enemyDies = hit && Math.random() < 0.4; // 40% chance to kill enemy
           
           if (enemyDies) {
-            combatEnhancement = `You swing your weapon at the enemy! The dice roll shows ${attackRoll}! You hit! The damage roll shows ${damageRoll}! The enemy takes ${damageRoll} damage and collapses! You have won the battle! [XP:50] [COMBAT_END]`;
+            combatEnhancement = `You swing your weapon at the enemy! You hit! The enemy takes ${damageRoll} damage and collapses! You have won the battle! [XP:50] [COMBAT_END]`;
             return NextResponse.json({
               response: combatEnhancement,
               items: [],
               statChanges: {},
-              diceRolls: [
-                {dice: '1d20', result: attackRoll, rolls: [attackRoll]},
-                {dice: '1d8+1', result: damageRoll, rolls: [damageRoll]}
-              ],
               usage: { total_tokens: 0 },
               debug: 'Combat system override - victory'
             });
@@ -173,7 +169,7 @@ export async function POST(request: NextRequest) {
             const currentEnemyHp = body.enemyStats?.currentHp || body.enemyStats?.hp || 25;
             const newEnemyHp = Math.max(0, currentEnemyHp - (hit ? damageRoll : 0));
             
-            combatEnhancement = `You attack the enemy! The dice roll shows ${attackRoll}! You ${hit ? 'strike true' : 'miss'}! ${hit ? `The damage roll shows ${damageRoll}! The enemy takes ${damageRoll} damage and staggers back!` : 'Your attack misses completely!'} [TURN:enemy]`;
+            combatEnhancement = `You attack the enemy! You ${hit ? 'strike true' : 'miss'}! ${hit ? `The enemy takes ${damageRoll} damage and staggers back!` : 'Your attack misses completely!'} [TURN:enemy]`;
             return NextResponse.json({
               response: combatEnhancement,
               items: [],
@@ -182,10 +178,6 @@ export async function POST(request: NextRequest) {
                 ...body.enemyStats,
                 currentHp: newEnemyHp
               },
-              diceRolls: [
-                {dice: '1d20', result: attackRoll, rolls: [attackRoll]},
-                {dice: '1d8+1', result: damageRoll, rolls: [damageRoll]}
-              ],
               usage: { total_tokens: 0 },
               debug: 'Combat system override - attack'
             });
@@ -197,15 +189,11 @@ export async function POST(request: NextRequest) {
           const enemyDies = hit && Math.random() < 0.5; // 50% chance to kill with magic
           
           if (enemyDies) {
-            combatEnhancement = `You channel magical energy! The spell attack roll shows ${spellRoll}! Your spell strikes true! The magic damage roll shows ${spellDamage}! The enemy is consumed by magical energy and falls! Victory is yours! [XP:50] [COMBAT_END]`;
+            combatEnhancement = `You channel magical energy! Your spell strikes true! The enemy is consumed by magical energy and falls! Victory is yours! [XP:50] [COMBAT_END]`;
             return NextResponse.json({
               response: combatEnhancement,
               items: [],
               statChanges: {},
-              diceRolls: [
-                {dice: '1d20', result: spellRoll, rolls: [spellRoll]},
-                {dice: '1d6', result: spellDamage, rolls: [spellDamage]}
-              ],
               usage: { total_tokens: 0 },
               debug: 'Combat system override - spell victory'
             });
@@ -214,7 +202,7 @@ export async function POST(request: NextRequest) {
             const currentEnemyHp = body.enemyStats?.currentHp || body.enemyStats?.hp || 25;
             const newEnemyHp = Math.max(0, currentEnemyHp - (hit ? spellDamage : 0));
             
-            combatEnhancement = `You cast a spell at the enemy! The spell attack roll shows ${spellRoll}! Your magic ${hit ? 'hits' : 'misses'}! ${hit ? `The magic damage roll shows ${spellDamage}! The enemy takes ${spellDamage} magical damage!` : 'Your spell fizzles out harmlessly!'} [TURN:enemy]`;
+            combatEnhancement = `You cast a spell at the enemy! Your magic ${hit ? 'hits' : 'misses'}! ${hit ? `The enemy takes ${spellDamage} magical damage!` : 'Your spell fizzles out harmlessly!'} [TURN:enemy]`;
             return NextResponse.json({
               response: combatEnhancement,
               items: [],
@@ -223,10 +211,6 @@ export async function POST(request: NextRequest) {
                 ...body.enemyStats,
                 currentHp: newEnemyHp
               },
-              diceRolls: [
-                {dice: '1d20', result: spellRoll, rolls: [spellRoll]},
-                {dice: '1d6', result: spellDamage, rolls: [spellDamage]}
-              ],
               usage: { total_tokens: 0 },
               debug: 'Combat system override - spell'
             });
@@ -1175,8 +1159,7 @@ When running combat, you MUST:
           // Initiative combat start - add dice info to AI response
           finalResponse += ` Initiative: You roll a ${diceRolls[0].result}, ${body.enemyStats?.name || 'enemy'} rolls a ${diceRolls[1].result}. ${diceRolls[0].result >= diceRolls[1].result ? 'You' : body.enemyStats?.name || 'enemy'} goes first! [DICE:${diceRolls[0].dice}] [DICE:${diceRolls[1].dice}]`;
         } else if (diceRolls.length === 1) {
-          // Single combat action - add dice info to AI response
-          finalResponse += ` The dice roll shows ${diceRolls[0].result}! [DICE:${diceRolls[0].dice}]`;
+          // Single combat action - no dice info added
         }
       }
     } else {
